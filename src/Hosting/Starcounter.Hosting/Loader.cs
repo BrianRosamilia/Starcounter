@@ -141,6 +141,8 @@ namespace StarcounterInternal.Hosting
             var sysIndexTypeDef = materialized_index.CreateTypeDef();
             var sysIndexColumnTypeDef = materialized_index_column.CreateTypeDef();
 
+            // Add view meta-data
+
             Package package = new Package(
                 new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef },
                 null,
