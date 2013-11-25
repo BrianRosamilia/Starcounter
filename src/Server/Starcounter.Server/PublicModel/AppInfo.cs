@@ -32,6 +32,24 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
+        /// Path to the application file that was used to invoke the
+        /// starting of the current application.
+        /// </summary>
+        /// <remarks>
+        /// In the simplest scenario, this path will be equal to 
+        /// <c>ExecutablePath</c>, but in a scenario where there is a
+        /// transform between the input and the actual executable
+        /// (e.g when the input is a source code file), this property
+        /// will return the path of the source code file while the
+        /// <c>ExecutablePath</c> will return the path to the assembly
+        /// compiled on the fly.
+        /// </remarks>
+        public string ApplicationFilePath {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets the working directory of the App.
         /// </summary>
         public string WorkingDirectory {

@@ -35,6 +35,18 @@ namespace Starcounter.Server.PublicModel.Commands {
         public readonly string ExecutablePath;
 
         /// <summary>
+        /// Path to the application file that was used to invoke the
+        /// starting of the about-to-be-started application.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Starcounter.Server.PublicModel.AppInfo.ApplicationFilePath"/>
+        /// </remarks>
+        public string ApplicationFilePath {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets the path to the directory the requesting executable
         /// has given as it's working directory;
         /// </summary>

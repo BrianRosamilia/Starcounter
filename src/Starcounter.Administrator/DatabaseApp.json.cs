@@ -59,7 +59,9 @@ namespace Starcounter.Administrator {
 
                 this.Apps.Clear(); // TODO: Update list, do not recreate it.
                 foreach (var app in engineInfo.HostedApps) {
-                    this.Apps.Add(new AppApp() { ExecutablePath = app.ExecutablePath, WorkingDirectory = app.WorkingDirectory });
+                    this.Apps.Add(new AppApp() { 
+                        ExecutablePath = app.ExecutablePath,
+                        WorkingDirectory = app.WorkingDirectory });
                 }
             }
         }

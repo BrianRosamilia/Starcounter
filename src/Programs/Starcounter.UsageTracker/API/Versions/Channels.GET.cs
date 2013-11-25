@@ -28,7 +28,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 try {
 
-                    var result = Db.SlowSQL("SELECT o.Channel FROM VersionSource o GROUP BY o.Channel");
+                    var result = Db.SlowSQL<string>("SELECT o.Channel FROM VersionSource o WHERE o.IsAvailable=? GROUP BY o.Channel", true);
 
                     Channels channels = new Channels();
 
@@ -66,7 +66,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 try {
 
-                    VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=?", channel).First;
+                    VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.IsAvailable=?", channel, true).First;
                     if (versionSource == null) {
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, Body = string.Format("Channel {0} not found", channel) };
                     }

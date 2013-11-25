@@ -40,6 +40,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         /// </summary>
         public string DocumentationFolder;
 
+
         /// <summary>
         /// Full path to the Version Package file
         /// </summary>
@@ -52,6 +53,17 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         /// </summary>
         public bool BuildError;
 
+
+        /// <summary>
+        /// If a source is available for build
+        /// </summary>
+        public bool IsAvailable {
+            get {
+                return this.BuildError == false && string.IsNullOrEmpty(this.SourceFolder) == false;
+            }
+        }
+
+
         /// <summary>
         /// Get the latest version in a specific channel
         /// </summary>
@@ -60,7 +72,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         internal static VersionSource GetLatestVersion(string channel) {
 
             // Get latest version source
-            VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.BuildError=? ORDER BY o.VersionDate DESC", channel, false).First;
+            VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.IsAvailable=? ORDER BY o.VersionDate DESC", channel, true).First;
             if (versionSource == null) return null;
 
             return versionSource;

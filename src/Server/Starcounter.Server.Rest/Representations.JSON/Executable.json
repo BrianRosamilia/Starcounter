@@ -1,6 +1,7 @@
 ﻿{
     "Uri": "http://example.com/api/executables/foo/foo.exe-123456789",
     "Path": "C:\\path\to\\the\\exe\\foo.exe",
+	"ApplicationFilePath" : "C:\\optional\\path\to\\the\\input\\file.cs",
     "Description": "Implements the Foo module",
 	"Arguments": [{"dummy":""}],
     "DefaultUserPort": 1,

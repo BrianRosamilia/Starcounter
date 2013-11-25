@@ -20,7 +20,7 @@ namespace Starcounter {
 		/// <returns></returns>
 		public string ToJson() {
 			if (Template == null) {
-				return "";
+				return "{}";
 			}
 
             if (IsArray) {
@@ -42,7 +42,10 @@ namespace Starcounter {
         /// <returns></returns>
         public byte[] ToJsonUtf8() {
 			if (Template == null) {
-				return new byte[0];
+				var buffer = new byte[2];
+				buffer[0] = (byte)'{';
+				buffer[1] = (byte)'}';
+                return buffer;
 			}
             if (IsArray) {
                 byte[] buf;
@@ -72,8 +75,10 @@ namespace Starcounter {
         /// <returns></returns>
         public int ToJsonUtf8(out byte[] buffer) {
             if (Template == null) {
-                buffer = new byte[0];
-                return 0;
+                buffer = new byte[2];
+				buffer[0] = (byte)'{';
+				buffer[1] = (byte)'}';
+                return 2;
             }
             if (IsArray) {
                 bool expandBuffer = false;

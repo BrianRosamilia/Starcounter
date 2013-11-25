@@ -101,6 +101,7 @@ namespace Starcounter.Server.Commands {
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
                     app = new DatabaseApp() {
                         OriginalExecutablePath = command.ExecutablePath,
+                        ApplicationFilePath = command.ApplicationFilePath,
                         WorkingDirectory = command.WorkingDirectory,
                         Arguments = command.Arguments,
                         ExecutionPath = weavedExecutable,

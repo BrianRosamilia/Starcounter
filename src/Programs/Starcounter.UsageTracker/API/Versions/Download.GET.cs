@@ -149,7 +149,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                     }
 
                     // Check if source exist for specified channel and version.
-                    VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.Version=?", channel, version).First;
+                    VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.Version=? AND o.IsAvailable=?", channel, version, true).First;
                     if (versionSource == null) {
                         string message = string.Format("The version {0} in channel {1} is invalid or not available.", version, channel);
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, Body = message };

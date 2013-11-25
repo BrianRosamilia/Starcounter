@@ -2,6 +2,7 @@
     "Uri": "http://example.com/codehost/foo/executables/foo.exe-123456789",
     "Path": "C:\\path\to\\the\\prepared\\exe\\foo.exe",
 	"PrimaryFile": "C:\\path\\to\\the\\file\\used\\to\\launch.exe",
+	"ApplicationFilePath" : "C:\\optional\\path\to\\the\\input\\script.csx",
 	"ServerKey":"foo.exe-123456789",
 	"Arguments": [{"dummy":""}],
     "ResourceDirectories": [{"dummy":""}],

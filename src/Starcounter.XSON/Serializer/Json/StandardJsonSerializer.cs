@@ -83,9 +83,12 @@ restart:
 								if (childObj != null) {
 									valueSize = childObj.ToJsonUtf8(out childObjArr);
 								} else {
-									valueSize = JsonHelper.WriteNull((IntPtr)pfrag, buf.Length - offset);
-									if (valueSize == -1)
+									valueSize = 2;
+									if (buf.Length < (offset + valueSize + 1))
 										goto restart;
+
+									pfrag[0] = (byte)'{';
+									pfrag[1] = (byte)'}';
 								}
 							}
 

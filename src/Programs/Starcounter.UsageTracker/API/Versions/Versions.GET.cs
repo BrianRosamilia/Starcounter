@@ -35,7 +35,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                 try {
 
                     // TODO: Also check if the versionSource has been unpacked and ready to build
-                    var result = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.BuildError=? ORDER BY o.Channel, o.VersionDate DESC", false);
+                    var result = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.IsAvailable=? ORDER BY o.Channel, o.VersionDate DESC", true);
 
                     AllVersions allVersionItems = new AllVersions();
 
@@ -90,7 +90,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 try {
 
-                    var result = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.BuildError=? AND o.Channel=?", false, channel);
+                    var result = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.IsAvailable=? AND o.Channel=?", true, channel);
 
                     if (result == null) {
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, Body = string.Format("Channel {0} not found", channel) };
@@ -127,7 +127,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 try {
 
-                    VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.BuildError=? AND o.Channel=? AND o.Version=?", false, channel, version).First;
+                    VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.IsAvailable=? AND o.Channel=? AND o.Version=?", true, channel, version).First;
                     if (versionSource == null) {
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, Body = string.Format("Version {0} in channel {1} was not found", version, channel) };
                     }

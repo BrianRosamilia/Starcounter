@@ -28,15 +28,23 @@ namespace Starcounter.CLI {
         /// Path to the executable that are to be started or stopped.</param>
         /// <param name="args">Parsed arguments, taken from the command-line of
         /// the hosting CLI interface.</param>
+        /// <param name="applicationFilePath">Path to the file that was actually
+        /// given by the user to start the application. Can differ from the exe
+        /// in case the input is something that is transformed to an assembly on
+        /// the fly, such as a source code file.</param>
         /// <param name="entrypointArgs">Arguments to the entrypoint, in case
         /// the application is to start; ignored otherwise.</param>
         /// <param name="admin">The admin API to target, mainly defining
         /// the resource URIs to use.</param>
-        public static void StartOrStop(string exePath, ApplicationArguments args, string[] entrypointArgs = null, AdminAPI admin = null) {
+        public static void StartOrStop(string exePath, ApplicationArguments args, string applicationFilePath = null, string[] entrypointArgs = null, AdminAPI admin = null) {
+            if (string.IsNullOrWhiteSpace(applicationFilePath)) {
+                applicationFilePath = exePath;
+            }
+
             if (args.ContainsFlag(Option.Stop)) {
-                Stop(exePath, args, admin);
+                Stop(exePath, args, applicationFilePath, admin);
             } else {
-                Start(exePath, args, entrypointArgs, admin);
+                Start(exePath, args, applicationFilePath, entrypointArgs, admin);
             }
         }
 
@@ -48,13 +56,17 @@ namespace Starcounter.CLI {
         /// <param name="args">Parsed arguments to use to customize the
         /// settings under which the exeuctable will run and possibly
         /// parameters to be sent to the entrypoint.</param>
+        /// <param name="applicationFilePath">Path to the file that was actually
+        /// given by the user to start the application. Can differ from the exe
+        /// in case the input is something that is transformed to an assembly on
+        /// the fly, such as a source code file.</param>
         /// <param name="entrypointArgs">Contains the arguments to be
         /// passed to the entrypoint. If not specified explicitly, the
         /// shared CLI will use the parameters from the supplied
         /// <paramref name="args"/>.</param>
         /// <param name="admin">The admin API to target, mainly defining
         /// the resource URIs to use.</param>
-        public static void Start(string exePath, ApplicationArguments args, string[] entrypointArgs = null, AdminAPI admin = null) {
+        public static void Start(string exePath, ApplicationArguments args, string applicationFilePath, string[] entrypointArgs = null, AdminAPI admin = null) {
             int serverPort;
             string serverName;
             string serverHost;
@@ -73,7 +85,7 @@ namespace Starcounter.CLI {
 
                 ShowHeadline(
                     string.Format("[Starting \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
-                    Path.GetFileName(exePath),
+                    Path.GetFileName(applicationFilePath),
                     database,
                     serverName,
                     node.BaseAddress.Host,
@@ -91,7 +103,7 @@ namespace Starcounter.CLI {
                 try {
                     Engine engine;
                     Executable exe;
-                    DoStart(node, admin, exePath, database, args, entrypointArgs, out engine, out exe);
+                    DoStart(node, admin, exePath,  applicationFilePath, database, args, entrypointArgs, out engine, out exe);
                     ShowStartResultAndSetExitCode(node, database, engine, exe, args);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, node.BaseAddress, serverName);
@@ -111,9 +123,13 @@ namespace Starcounter.CLI {
         /// <param name="exePath">Full path of the executable.</param>
         /// <param name="args">Parsed arguments to use to customize the
         /// call.</param>
+        /// <param name="applicationFilePath">Path to the file that was actually
+        /// given by the user to start the application. Can differ from the exe
+        /// in case the input is something that is transformed to an assembly on
+        /// the fly, such as a source code file.</param>
         /// <param name="admin">The admin API to target, mainly defining
         /// the resource URIs to use.</param>
-        public static void Stop(string exePath, ApplicationArguments args, AdminAPI admin = null) {
+        public static void Stop(string exePath, ApplicationArguments args, string applicationFilePath, AdminAPI admin = null) {
             int serverPort;
             string serverName;
             string serverHost;
@@ -132,7 +148,7 @@ namespace Starcounter.CLI {
 
                 ShowHeadline(
                     string.Format("[Stopping \"{0}\" in \"{1}\" on \"{2}\" ({3}:{4})]",
-                    Path.GetFileName(exePath),
+                    Path.GetFileName(applicationFilePath),
                     database,
                     serverName,
                     node.BaseAddress.Host,
@@ -161,7 +177,7 @@ namespace Starcounter.CLI {
         }
 
         static void DoStart(
-            Node node, AdminAPI admin, string exePath, string databaseName, ApplicationArguments args, string[] entrypointArgs, out Engine engine, out Executable exe) {
+            Node node, AdminAPI admin, string exePath, string applicationFilePath, string databaseName, ApplicationArguments args, string[] entrypointArgs, out Engine engine, out Executable exe) {
             ErrorDetail errorDetail;
             EngineReference engineRef;
             int statusCode;
@@ -237,7 +253,7 @@ namespace Starcounter.CLI {
             }
             else {
                 if (!args.ContainsFlag(Option.Restart)) {
-                    var file = Path.GetFileName(exePath);
+                    var file = Path.GetFileName(applicationFilePath);
                     var alreadyStarted = string.Format("\"{0}\" already running in database \"{1}\"", file, databaseName);
                     SharedCLI.ShowInformationAndSetExitCode(
                         alreadyStarted,
@@ -285,6 +301,7 @@ namespace Starcounter.CLI {
             ShowStatus("Starting executable", true);
             exe = new Executable();
             exe.Path = exePath;
+            exe.ApplicationFilePath = applicationFilePath;
             exe.StartedBy = SharedCLI.ClientContext.UserAndProgram;
             exe.IsTool = !args.ContainsFlag(Option.Async);
             if (userArgs != null) {
@@ -407,7 +424,7 @@ namespace Starcounter.CLI {
             
             ConsoleUtil.ToConsoleWithColor(
                 string.Format("\"{0}\" started in database \"{1}\". Default port is {2} (Executable), {3} (Admin))",
-                Path.GetFileName(exe.Path),
+                Path.GetFileName(exe.ApplicationFilePath),
                 database,
                 exe.DefaultUserPort,
                 node.PortNumber), 

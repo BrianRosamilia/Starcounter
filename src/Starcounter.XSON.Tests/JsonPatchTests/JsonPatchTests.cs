@@ -248,7 +248,7 @@ Assert.AreEqual(facit, result );
             Session.Data = j;
             var start = ((Json)j).DebugString;
 
-            Assert.AreEqual("", json.ToJson()); // The data is not bound so the JSON should still be an empty object
+            Assert.AreEqual("{}", json.ToJson()); // The data is not bound so the JSON should still be an empty object
 
             var t = new TJson();
             var fname = t.Add<TString>("FirstName"); 

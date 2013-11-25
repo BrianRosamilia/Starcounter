@@ -19,7 +19,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                 try {
                     string channel = "NightlyBuilds";
 
-                    VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.DocumentationFolder IS NOT NULL ORDER BY o.VersionDate DESC", channel).First;
+                    VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.IsAvailable=? AND o.DocumentationFolder IS NOT NULL ORDER BY o.VersionDate DESC", channel, true).First;
                     if (versionSource == null) {
                         string message = string.Format("At the moment there is no documentation available. Please try again later.");
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, Body = message };

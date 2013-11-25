@@ -252,6 +252,44 @@ namespace Starcounter.Internal.XSON.Tests {
 
         }
 
+		[Test]
+		public static void TestChangeBoundObject() {
+			var template = new TObject();
+			var pageTemplate = template.Add<TJson>("Number");
+			pageTemplate.Add<TString>("Number");
+
+			dynamic msg = new Json { Template = template };
+
+			var myDataObj = new PersonObject();
+			var numberObj = new PhoneNumberObject() { Number = "123-555-7890" };
+			myDataObj.Number = numberObj;
+			msg.Data = myDataObj;
+
+			string json = msg.ToJson();
+			Assert.AreEqual(@"{""Number"":{""Number"":""123-555-7890""}}", json);
+
+			var oldNumberJson = msg.Number;
+
+			msg.Number = new Json();
+			json = msg.ToJson();
+			Assert.AreEqual(@"{""Number"":{}}", json);
+
+			myDataObj.Number = numberObj;
+
+			msg.Number = null;
+			json = msg.ToJson();
+			Assert.AreEqual(@"{""Number"":{}}", json);
+
+			msg.Number = oldNumberJson;
+			msg.Number.Data = numberObj;
+			json = msg.ToJson();
+			Assert.AreEqual(@"{""Number"":{""Number"":""123-555-7890""}}", json);
+
+			msg.Number.Data = null;
+			json = msg.ToJson();
+			Assert.AreEqual(@"{""Number"":{""Number"":""""}}", json);
+		}
+
         /// <summary>
         /// Tests TestDataBinding.
         /// </summary>

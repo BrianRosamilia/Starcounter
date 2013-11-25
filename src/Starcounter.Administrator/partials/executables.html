@@ -12,7 +12,7 @@
 
         <tbody>
             <tr ng-repeat="executable in executables  | orderBy: 'databaseName'">
-                <td>{{executable.path}} 
+                <td>{{executable.applicationFilePath}} 
                     <div class="muted" ng-repeat="argument in executable.arguments">
                         <small>Argument{{$index+1}}: {{argument.dummy}}</small>
                     </div>

@@ -105,7 +105,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
             LogWriter.WriteLine("NOTICE: Checking for new versions to build.");
 
-            var sources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.BuildError=?", false);
+            var sources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.IsAvailable=?", true);
 
             VersionHandlerSettings settings = VersionHandlerApp.Settings;
 
@@ -266,43 +266,56 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
             LogWriter.WriteLine(string.Format("NOTICE: Building {0} to {1}", serialId, destinationFolder));
 
-            try {
-                using (Process exeProcess = Process.Start(startInfo)) {
+            int retries = 5;
+            int retryPause = 3000;
+            int timeout_min = 5;
 
-                    int timeout_min = 5;
-                    string output = exeProcess.StandardOutput.ReadToEnd();
-                    exeProcess.WaitForExit(timeout_min * 60 * 1000);
+            for (int i = 0; i < retries; i++) {
 
-                    if (exeProcess.HasExited == false) {
-                        LogWriter.WriteLine(output);
-                        LogWriter.WriteLine(string.Format("ERROR: Failed to build within reasonable time ({0} min).", timeout_min));
-                        exeProcess.Kill();
-                        return false;
+                try {
+                    using (Process exeProcess = Process.Start(startInfo)) {
+
+                        string output = exeProcess.StandardOutput.ReadToEnd();
+                        exeProcess.WaitForExit(timeout_min * 60 * 1000);
+
+                        if (exeProcess.HasExited == false) {
+                            LogWriter.WriteLine(output);
+                            LogWriter.WriteLine(string.Format("ERROR: Failed to build within reasonable time ({0} min) (retry {1}).", timeout_min, i));
+                            exeProcess.Kill();
+                            Thread.Sleep(retryPause);
+                            continue;
+                        }
+
+                        if (exeProcess.ExitCode != 0) {
+                            LogWriter.WriteLine(output);
+                            LogWriter.WriteLine(string.Format("ERROR: Failed to build, error code {0} (retry {1}).", exeProcess.ExitCode, i));
+                            Thread.Sleep(retryPause);
+                            continue;
+                        }
+
+                        string[] files = Directory.GetFiles(destinationFolder);
+                        if (files == null || files.Length == 0) {
+                            LogWriter.WriteLine(output);
+                            LogWriter.WriteLine(string.Format("ERROR: Building tool did not generate an output file in destination folder {0} (retry {1}).", destinationFolder, i));
+                            Thread.Sleep(retryPause);
+                            continue;
+                        }
+                        file = files[0];
+
+                        LogWriter.WriteLine(string.Format("NOTICE: Successfully built {0} to {1}.", serialId, destinationFolder));
+                        return true;
                     }
-
-                    if (exeProcess.ExitCode != 0) {
-                        LogWriter.WriteLine(output);
-                        LogWriter.WriteLine(string.Format("ERROR: Failed to build, error code {0}.", exeProcess.ExitCode));
-                        return false;
-                    }
-
-                    string[] files = Directory.GetFiles(destinationFolder);
-                    if (files == null || files.Length == 0) {
-                        LogWriter.WriteLine(output);
-                        LogWriter.WriteLine(string.Format("ERROR: Building tool did not generate an output file in destination folder {0}.", destinationFolder));
-                        return false;
-                    }
-                    file = files[0];
-
-                    LogWriter.WriteLine(string.Format("NOTICE: Successfully built {0} to {1}.", serialId, destinationFolder));
-
-                    return true;
                 }
+                catch (Exception e) {
+                    LogWriter.WriteLine(string.Format("ERROR: Failed to start the building tool {0}. {1} (retry {2}).", builderTool, e.Message, i));
+                    return false;
+                }
+
+
             }
-            catch (Exception e) {
-                LogWriter.WriteLine(string.Format("ERROR: Failed to start the building tool {0}. {1}.", builderTool, e.Message));
-                return false;
-            }
+
+            LogWriter.WriteLine(string.Format("ERROR: Failed to build, Max retries reached (retry {0}).", retries));
+            return false;
         }
 
 

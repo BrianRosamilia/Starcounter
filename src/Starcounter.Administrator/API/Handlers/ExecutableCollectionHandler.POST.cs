@@ -40,6 +40,7 @@ namespace Starcounter.Administrator.API.Handlers {
             }
 
             var cmd = new ExecCommand(engine, exe.Path, exe.WorkingDirectory, userArgs);
+            cmd.ApplicationFilePath = exe.ApplicationFilePath;
             cmd.DatabaseName = name;
             cmd.EnableWaiting = !async;
             cmd.RunEntrypointAsynchronous = !exe.IsTool;

@@ -28,6 +28,18 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Path to the application file that was used to invoke the
+        /// starting of the current application.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Starcounter.Server.PublicModel.AppInfo.ApplicationFilePath"/>
+        /// </remarks>
+        public string ApplicationFilePath {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets the server key for this executable. A key must
         /// be assured to be unique within the scope of a single database.
         /// </summary>
@@ -89,6 +101,7 @@ namespace Starcounter.Server {
         internal AppInfo ToPublicModel() {
             return new AppInfo() {
                 ExecutablePath = this.OriginalExecutablePath,
+                ApplicationFilePath = this.ApplicationFilePath,
                 ExecutionPath = this.ExecutionPath,
                 Arguments = this.Arguments,
                 Key = this.Key
@@ -104,7 +117,9 @@ namespace Starcounter.Server {
         internal Executable ToExecutable() {
             var exe = new Executable();
             exe.Path = this.ExecutionPath;
+
             exe.PrimaryFile = this.OriginalExecutablePath;
+            exe.ApplicationFilePath = this.ApplicationFilePath;
             exe.WorkingDirectory = this.WorkingDirectory;
             if (this.Arguments != null) {
                 foreach (var argument in this.Arguments) {

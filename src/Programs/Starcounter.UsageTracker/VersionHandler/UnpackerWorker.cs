@@ -178,24 +178,39 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
 
         /// <summary>
-        /// Remove Obsolete Version, we only want to keep a number of versions available
+        /// Clean up Obsolete Versions, we only want to keep a number of versions available
         /// to save diskspace
         /// </summary>
         private void CleanUpObsoleteVersions() {
 
+            var result = Db.SlowSQL<string>("SELECT o.Channel FROM VersionSource o WHERE o.IsAvailable=? GROUP BY o.Channel", true);
+
+            foreach (string channel in result) {
+                this.CleanUpObsoleteVersion(channel);
+            }
+        }
+
+
+        /// <summary>
+        /// Cleanup obsolete versions from a specific channel
+        /// </summary>
+        /// <param name="channel"></param>
+        private void CleanUpObsoleteVersion(string channel) {
+
             int sourceCount = VersionHandlerSettings.GetSettings().MaximumSourceCount;
 
-            Int64 numVersion = Db.SlowSQL<Int64>("SELECT count(*) FROM VersionSource o WHERE o.BuildError=?", false).First;
+            Int64 numVersion = Db.SlowSQL<Int64>("SELECT count(*) FROM VersionSource o WHERE o.IsAvailable=? AND o.Channel=?", true, channel).First;
 
             if (numVersion > sourceCount) {
 
                 Int64 numDelete = numVersion - sourceCount;
 
-                // Start deleteing versions and syncdata
+                // Start deleting versions and syncdata
                 Db.Transaction(() => {
 
                     // Retrive versions to delete
-                    QueryResultRows<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.BuildError=? ORDER BY o.VersionDate FETCH FIRST ? ROWS ONLY", false, numDelete);
+                    QueryResultRows<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.IsAvailable=? AND o.Channel=? ORDER BY o.VersionDate FETCH FIRST ? ROWS ONLY", true, channel, numDelete);
+
                     foreach (VersionSource versionSource in versionSources) {
 
                         // Delete Obsolete Version Builds

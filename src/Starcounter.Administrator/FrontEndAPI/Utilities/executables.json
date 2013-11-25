@@ -2,13 +2,15 @@
     "Executables": [
         {
             "path": "C:\\path\to\\the\\exe\\foo.exe",
+			"applicationFilePath": "C:\\path\to\\the\\input\\file.cs",
             "uri": "http://example.com/api/engines/foo/executables/foo.exe-123456789",
 			"databaseName":"default",
 			"arguments":[{"dummy":"argument1"}]
         },
 		{
             "path": "C:\\path\to\\the\\exe\\foo.exe",
-            "uri": "http://example.com/api/engines/foo/executables/foo.exe-123456789",
+            "applicationFilePath": "C:\\path\to\\the\\input\\file.cs",
+			"uri": "http://example.com/api/engines/foo/executables/foo.exe-123456789",
 			"databaseName":"default",
 			"arguments":[{"dummy":"argument1"}]
         },
