@@ -198,9 +198,11 @@ namespace star {
                 if (sourceCodeInput) {
                     try {
                         File.Delete(filePath);
+                        var directory = Path.GetDirectoryName(filePath);
+                        Directory.Delete(directory);
                     } catch (Exception e) {
                         if (SharedCLI.Verbose) {
-                            Console.WriteLine("Failed deleting temporary assembly file: {0}.", e.Message);
+                            Console.WriteLine("Failed deleting temporary content: {0}.", e.Message);
                         }
                     }
                 }

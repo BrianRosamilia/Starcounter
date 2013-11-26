@@ -22,7 +22,7 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_table = 2;
             internal static int columnHandle_index = 3;
             internal static int columnHandle_name = 4;
-            internal static int columnHandle_base_type = 5;
+            internal static int columnHandle_primitive_type = 5;
             internal static int columnHandle_always_unique = 6;
             internal static int columnHandle_nullable = 7;
             internal static int columnHandle_inherited = 8;
@@ -51,7 +51,7 @@ namespace Starcounter.Metadata {
                     new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, false),
                     new ColumnDef("index", sccoredb.STAR_TYPE_ULONG, false, false),
                     new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("base_type", sccoredb.STAR_TYPE_ULONG, false, false),
+                    new ColumnDef("primitive_type", sccoredb.STAR_TYPE_ULONG, false, false),
                     new ColumnDef("always_unique", sccoredb.STAR_TYPE_ULONG, false, false),
                     new ColumnDef("nullable", sccoredb.STAR_TYPE_ULONG, false, false),
                     new ColumnDef("inherited", sccoredb.STAR_TYPE_ULONG, false, false),
@@ -67,7 +67,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("table", DbTypeCode.Object, true, "Starcounter.Metadata.materialized_table") { ColumnName = "table" },
                     new PropertyDef("index", DbTypeCode.UInt64, false) { ColumnName = "index" },
                     new PropertyDef("name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("base_type", DbTypeCode.UInt64, false) { ColumnName = "base_type" },
+                    new PropertyDef("primitive_type", DbTypeCode.UInt64, false) { ColumnName = "primitive_type" },
                     new PropertyDef("always_unique", DbTypeCode.Boolean, false) { ColumnName = "always_unique" },
                     new PropertyDef("nullable", DbTypeCode.Boolean, false) { ColumnName = "nullable" },
                     new PropertyDef("inherited", DbTypeCode.Boolean, false) { ColumnName = "inherited" },
@@ -115,8 +115,8 @@ namespace Starcounter.Metadata {
 
         /// <summary>
         /// </summary>
-        public ulong base_type {
-            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_base_type); }
+        public ulong primitive_type {
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_primitive_type); }
         }
 
         /// <summary>

@@ -358,7 +358,7 @@ namespace Starcounter.Internal {
                                 case DbTypeCode.Object:
                                     IObjectView value = (IObjectView)row;
                                     if (value != null) {
-                                        ((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)DbHelper.GetObjectNo(value));
+                                        ((TString)rowItemTemplate.Properties[0]).Setter(jsonRow, DbHelper.GetObjectNo(value).ToString());
                                     }
                                     break;
                                 case DbTypeCode.SByte:
@@ -377,7 +377,12 @@ namespace Starcounter.Internal {
 									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
                                     break;
                                 case DbTypeCode.UInt64:
-									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
+									var col = rowItemTemplate.Properties[0];
+									if (col is TString) {
+										((TString)col).Setter(jsonRow, row.ToString());
+									} else {
+										((TLong)col).Setter(jsonRow, (long)row);
+									}
                                     break;
                                 default:
                                     throw new NotImplementedException(string.Format("The handling of the TypeCode {0} has not yet been implemented", sqle.ProjectionTypeCode.ToString()));
@@ -428,7 +433,7 @@ namespace Starcounter.Internal {
 
                                         IObjectView value = obj.GetObject(prop.Index);
                                         if (value != null) {
-                                            ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)DbHelper.GetObjectNo(value));
+                                            ((TString)rowItemTemplate.Properties[pi]).Setter(jsonRow, DbHelper.GetObjectNo(value).ToString());
                                         }
                                         break;
                                     case DbTypeCode.SByte:
@@ -447,8 +452,13 @@ namespace Starcounter.Internal {
                                         ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetUInt32(prop.Index));
                                         break;
                                     case DbTypeCode.UInt64:
-                                        ((TLong)rowItemTemplate.Properties[pi]).Setter(jsonRow, (long)obj.GetUInt64(prop.Index));
-                                        break;
+										var col = rowItemTemplate.Properties[pi];
+										if (col is TString) {
+											((TString)col).Setter(jsonRow, obj.GetUInt64(prop.Index).ToString());
+										} else {
+											((TLong)col).Setter(jsonRow, (long)obj.GetUInt64(prop.Index));
+										}
+										break;
                                     default:
                                         throw new NotImplementedException(string.Format("The handling of the TypeCode {0} has not yet been implemented", prop.TypeCode.ToString()));
                                     #endregion
@@ -498,7 +508,7 @@ namespace Starcounter.Internal {
                 case DbTypeCode.LargeBinary:
                     throw new NotSupportedException();
                 case DbTypeCode.Object:
-                    parent.Add<TLong>(col.value);
+                    parent.Add<TString>(col.value);
                     break;
                 case DbTypeCode.Boolean:
                     parent.Add<TBool>(col.value);
@@ -510,8 +520,16 @@ namespace Starcounter.Internal {
                 case DbTypeCode.SByte:
                 case DbTypeCode.UInt16:
                 case DbTypeCode.UInt32:
+					parent.Add<TLong>(col.value);
+                    break;
+
                 case DbTypeCode.UInt64:
-                    parent.Add<TLong>(col.value);
+					if (col.title == "ObjectNo") {
+						col.type = DbTypeCode.String.ToString();
+						parent.Add<TString>(col.value);
+					} else {
+						parent.Add<TLong>(col.value);
+					}
                     break;
 
                 case DbTypeCode.DateTime:

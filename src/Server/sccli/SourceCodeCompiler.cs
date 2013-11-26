@@ -56,10 +56,24 @@ namespace star {
                 GenerateInMemory = false
             };
 
-            parameters.TempFiles = new TempFileCollection(Path.GetTempPath(), false);
+            // Create a unique directory under temp, one which we will later
+            // delete when cleaning up
+
+            var guid = Guid.NewGuid().ToString();
+            var tempPath = Path.GetTempPath();
+            tempPath = Path.Combine(tempPath, ".starcounter");
+            if (!Directory.Exists(tempPath)) {
+                Directory.CreateDirectory(tempPath);
+            }
+            tempPath = Path.Combine(tempPath, guid);
+            if (!Directory.Exists(tempPath)) {
+                Directory.CreateDirectory(tempPath);
+            }
+
+            parameters.TempFiles = new TempFileCollection(tempPath, false);
             
             var temporaryDiskExePath = Path.GetRandomFileName();
-            temporaryDiskExePath += Guid.NewGuid().ToString();
+            temporaryDiskExePath += guid;
             temporaryDiskExePath += ".exe";
             temporaryDiskExePath = Path.Combine(parameters.TempFiles.TempDir, temporaryDiskExePath);
             parameters.TempFiles.AddFile(temporaryDiskExePath, true);

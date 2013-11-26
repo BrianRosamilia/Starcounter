@@ -252,7 +252,8 @@ namespace Starcounter.CLI {
                 }
             }
             else {
-                if (!args.ContainsFlag(Option.Restart)) {
+                var disabledRestartFlag = new DateTime(2013, 11, 26, 3, 0, 0);
+                if (!args.ContainsFlag(Option.Restart) && DateTime.Now < disabledRestartFlag) {
                     var file = Path.GetFileName(applicationFilePath);
                     var alreadyStarted = string.Format("\"{0}\" already running in database \"{1}\"", file, databaseName);
                     SharedCLI.ShowInformationAndSetExitCode(
