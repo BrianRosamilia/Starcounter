@@ -116,9 +116,9 @@ namespace Starcounter.Metadata {
     }
 
     /// <summary>
-    /// Class materialized_index_column
+    /// Class MaterializedIndexColumn
     /// </summary>
-    public sealed class materialized_index_column : Entity {
+    public sealed class MaterializedIndexColumn : Entity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal sealed class __starcounterTypeSpecification {
@@ -138,7 +138,7 @@ namespace Starcounter.Metadata {
         /// </summary>
         /// <remarks>
         /// Developer note: if you extend or change this class in any way, make
-        /// sure to keep the <see cref="materialized_index_column.__starcounterTypeSpecification"/>
+        /// sure to keep the <see cref="MaterializedIndexColumn.__starcounterTypeSpecification"/>
         /// class in sync with what is returned by this method.
         /// </remarks>
         /// <returns>A <see cref="TypeDef"/> representing the current
@@ -157,16 +157,16 @@ namespace Starcounter.Metadata {
                 );
 
             var sysIndexTypeDef = new TypeDef(
-                "Starcounter.Metadata.materialized_index_column",
+                "Starcounter.Metadata.MaterializedIndexColumn",
                 null,
                 new PropertyDef[]
                 {
-                    new PropertyDef("index", DbTypeCode.Object, true, "Starcounter.Metadata.MaterializedIndex") { ColumnName = "index" },
-                    new PropertyDef("place", DbTypeCode.UInt64, false) { ColumnName = "place" },
-                    new PropertyDef("column", DbTypeCode.Object, true, "Starcounter.Metadata.MaterializedColumn") { ColumnName = "column" },
-                    new PropertyDef("order", DbTypeCode.UInt64, false) { ColumnName = "order" }
+                    new PropertyDef("Index", DbTypeCode.Object, true, "Starcounter.Metadata.MaterializedIndex") { ColumnName = "index" },
+                    new PropertyDef("Place", DbTypeCode.UInt64, false) { ColumnName = "place" },
+                    new PropertyDef("Column", DbTypeCode.Object, true, "Starcounter.Metadata.MaterializedColumn") { ColumnName = "column" },
+                    new PropertyDef("Order", DbTypeCode.UInt64, false) { ColumnName = "order" }
                 },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.materialized_index_column"),
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.MaterializedIndexColumn"),
                 systemTableDef,
                 new DbTypeCode[] {
                     DbTypeCode.Key, DbTypeCode.Object, DbTypeCode.UInt64, DbTypeCode.Object,
@@ -179,30 +179,30 @@ namespace Starcounter.Metadata {
 
         /// <summary>
         /// </summary>
-        public materialized_index_column(Uninitialized u) : base(u) { }
+        public MaterializedIndexColumn(Uninitialized u) : base(u) { }
 
         /// <summary>
         /// </summary>
-        public MaterializedIndex index {
+        public MaterializedIndex Index {
             get { return (MaterializedIndex)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_index); }
         }
 
 
         /// <summary>
         /// </summary>
-        public ulong place {
+        public ulong Place {
             get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_place); }
         }
 
         /// <summary>
         /// </summary>
-        public MaterializedColumn column {
+        public MaterializedColumn Column {
             get { return (MaterializedColumn)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_column); }
         }
 
         /// <summary>
         /// </summary>
-        public ulong order {
+        public ulong Order {
             get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_order); }
         }
     }

@@ -139,7 +139,7 @@ namespace StarcounterInternal.Hosting
             var sysTableTypeDef = MaterializedTable.CreateTypeDef();
             var sysColumnTypeDef = MaterializedColumn.CreateTypeDef();
             var sysIndexTypeDef = MaterializedIndex.CreateTypeDef();
-            var sysIndexColumnTypeDef = materialized_index_column.CreateTypeDef();
+            var sysIndexColumnTypeDef = MaterializedIndexColumn.CreateTypeDef();
             var sysBaseTypeTypeDef = BaseType.CreateTypeDef();
 
             // Add view meta-data
