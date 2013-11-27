@@ -9,7 +9,7 @@ using Starcounter.Internal;
 using System.Reflection;
 
 namespace Starcounter.Metadata {
-    public sealed class type : Entity {
+    public sealed class BaseType : Entity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal sealed class __starcounterTypeSpecification {
@@ -34,20 +34,19 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
             var systemTableDef = new TableDef(
-                "type",
+                "base_type",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, false, false)
+                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, false)
                 });
 
             var sysColumnTypeDef = new TypeDef(
-                "Starcounter.Metadata.type",
+                "Starcounter.Metadata.BaseType",
                 null,
                 new PropertyDef[] {
-                    new PropertyDef("table_id", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("name", DbTypeCode.String, true) { ColumnName = "name" }
+                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" }
                 },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.type"),
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.BaseType"),
                 systemTableDef,
                 new DbTypeCode[] {
                     DbTypeCode.Key, DbTypeCode.String
@@ -58,15 +57,23 @@ namespace Starcounter.Metadata {
 
     
         /// <inheritdoc />
-        public type(Uninitialized u)
+        public BaseType(Uninitialized u)
             : base(u) {
+        }
+
+        internal BaseType() : this(null) {
+            DbState.Insert(BaseType.__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
 
         /// <summary>
         /// Name of the type
         /// </summary>
-        public string name {
+        public string Name {
             get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name); }
+            internal set {
+                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name,
+                    value);
+            }
         }
     }
 }

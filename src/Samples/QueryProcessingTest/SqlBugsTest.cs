@@ -254,17 +254,18 @@ namespace QueryProcessingTest {
 
         public static void TestComparison() {
             HelpMethods.LogEvent("Start testing queries on comparison bug");
-            var e = Db.SQL<materialized_table>("select s from materialized_table s where table_id = ?", 5).GetEnumerator();
+            ulong accountTableId = Db.SQL<ulong>("select table_id from materialized_table where name = ?", "QueryProcessingTest.Account").First;
+            var e = Db.SQL<materialized_table>("select s from materialized_table s where table_id = ?", accountTableId).GetEnumerator();
             Trace.Assert(e.MoveNext());
             materialized_table s = e.Current;
             Trace.Assert(s.name == "QueryProcessingTest.Account");
-            Trace.Assert(s.table_id == 5);
+            Trace.Assert(s.table_id == accountTableId);
             e.Dispose();
-            e = Db.SlowSQL<materialized_table>("select s from materialized_table s where table_id = 5").GetEnumerator();
+            e = Db.SlowSQL<materialized_table>("select s from materialized_table s where table_id = "+accountTableId).GetEnumerator();
             Trace.Assert(e.MoveNext());
             s = e.Current;
             Trace.Assert(s.name == "QueryProcessingTest.Account");
-            Trace.Assert(s.table_id == 5);
+            Trace.Assert(s.table_id == accountTableId);
             e.Dispose();
             e = Db.SlowSQL<materialized_table>("select s from materialized_table s where table_id = 10").GetEnumerator();
             Trace.Assert(e.MoveNext());

@@ -140,11 +140,13 @@ namespace StarcounterInternal.Hosting
             var sysColumnTypeDef = materialized_column.CreateTypeDef();
             var sysIndexTypeDef = materialized_index.CreateTypeDef();
             var sysIndexColumnTypeDef = materialized_index_column.CreateTypeDef();
+            var sysBaseTypeTypeDef = BaseType.CreateTypeDef();
 
             // Add view meta-data
 
             Package package = new Package(
-                new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef },
+                new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
+                sysBaseTypeTypeDef},
                 null,
                 stopwatch_,
                 true
@@ -183,6 +185,8 @@ namespace StarcounterInternal.Hosting
             HostManager.InitTypeSpecification(typeof(materialized_table.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(materialized_column.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(materialized_index.__starcounterTypeSpecification));
+
+            HostManager.InitTypeSpecification(typeof(BaseType.__starcounterTypeSpecification));
 
             stopwatch_ = null;
         }
