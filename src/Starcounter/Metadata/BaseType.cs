@@ -7,12 +7,13 @@
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System.Reflection;
+using System;
 
 namespace Starcounter.Metadata {
-    public sealed class BaseType : Entity {
+    public class BaseType : Entity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
-        internal sealed class __starcounterTypeSpecification {
+        internal class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_table_id = 1;
@@ -72,6 +73,79 @@ namespace Starcounter.Metadata {
             get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name); }
             internal set {
                 DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name,
+                    value);
+            }
+        }
+    }
+
+    public sealed class MaterializedType : BaseType {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+#pragma warning disable 0649, 0169
+        internal new class __starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding typeBinding;
+            internal static int columnHandle_table_id = 1;
+            internal static int columnHandle_name = 2;
+            internal static int columnHandle_primitive_type = 3;
+        }
+#pragma warning disable 0628, 0169
+        #endregion
+
+        /// <summary>
+        /// Creates the database binding <see cref="TypeDef"/> representing
+        /// the type in the database and holding its table- and column defintions.
+        /// </summary>
+        /// <remarks>
+        /// Developer note: if you extend or change this class in any way, make
+        /// sure to keep the <see cref="MaterializedColumn.__starcounterTypeSpecification"/>
+        /// class in sync with what is returned by this method.
+        /// </remarks>
+        /// <returns>A <see cref="TypeDef"/> representing the current
+        /// type.</returns>
+        static internal new TypeDef CreateTypeDef() {
+            var systemTableDef = new TableDef(
+                "materialized_type", "base_type",
+                new ColumnDef[] {
+                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
+                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("primitive_type", sccoredb.STAR_TYPE_ULONG, false, false)
+                });
+
+            var sysColumnTypeDef = new TypeDef(
+                "Starcounter.Metadata.MaterializedType",
+                "Starcounter.Metadata.BaseType",
+                new PropertyDef[] {
+                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
+                    new PropertyDef("PrimitiveType", DbTypeCode.UInt64, false) { ColumnName = "primitive_type" }
+                },
+                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.MaterializedType"),
+                systemTableDef,
+                new DbTypeCode[] {
+                    DbTypeCode.Key, 
+                    DbTypeCode.UInt64
+                });
+
+            return sysColumnTypeDef;
+        }
+
+
+        /// <inheritdoc />
+        public MaterializedType(Uninitialized u)
+            : base(u) {
+        }
+
+        internal MaterializedType()
+            : this(null) {
+                DbState.Insert(Starcounter.Metadata.MaterializedType.__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        }
+
+        /// <summary>
+        /// Name of the type
+        /// </summary>
+        public UInt64 PrimitiveType {
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_primitive_type); }
+            internal set {
+                DbState.WriteUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_primitive_type,
                     value);
             }
         }
