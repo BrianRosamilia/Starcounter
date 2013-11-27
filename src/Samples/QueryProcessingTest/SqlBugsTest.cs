@@ -254,23 +254,23 @@ namespace QueryProcessingTest {
 
         public static void TestComparison() {
             HelpMethods.LogEvent("Start testing queries on comparison bug");
-            ulong accountTableId = Db.SQL<ulong>("select table_id from materialized_table where name = ?", "QueryProcessingTest.Account").First;
-            var e = Db.SQL<materialized_table>("select s from materialized_table s where table_id = ?", accountTableId).GetEnumerator();
+            ulong accountTableId = Db.SQL<ulong>("select TableId from MaterializedTable where name = ?", "QueryProcessingTest.Account").First;
+            var e = Db.SQL<MaterializedTable>("select s from MaterializedTable s where TableId = ?", accountTableId).GetEnumerator();
             Trace.Assert(e.MoveNext());
-            materialized_table s = e.Current;
-            Trace.Assert(s.name == "QueryProcessingTest.Account");
-            Trace.Assert(s.table_id == accountTableId);
+            MaterializedTable s = e.Current;
+            Trace.Assert(s.Name == "QueryProcessingTest.Account");
+            Trace.Assert(s.TableId == accountTableId);
             e.Dispose();
-            e = Db.SlowSQL<materialized_table>("select s from materialized_table s where table_id = "+accountTableId).GetEnumerator();
+            e = Db.SlowSQL<MaterializedTable>("select s from MaterializedTable s where TableId = "+accountTableId).GetEnumerator();
             Trace.Assert(e.MoveNext());
             s = e.Current;
-            Trace.Assert(s.name == "QueryProcessingTest.Account");
-            Trace.Assert(s.table_id == accountTableId);
+            Trace.Assert(s.Name == "QueryProcessingTest.Account");
+            Trace.Assert(s.TableId == accountTableId);
             e.Dispose();
-            e = Db.SlowSQL<materialized_table>("select s from materialized_table s where table_id = 10").GetEnumerator();
+            e = Db.SlowSQL<MaterializedTable>("select s from MaterializedTable s where TableId = 10").GetEnumerator();
             Trace.Assert(e.MoveNext());
             e.Dispose();
-            e = Db.SlowSQL<materialized_table>("select s from materialized_table s where table_id = 1.0E1").GetEnumerator();
+            e = Db.SlowSQL<MaterializedTable>("select s from MaterializedTable s where TableId = 1.0E1").GetEnumerator();
             Trace.Assert(e.MoveNext());
             e.Dispose();
             HelpMethods.LogEvent("Finished testing queries on comparison bug");

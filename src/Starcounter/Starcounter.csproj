@@ -124,7 +124,7 @@
     <Compile Include="Internal\ThreadData.cs" />
     <Compile Include="Metadata\materialized_column.cs" />
     <Compile Include="Metadata\materialized_index.cs" />
-    <Compile Include="Metadata\materialized_table.cs" />
+    <Compile Include="Metadata\MaterializedTable.cs" />
     <Compile Include="Metadata\BaseType.cs" />
     <Compile Include="Mock\Db.cs" />
     <Compile Include="Mock\DbHelper.cs" />

@@ -136,7 +136,7 @@ namespace StarcounterInternal.Hosting
             else
                 stopwatch_ = new Stopwatch();
 
-            var sysTableTypeDef = materialized_table.CreateTypeDef();
+            var sysTableTypeDef = MaterializedTable.CreateTypeDef();
             var sysColumnTypeDef = materialized_column.CreateTypeDef();
             var sysIndexTypeDef = materialized_index.CreateTypeDef();
             var sysIndexColumnTypeDef = materialized_index_column.CreateTypeDef();
@@ -182,7 +182,7 @@ namespace StarcounterInternal.Hosting
             // in the static class constructor). For system classes, we
             // have to do this by hand.
 
-            HostManager.InitTypeSpecification(typeof(materialized_table.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(MaterializedTable.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(materialized_column.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(materialized_index.__starcounterTypeSpecification));
 

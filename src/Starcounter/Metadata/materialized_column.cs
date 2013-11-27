@@ -97,8 +97,8 @@ namespace Starcounter.Metadata {
 
         /// <summary>
         /// </summary>
-        public materialized_table table {
-            get { return (materialized_table)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table); }
+        public MaterializedTable table {
+            get { return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table); }
         }
 
         /// <summary>
