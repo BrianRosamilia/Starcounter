@@ -137,8 +137,8 @@ namespace StarcounterInternal.Hosting
                 stopwatch_ = new Stopwatch();
 
             var sysTableTypeDef = MaterializedTable.CreateTypeDef();
-            var sysColumnTypeDef = materialized_column.CreateTypeDef();
-            var sysIndexTypeDef = materialized_index.CreateTypeDef();
+            var sysColumnTypeDef = MaterializedColumn.CreateTypeDef();
+            var sysIndexTypeDef = MaterializedIndex.CreateTypeDef();
             var sysIndexColumnTypeDef = materialized_index_column.CreateTypeDef();
             var sysBaseTypeTypeDef = BaseType.CreateTypeDef();
 
@@ -183,8 +183,8 @@ namespace StarcounterInternal.Hosting
             // have to do this by hand.
 
             HostManager.InitTypeSpecification(typeof(MaterializedTable.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(materialized_column.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(materialized_index.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(MaterializedColumn.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(MaterializedIndex.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(BaseType.__starcounterTypeSpecification));
 

@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="materialized_column.cs" company="Starcounter AB">
+// <copyright file="BaseType.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -27,7 +27,7 @@ namespace Starcounter.Metadata {
         /// </summary>
         /// <remarks>
         /// Developer note: if you extend or change this class in any way, make
-        /// sure to keep the <see cref="materialized_column.__starcounterTypeSpecification"/>
+        /// sure to keep the <see cref="MaterializedColumn.__starcounterTypeSpecification"/>
         /// class in sync with what is returned by this method.
         /// </remarks>
         /// <returns>A <see cref="TypeDef"/> representing the current

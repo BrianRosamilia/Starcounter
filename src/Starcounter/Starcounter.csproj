@@ -122,8 +122,8 @@
     <Compile Include="Internal\Kernel32.cs" />
     <Compile Include="Internal\Scheduler.cs" />
     <Compile Include="Internal\ThreadData.cs" />
-    <Compile Include="Metadata\materialized_column.cs" />
-    <Compile Include="Metadata\materialized_index.cs" />
+    <Compile Include="Metadata\MaterializedColumn.cs" />
+    <Compile Include="Metadata\MaterializedIndex.cs" />
     <Compile Include="Metadata\MaterializedTable.cs" />
     <Compile Include="Metadata\BaseType.cs" />
     <Compile Include="Mock\Db.cs" />
