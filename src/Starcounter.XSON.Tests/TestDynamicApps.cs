@@ -123,7 +123,7 @@ namespace Starcounter.Internal.XSON.Tests {
         /// Tests dynamic.
         /// </summary>
         [Test]
-        public static void TestDynamic() {
+        public static void TestRuntimeCreatedTemplate() {
             // First, let's create the schema (template)
             var personSchema = new TJson();
             var firstName = personSchema.Add<TString>("FirstName$");
@@ -164,6 +164,14 @@ namespace Starcounter.Internal.XSON.Tests {
             ret.Add(jocke);
             ret.Add(tim);
         }
+
+		[Test]
+		public static void TestDynamicJson() {
+			dynamic json = new Json();
+			json["foo"] = "bar";
+
+			Console.WriteLine(json.ToJson());
+		}
 
         /// <summary>
         /// Test using dynamic codegen

@@ -436,7 +436,11 @@ namespace Starcounter {
 					// TODO: 
 					// Should be delegate on property as well.
 					_SetAt(index, value);
-
+					if (ArrayAddsAndDeletes == null)
+						ArrayAddsAndDeletes = new List<Change>();
+					ArrayAddsAndDeletes.Add(Change.Update(Parent, (TValue)Template, index));
+					MarkAsReplaced(index);
+					Dirtyfy();
 				} else {
 					TValue property = (TValue)((TObject)Template).Properties[index];
 					property.SetValueAsObject(this, value);
@@ -454,6 +458,9 @@ namespace Starcounter {
 				return this[prop.TemplateIndex];
 			}
 			set {
+				if (Template == null)
+					CreateDynamicTemplate();
+
 				var template = (TObject)this.Template;
 				var prop = template.Properties[key];
 				if (prop == null) {

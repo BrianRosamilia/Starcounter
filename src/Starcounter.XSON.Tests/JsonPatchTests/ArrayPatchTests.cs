@@ -101,20 +101,18 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 			j.FirstName = "Jack";
 			nicke.FirstName = "Nicke";
 			j.Friends.Add(nicke);
-			//j["FirstName"] = "Jack";
-			//nicke["FirstName"] = "Nicke";
-			//(j["Friends"] as Json).Add( nicke );
+			j["FirstName"] = "Jack";
+			nicke["FirstName"] = "Nicke";
+			(j["Friends"] as Json).Add( nicke );
 
             string str = Session.Current.CreateJsonPatch(true);
 
             dynamic henrik = new Json() { Template = friendSchema };
 
-			// TODO:
-			// Readd this[string key].
 			//henrik.FirstName = "Henrik";
 			//j.Friends
-            //henrik["FirstName"] = "Henrik";
-            //(j["Friends"] as Json)[0] = henrik;
+            henrik["FirstName"] = "Henrik";
+            (j["Friends"] as Json)[0] = henrik;
 
             Console.WriteLine("Dirty status");
             Console.WriteLine("============");
@@ -127,8 +125,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             Console.WriteLine("========");
             Console.WriteLine(patch);
 
-			//Assert.AreEqual(
-			//	"[{\"op\":\"replace\",\"path\":\"/Friends/0\",\"value\":{\"FirstName\":\"Henrik\"}}]", patch);
+			Assert.AreEqual(
+				"[{\"op\":\"replace\",\"path\":\"/Friends/0\",\"value\":{\"FirstName\":\"Henrik\"}}]", patch);
         }
 
         [Test]

@@ -231,7 +231,7 @@ namespace Starcounter.CLI {
             // Restart the engine if the executable is already running, or
             // make sure the host is started if it's not.
 
-            ExecutableReference exeRef = engine.GetExecutable(exePath);
+            ExecutableReference exeRef = engine.GetExecutable(applicationFilePath);
             if (exeRef == null) {
                 // If it's not running, we'll check that the code host is
                 // running, and start it if not.
