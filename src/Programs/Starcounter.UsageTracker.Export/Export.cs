@@ -61,7 +61,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
                             // Even newer system tables
                             table.Name == "MaterializedTable" || table.Name == "MaterializedIndex" || table.Name == "MaterializedColumn" || table.Name == "MaterializedIndexColumn" ||
                             // Runtime view system tables
-                            table.Name == "BaseType"
+                            table.Name == "BaseType" || table.Name == "MaterializedType" || table.Name == "RuntimeType" || table.Name == "MappedType" || table.Name == "ReferenceType"
                             ) continue;
 
                         // Begin Table

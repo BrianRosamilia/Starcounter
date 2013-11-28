@@ -53,6 +53,14 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="type">The type.</param>
+        /// <param name="targetTypeName">Name of the target type.</param>
+        public PropertyDef(string name, DbTypeCode type, string targetTypeName) : this(name, type, false, targetTypeName) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PropertyDef" /> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="type">The type.</param>
         /// <param name="isNullable">if set to <c>true</c> [is nullable].</param>
         public PropertyDef(string name, DbTypeCode type, bool isNullable) : this(name, type, isNullable, null) { }
 

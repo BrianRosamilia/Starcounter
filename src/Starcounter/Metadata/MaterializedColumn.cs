@@ -64,7 +64,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[]
                 {
                     new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("Table", DbTypeCode.Object, true, "Starcounter.Metadata.materialized_table") { ColumnName = "table" },
+                    new PropertyDef("Table", DbTypeCode.Object, true, "Starcounter.Metadata.MaterializedTable") { ColumnName = "table" },
                     new PropertyDef("Index", DbTypeCode.UInt64, false) { ColumnName = "index" },
                     new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
                     new PropertyDef("PrimitiveType", DbTypeCode.UInt64, false) { ColumnName = "primitive_type" },
