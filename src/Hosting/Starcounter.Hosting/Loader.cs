@@ -145,8 +145,8 @@ namespace StarcounterInternal.Hosting
 
             Package package = new Package(
                 new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
-                BaseType.CreateTypeDef(), 
-                MaterializedType.CreateTypeDef()
+                BaseType.CreateTypeDef(), MaterializedType.CreateTypeDef(), RuntimeType.CreateTypeDef(),
+                MappedType.CreateTypeDef()
                 },
                 null,
                 stopwatch_,
@@ -189,6 +189,8 @@ namespace StarcounterInternal.Hosting
 
             HostManager.InitTypeSpecification(typeof(BaseType.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(MaterializedType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(RuntimeType.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(MappedType.__starcounterTypeSpecification));
 
             stopwatch_ = null;
         }
