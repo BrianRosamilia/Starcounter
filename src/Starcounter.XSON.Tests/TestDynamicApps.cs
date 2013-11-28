@@ -169,8 +169,36 @@ namespace Starcounter.Internal.XSON.Tests {
 		public static void TestDynamicJson() {
 			dynamic json = new Json();
 			json["foo"] = "bar";
+			Assert.AreEqual(@"{""foo"":""bar""}", json.ToJson());
 
-			Console.WriteLine(json.ToJson());
+			dynamic json2 = new Json();
+			json2.foo = "bar";
+			Assert.AreEqual(@"{""foo"":""bar""}", json2.ToJson());
+
+			Json json3 = new Json();
+			json3["foo"] = "bar";
+			Assert.AreEqual(@"{""foo"":""bar""}", json2.ToJson());
+		}
+
+		[Test]
+		public static void TestDynamicJsonInLoop() {
+			for (int i = 0; i < 2; i++) {
+				Json jsonItem = new Json();
+				jsonItem["dummy"] = "dummy";
+			}
+
+			for (int i = 0; i < 2; i++) {
+				dynamic jsonItem = new Json();
+				jsonItem["dummy"] = "dummy";
+			}
+
+			// This will fail the second time because the Template never gets
+			// initialized since the callsite of the dynamic is the same and
+			// the previous binding is reused.
+//			for (int i = 0; i < 2; i++) {
+//				dynamic jsonItem = new Json();
+//				jsonItem.dummy = "dummy";
+//			}
 		}
 
         /// <summary>
@@ -301,8 +329,7 @@ namespace Starcounter.Internal.XSON.Tests {
         /// <summary>
         /// Tests TestDataBinding.
         /// </summary>
-        //[Test]
-        // TODO: Fix this test!
+        [Test]
         public static void TestDataBinding() {
             dynamic msg = new Json { Template = CreateSimplePersonTemplateWithDataBinding() };
 
@@ -315,16 +342,16 @@ namespace Starcounter.Internal.XSON.Tests {
             // Reading bound values.
             Assert.AreEqual("Kalle", msg.FirstName);
             Assert.AreEqual("Kula", msg.LastName);
-            Assert.AreEqual(0, msg._Age); // Since Age shouldn't be bound we should get a zero back and not 21.
+            Assert.AreEqual(0, msg.Age); // Since Age shouldn't be bound we should get a zero back and not 21.
             Assert.IsNotNullOrEmpty(msg.Created);
             Assert.IsNullOrEmpty(msg.Misc); // Same as above. Not bound so no value should be retrieved.
-            Assert.AreEqual("123-555-7890", msg._PhoneNumber.Number); // Should be bound even if the name start with '_' since we specify a binding when registering the template.
+            Assert.AreEqual("123-555-7890", msg.PhoneNumber.Number); 
 
             // Setting bound values.
             msg.FirstName = "Allan";
             msg.LastName = "Ballan";
-            msg._Age = 109L;
-            msg._PhoneNumber.Number = "666";
+            msg.Age = 109L;
+            msg.PhoneNumber.Number = "666";
             msg.Misc = "Changed!";
              
             // Check dataobject is changed.
