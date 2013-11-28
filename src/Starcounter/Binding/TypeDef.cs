@@ -4,6 +4,8 @@
 // </copyright>
 // ***********************************************************************
 
+using System.Diagnostics;
+using System.Reflection;
 namespace Starcounter.Binding
 {
 
@@ -86,6 +88,24 @@ namespace Starcounter.Binding
             TypeLoader = typeLoader;
             TableDef = tableDef;
             ColumnRuntimeTypes = columnRuntimeTypes;
+        }
+
+        internal static TypeDef CreateTypeTableDef(string typeName, string baseTypeName, string tableName, string baseTableName,
+            ColumnDef[] columnDefs, PropertyDef[] propDefs) {
+            var typeCodes = new DbTypeCode[columnDefs.Length];
+            typeCodes[0] = DbTypeCode.Key;
+            Debug.Assert(propDefs.Length + 1 == columnDefs.Length);
+            for (int i = 0; i < propDefs.Length; i++) {
+                propDefs[i].IsNullable = columnDefs[i + 1].IsNullable;
+                propDefs[i].ColumnName = columnDefs[i + 1].Name;
+                typeCodes[i + 1] = propDefs[i].Type;
+            }
+
+            var systemTableDef = new TableDef(tableName, baseTableName, columnDefs);
+            var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, propDefs,
+                new TypeLoader(new AssemblyName("Starcounter"), typeName),
+                systemTableDef, typeCodes);
+            return sysColumnTypeDef;
         }
 
         internal IndexInfo2 GetIndexInfo(string name) {
