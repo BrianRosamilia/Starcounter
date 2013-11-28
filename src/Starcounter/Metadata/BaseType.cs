@@ -111,28 +111,33 @@ namespace Starcounter.Metadata {
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
-            var systemTableDef = new TableDef(
-                "materialized_type", "base_type",
-                new ColumnDef[] {
+            string typeName = "Starcounter.Metadata.MaterializedType";
+            string baseTypeName = "Starcounter.Metadata.BaseType";
+            string tableName = "materialized_type";
+            string baseTableName = "base_type";
+            var columnDefs = new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("primitive_type", sccoredb.STAR_TYPE_ULONG, false, false)
-                });
+                };
+            var propDefs = new PropertyDef[] {
+                    new PropertyDef("Name", DbTypeCode.String),
+                    new PropertyDef("PrimitiveType", DbTypeCode.UInt64)
+                };
 
-            var sysColumnTypeDef = new TypeDef(
-                "Starcounter.Metadata.MaterializedType",
-                "Starcounter.Metadata.BaseType",
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("PrimitiveType", DbTypeCode.UInt64, false) { ColumnName = "primitive_type" }
-                },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.MaterializedType"),
-                systemTableDef,
-                new DbTypeCode[] {
-                    DbTypeCode.Key, 
-                    DbTypeCode.UInt64
-                });
+            var typeCodes = new DbTypeCode[columnDefs.Length];
+            typeCodes[0] = DbTypeCode.Key;
+            Debug.Assert(propDefs.Length + 1 == columnDefs.Length);
+            for (int i = 0; i < propDefs.Length; i++) {
+                propDefs[i].IsNullable = columnDefs[i + 1].IsNullable;
+                propDefs[i].ColumnName = columnDefs[i + 1].Name;
+                typeCodes[i + 1] = propDefs[i].Type;
+            }
 
+            var systemTableDef = new TableDef(tableName, baseTableName, columnDefs);
+            var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, propDefs,
+                new TypeLoader(new AssemblyName("Starcounter"), typeName),
+                systemTableDef, typeCodes);
             return sysColumnTypeDef;
         }
 
@@ -181,28 +186,33 @@ namespace Starcounter.Metadata {
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
-            var systemTableDef = new TableDef(
-                "runtime_type",
-                "base_type",
-                new ColumnDef[] {
+            string typeName = "Starcounter.Metadata.RuntimeType";
+            string baseTypeName = "Starcounter.Metadata.BaseType";
+            string tableName = "runtime_type";
+            string baseTableName = "base_type";
+            var columnDefs = new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("vm_name", sccoredb.STAR_TYPE_STRING, true, false)
-                });
+                };
+            var propDefs = new PropertyDef[] {
+                    new PropertyDef("Name", DbTypeCode.String),
+                    new PropertyDef("VMName", DbTypeCode.String)
+                };
 
-            var sysColumnTypeDef = new TypeDef(
-                "Starcounter.Metadata.RuntimeType",
-                "Starcounter.Metadata.BaseType",
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("VMName", DbTypeCode.String, true) { ColumnName = "vm_name"}
-                },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.RuntimeType"),
-                systemTableDef,
-                new DbTypeCode[] {
-                    DbTypeCode.Key, DbTypeCode.String, DbTypeCode.String
-                });
+            var typeCodes = new DbTypeCode[columnDefs.Length];
+            typeCodes[0] = DbTypeCode.Key;
+            Debug.Assert(propDefs.Length + 1 == columnDefs.Length);
+            for (int i = 0; i < propDefs.Length; i++) {
+                propDefs[i].IsNullable = columnDefs[i + 1].IsNullable;
+                propDefs[i].ColumnName = columnDefs[i + 1].Name;
+                typeCodes[i + 1] = propDefs[i].Type;
+            }
 
+            var systemTableDef = new TableDef(tableName, baseTableName, columnDefs);
+            var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, propDefs,
+                new TypeLoader(new AssemblyName("Starcounter"), typeName),
+                systemTableDef, typeCodes);
             return sysColumnTypeDef;
         }
 
@@ -252,33 +262,37 @@ namespace Starcounter.Metadata {
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
-            var systemTableDef = new TableDef(
-                "mapped_type",
-                "runtime_type",
-                new ColumnDef[] {
+            string typeName = "Starcounter.Metadata.MappedType";
+            string baseTypeName = "Starcounter.Metadata.RuntimeType";
+            string tableName = "mapped_type";
+            string baseTableName = "runtime_type";
+            var columnDefs = new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("vm_name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("write_loss", sccoredb.STAR_TYPE_ULONG, false, false),
                     new ColumnDef("read_loss", sccoredb.STAR_TYPE_ULONG, false, false)
-                });
+                };
+            var propDefs = new PropertyDef[] {
+                    new PropertyDef("Name", DbTypeCode.String),
+                    new PropertyDef("VMName", DbTypeCode.String),
+                    new PropertyDef("WriteLoss", DbTypeCode.Boolean),
+                    new PropertyDef("ReadLoss",  DbTypeCode.Boolean)
+                };
 
-            var sysColumnTypeDef = new TypeDef(
-                "Starcounter.Metadata.MappedType",
-                "Starcounter.Metadata.RuntimeType",
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("VMName", DbTypeCode.String, true) { ColumnName = "vm_name"},
-                    new PropertyDef("WriteLoss", DbTypeCode.Boolean, false) { ColumnName = "write_loss"},
-                    new PropertyDef("ReadLoss",  DbTypeCode.Boolean, false) { ColumnName = "read_loss"}
-                },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Metadata.MappedType"),
-                systemTableDef,
-                new DbTypeCode[] {
-                    DbTypeCode.Key, DbTypeCode.String, DbTypeCode.String, DbTypeCode.Boolean, 
-                    DbTypeCode.Boolean
-                });
+            var typeCodes = new DbTypeCode[columnDefs.Length];
+            typeCodes[0] = DbTypeCode.Key;
+            Debug.Assert(propDefs.Length + 1 == columnDefs.Length);
+            for (int i = 0; i < propDefs.Length; i++) {
+                propDefs[i].IsNullable = columnDefs[i + 1].IsNullable;
+                propDefs[i].ColumnName = columnDefs[i + 1].Name;
+                typeCodes[i + 1] = propDefs[i].Type;
+            }
 
+            var systemTableDef = new TableDef(tableName, baseTableName, columnDefs);
+            var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, propDefs,
+                new TypeLoader(new AssemblyName("Starcounter"), typeName),
+                systemTableDef, typeCodes);
             return sysColumnTypeDef;
         }
 
