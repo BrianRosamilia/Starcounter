@@ -90,17 +90,31 @@ namespace Starcounter.Binding
             ColumnRuntimeTypes = columnRuntimeTypes;
         }
 
+        /// <summary>
+        /// This is a help method, which creates TypeDef and TableDef for given names and columns/properties. Some property information are filled 
+        /// from columns, thus it is assumed that columns and properties have the same order.
+        /// </summary>
+        /// <param name="typeName">The name of the type to create TypeDef</param>
+        /// <param name="baseTypeName">The name of the base type or null</param>
+        /// <param name="tableName">The name of the table to which type is mapped and for which TableDef to create.</param>
+        /// <param name="baseTableName">The name of the base table</param>
+        /// <param name="columnDefs">Complete ColumnDef for the TableDef</param>
+        /// <param name="propDefs">PropertyDef with names and types of the properties with the same
+        /// order as ColumnDef. Column names and nullable properties are extracted from columnDefs</param>
+        /// <returns></returns>
         internal static TypeDef CreateTypeTableDef(string typeName, string baseTypeName, string tableName, string baseTableName,
             ColumnDef[] columnDefs, PropertyDef[] propDefs) {
             var typeCodes = new DbTypeCode[columnDefs.Length];
-            typeCodes[0] = DbTypeCode.Key;
+            typeCodes[0] = DbTypeCode.Key;  // Column 0 is always the key column, __id
             Debug.Assert(propDefs.Length + 1 == columnDefs.Length);
             for (int i = 0; i < propDefs.Length; i++) {
+                // Complete PropertyDef from ColumnDef
                 propDefs[i].IsNullable = columnDefs[i + 1].IsNullable;
                 propDefs[i].ColumnName = columnDefs[i + 1].Name;
+                // Populate TypeCodes
                 typeCodes[i + 1] = propDefs[i].Type;
             }
-
+            // Finally create TableDef and TypeDef
             var systemTableDef = new TableDef(tableName, baseTableName, columnDefs);
             var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, propDefs,
                 new TypeLoader(new AssemblyName("Starcounter"), typeName),

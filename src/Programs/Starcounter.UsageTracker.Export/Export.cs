@@ -39,7 +39,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
             Console.WriteLine(string.Format("NOTICE: Exporting to: {0} ", file));
 
 
-            QueryResultRows<Starcounter.Metadata.MaterializedTable> result = Db.SlowSQL<Starcounter.Metadata.MaterializedTable>("SELECT o FROM MATERIALIZED_TABLE o");
+            QueryResultRows<Starcounter.Metadata.MaterializedTable> result = Db.SlowSQL<Starcounter.Metadata.MaterializedTable>("SELECT o FROM MaterializedTable o");
             int tableCnt = 0;
 
             try {
