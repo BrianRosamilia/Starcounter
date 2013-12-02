@@ -42,7 +42,7 @@ namespace Starcounter.Server {
             var hashBytes = hashAlgorithm.ComputeHash(keyBytes);
             hash = BitConverter.ToString(hashBytes).Replace("-", "");
 
-            key = string.Format("{0}-{1}", Path.GetFileName(executablePath), hash);
+            key = hash;
             return key;
         }
     }

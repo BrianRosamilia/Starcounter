@@ -61,21 +61,27 @@ namespace star {
 
             var guid = Guid.NewGuid().ToString();
             var tempPath = Path.GetTempPath();
-            tempPath = Path.Combine(tempPath, ".starcounter");
-            if (!Directory.Exists(tempPath)) {
-                Directory.CreateDirectory(tempPath);
-            }
             tempPath = Path.Combine(tempPath, guid);
-            if (!Directory.Exists(tempPath)) {
-                Directory.CreateDirectory(tempPath);
+            if (Directory.Exists(tempPath)) {
+                Directory.Delete(tempPath, true);
             }
+            Directory.CreateDirectory(tempPath);
 
             parameters.TempFiles = new TempFileCollection(tempPath, false);
-            
-            var temporaryDiskExePath = Path.GetRandomFileName();
-            temporaryDiskExePath += guid;
+
+            var temporaryDiskExePath = Path.GetFileNameWithoutExtension(sourceCode);
             temporaryDiskExePath += ".exe";
             temporaryDiskExePath = Path.Combine(parameters.TempFiles.TempDir, temporaryDiskExePath);
+            try {
+                temporaryDiskExePath = Path.GetFullPath(temporaryDiskExePath);
+            } catch (PathTooLongException) {
+                // We should provide a nice error here already, saying that either
+                // the user can use another temp directory (shorter path), or have
+                // a shorter file name.
+                // TODO:
+                throw;
+            }
+
             parameters.TempFiles.AddFile(temporaryDiskExePath, true);
 
             parameters.OutputAssembly = temporaryDiskExePath;

@@ -686,7 +686,7 @@ internal static class SqlProcessor
     {
         if (!IdentifierToken(tokenList, pos))
         {
-            throw new SqlException("Expected identifier.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected identifier.", tokenList, pos);
         }
         String identifierPath = tokenList[pos];
         pos++;
@@ -787,7 +787,7 @@ internal static class SqlProcessor
         String propertyName;
         if (!IdentifierToken(tokenList, pos))
         {
-            throw new SqlException("Expected identifier.", tokenList[pos]);
+            throw GetSqlExceptionForToken("Expected identifier.", tokenList, pos);
         }
         propertyName = tokenList[pos];
         pos++;
