@@ -240,6 +240,8 @@ namespace Starcounter.Hosting {
                 Db.Transaction(delegate {
                     Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
                 });
+
+                OnRuntimeMetadataPopulated();
             }
         }
 
@@ -314,6 +316,7 @@ namespace Starcounter.Hosting {
         private void OnQueryModuleSchemaInfoUpdated() { Trace("Query module schema information updated."); }
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }
         private void OnProcessingCompleted() { Trace("Processing completed."); }
+        private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were populated with initial data."); }
 
         [Conditional("TRACE")]
         private void Trace(string message)
