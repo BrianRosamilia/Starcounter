@@ -10,9 +10,11 @@ namespace Starcounter.SqlProcessor {
         [DllImport("scsqlprocessor.dll")]
         public static unsafe extern ScError* scsql_get_error();
         [DllImport("scsqlprocessor.dll")]
-        public static unsafe extern uint scsql_free_memory();
+        public static extern uint scsql_free_memory();
         [DllImport("scsqlprocessor.dll")]
-        public static unsafe extern uint scsql_dump_memory_leaks();
+        public static extern uint scsql_dump_memory_leaks();
+        [DllImport("scsqlprocessor.dll")]
+        public static extern uint scsql_insert_metadata();
 
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
@@ -26,6 +28,12 @@ namespace Starcounter.SqlProcessor {
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
             Debug.Assert(err < 10000);
             return ex;
+        }
+
+        public static void PopulateRuntimeMetadata() {
+            uint err = scsql_insert_metadata();
+            if (err != 0)
+                throw ErrorCode.ToException(err);
         }
 
         /// <summary>

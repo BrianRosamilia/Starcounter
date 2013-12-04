@@ -455,7 +455,7 @@ namespace QueryProcessingTest {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(2)).First.Delete();
             });
             InsertAccount(GetAccountId(2), client);
-            DoOffsetkey(query, key, new int[] { GetAccountId(2), GetAccountId(3), GetAccountId(4), GetAccountId(5) });
+            DoOffsetkey(query, key, new int[] { GetAccountId(2), GetAccountId(3), GetAccountId(4), GetAccountId(5) }, true);
         }
 
         static byte[] DoFetch(String query) {
@@ -475,15 +475,28 @@ namespace QueryProcessingTest {
             return key;
         }
 
-        static void DoOffsetkey(String query, byte[] key, int[] expectedResult) {
+        static void DoOffsetkey(String query, byte[] key, int[] expectedResult, Boolean keyReinsert) {
             int nrs = 0;
+            Boolean keyIncluded = true;
             Db.Transaction(delegate {
-            foreach (Account a in Db.SQL<Account>(query + " fetch ? offsetkey ?", AccountIdLast, expectedResult.Length, key)) {
-                Trace.Assert(a.AccountId == expectedResult[nrs]);
-                nrs++;
-            }
+                foreach (Account a in Db.SQL<Account>(query + " fetch ? offsetkey ?", AccountIdLast, expectedResult.Length, key)) {
+                    if (nrs == 0 && keyReinsert)
+                        keyIncluded = a.AccountId == expectedResult[nrs];
+                    if (keyIncluded)
+                        Trace.Assert(a.AccountId == expectedResult[nrs]);
+                    else
+                        Trace.Assert(a.AccountId == expectedResult[nrs + 1]);
+                    nrs++;
+                }
             });
-            Trace.Assert(nrs == expectedResult.Length);
+            if (keyIncluded)
+                Trace.Assert(nrs == expectedResult.Length);
+            else
+                Trace.Assert(nrs + 1 == expectedResult.Length);
+        }
+
+        static void DoOffsetkey(String query, byte[] key, int[] expectedResult) {
+            DoOffsetkey(query, key, expectedResult, false);
         }
 
         static User PopulateForTest() {

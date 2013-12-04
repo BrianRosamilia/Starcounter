@@ -57,6 +57,7 @@
     <Compile Include="DataPopulation.cs" />
     <Compile Include="FetchTest.cs" />
     <Compile Include="HelpMethods.cs" />
+    <Compile Include="MetadataTest.cs" />
     <Compile Include="ObjectIdentityTest.cs" />
     <Compile Include="OffsetkeyTest.cs" />
     <Compile Include="QueryProcessingPerformance.cs" />

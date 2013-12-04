@@ -20,6 +20,7 @@ namespace QueryProcessingTest {
                 SelectClauseExpressionsTests.TestSelectClauseExpressions();
                 OffsetkeyTest.Master();
                 ObjectIdentityTest.TestObjectIdentityInSQL();
+                MetadataTest.TestPopulatedMetadata();
                 if (TestLogger.IsNightlyBuild())
                     BenchmarkQueryCache.BenchQueryCache();
                 else

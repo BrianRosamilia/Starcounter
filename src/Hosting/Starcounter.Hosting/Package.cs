@@ -236,6 +236,10 @@ namespace Starcounter.Hosting {
                 QueryModule.UpdateSchemaInfo(typeDefs);
 
                 OnQueryModuleSchemaInfoUpdated();
+
+                Db.Transaction(delegate {
+                    Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
+                });
             }
         }
 
