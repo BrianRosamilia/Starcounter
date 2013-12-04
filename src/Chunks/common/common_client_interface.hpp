@@ -84,11 +84,14 @@ public:
 	 *		Constant.
 	 */
 	explicit common_client_interface(const char* segment_name)
-	: client_number_pool_(segment_name),
+	: client_number_pool_(segment_name) {}
+
 #if 0
+	explicit common_client_interface(const char* segment_name)
+	: client_number_pool_(segment_name),
 	state_(normal),
-#endif
 	client_interfaces_to_clean_up_(0) {}
+#endif
 	
 	queue_type& client_number_pool() {
 		return client_number_pool_;
@@ -121,7 +124,6 @@ public:
 	state database_state() const {
 		return state_;
 	}
-#endif
 	
 	/// Get number of client interfaces to clean up.
 	/**
@@ -149,10 +151,18 @@ public:
 	uint32_t decrement_client_interfaces_to_clean_up() {
 		return _InterlockedDecrement(&client_interfaces_to_clean_up_);
 	}
+#endif
 	
 	/// Clients acquire a client_number, which allocates
 	/// client_interface[client_number].
 	bool acquire_client_number(value_type* n, client_interface_type*
+	base_client_interface, owner_id oid, uint32_t spin_count = 1000000,
+	uint32_t timeout_milliseconds = 10000) {
+		return client_number_pool_.acquire(n, base_client_interface, oid,
+		smp::spinlock::milliseconds(timeout_milliseconds));
+	}
+
+	bool acquire_client_number(value_type n, client_interface_type*
 	base_client_interface, owner_id oid, uint32_t spin_count = 1000000,
 	uint32_t timeout_milliseconds = 10000) {
 		return client_number_pool_.acquire(n, base_client_interface, oid,
@@ -186,17 +196,15 @@ private:
 #if 0	
 	// Database state.
 	volatile state state_;
-#endif
 	
 	// Number of client interfaces to clean up.
 	volatile uint32_t client_interfaces_to_clean_up_;
 	
 	char cache_line_pad_1_[CACHE_LINE_SIZE
-#if 0
 	-sizeof(state) // state_
-#endif
 	-sizeof(uint32_t) // client_interfaces_to_clean_up_
 	];
+#endif
 };
 
 typedef simple_shared_memory_allocator<client_number>

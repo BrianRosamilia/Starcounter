@@ -272,7 +272,6 @@ namespace Starcounter {
             session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
             http_request_struct_->socket_data_ = socket_data;
             data_stream_ = data_stream;
-            data_stream_.Init(chunk_data, single_chunk, chunk_index);
             handler_id_ = handler_id;
             protocol_type_ = protocol_type;
         }

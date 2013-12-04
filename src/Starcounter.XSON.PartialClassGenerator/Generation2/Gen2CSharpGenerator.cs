@@ -796,10 +796,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             h.Append("#pragma warning disable 0108\n");
 			h.Append("#pragma warning disable 1591\n");
+			h.Append("#line hidden\n");
 			h.Append('\n');
         }
 
         static internal void WriteFooter(StringBuilder f) {
+			f.Append("#line default\n");
 			f.Append("#pragma warning restore 1591\n");
             f.Append("#pragma warning restore 0108");
         }

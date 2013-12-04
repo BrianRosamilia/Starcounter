@@ -10,10 +10,9 @@ EXPORTS
 	sc_send_to_client
 	server_send_task_to_scheduler
 	server_send_signal_to_scheduler
-	sc_add_ref_to_channel
-	sc_release_channel
 	sc_get_shared_memory_chunk
     sc_release_linked_shared_memory_chunks
 	sc_acquire_shared_memory_chunk
 	sc_acquire_linked_shared_memory_chunks
     sc_acquire_linked_shared_memory_chunks_counted
+	server_get_clients_available

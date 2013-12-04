@@ -88,9 +88,11 @@ template<class CharT, class Traits>
 inline std::basic_ostream<CharT, Traits>&
 operator<<(std::basic_ostream<CharT, Traits>& os, const process_info& u) {
 	os << u.handle_ << "\t" << u.process_type_ << "\t";
+#if 0
 	if (u.process_type_ == monitor_interface::client_process) {
 		os << "\t";
 	}
+#endif
 	os << u.pid_ << "\t" << u.segment_name_;
 	return os;
 }

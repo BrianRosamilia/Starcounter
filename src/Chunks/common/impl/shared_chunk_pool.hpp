@@ -69,14 +69,17 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 		chunk_index current;
 		current = container_[--unread_];
 		_mm_mfence(); // TODO: Figure if _mm_sfence() is enough.
+#if 0
 		client_interface_ptr->set_chunk_flag(current);
+#endif
 		head = current;
 		
 		for (std::size_t i = 1; i < chunks_to_acquire; ++i) {
 			prev = current;
 			current = container_[--unread_];
 			_mm_mfence(); // TODO: Figure if _mm_mfence() is enough/required.
-			
+
+#if 0			
 			// This must never occur before the pop_back() above, because if
 			// it occurs before pop_back() and the client process terminates
 			// unexpectedly (crashes), then the clean up will be messed up
@@ -85,6 +88,7 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 			// to mark free chunks, because then duplicates could not appear
 			// obviously.
 			client_interface_ptr->set_chunk_flag(current);
+#endif
 			chunk_base[prev].set_link(current);
 		}
 		
@@ -124,7 +128,9 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 		chunk_index current;
 		current = container_[--unread_];
 		_mm_mfence(); // TODO: Figure if _mm_sfence() is enough.
+#if 0
 		client_interface_ptr->set_chunk_flag(current);
+#endif
 		head = current;
 		
 		for (std::size_t i = 1; i < num_chunks_to_acquire; ++i) {
@@ -132,7 +138,8 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 			current = container_[--unread_];
 			
 			_mm_mfence(); // TODO: Figure if _mm_mfence() is enough/required.
-			
+
+#if 0			
 			// This must never occur before the pop_back() above, because if
 			// it occurs before pop_back() and the client process terminates
 			// unexpectedly (crashes), then the clean up will be messed up
@@ -141,6 +148,7 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 			// to mark free chunks, because then duplicates could not appear
 			// obviously.
 			client_interface_ptr->set_chunk_flag(current);
+#endif
 			chunk_base[prev].set_link(current);
 		}
 		
@@ -182,7 +190,9 @@ smp::spinlock::milliseconds timeout) {
 		if (current >= channels) {
 			// The queue is not full so the item can be pushed.
 			container_.push_front(current);
+#if 0
 			client_interface_ptr->clear_chunk_flag(current);
+#endif
 			++unread_;
 			// Can access the chunk since the lock have not been released yet.
 		}
@@ -231,10 +241,12 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 			_mm_mfence();
 			
 			if (private_chunk_pool.push_front(current)) {
+#if 0
 				// Mark the chunk as owned by this client.
 				client_interface_ptr->set_chunk_flag(current);
-				
+
 				// Havning reached this point the chunk can be recovered.
+#endif			
 				
 				_mm_mfence(); // Remove if uneccessary.
 			}
@@ -288,8 +300,10 @@ smp::spinlock::milliseconds timeout) {
 			
 			private_chunk_pool.push_front(current);
 
+#if 0
 			// Mark the chunk as owned by this client.
 			client_interface_ptr->set_chunk_flag(current);
+#endif
 			
 			// Havning reached this point the chunk can be recovered.
 			
@@ -326,8 +340,10 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	
 	for (released = 0; released < chunks_to_release; ++released) {
 		if (private_chunk_pool.pop_back(&current)) {
+#if 0
 			// Mark the chunk as not owned by this client.
 			client_interface_ptr->clear_chunk_flag(current);
+#endif
 			
 			// Make sure the CPU (and compiler) don't re-order instructions.
 			_mm_mfence();
@@ -483,6 +499,7 @@ smp::spinlock::milliseconds timeout) {
 	return released;
 }
 
+#if 0
 //------------------------------------------------------------------------------
 // For schedulers (and monitor), doing clean up:
 
@@ -526,6 +543,7 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	// Successfully released all chunks.
 	return true;
 }
+#endif
 
 //------------------------------------------------------------------------------
 template<class T, class Alloc>

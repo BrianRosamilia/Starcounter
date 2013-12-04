@@ -158,10 +158,12 @@ public:
 	pid_type get_pid() const;
 	worker& set_owner_id(const owner_id oid);
 	owner_id get_owner_id() const;
-	
+
+#if 0
 	/// The worker must call release_all_resources() before terminating its
 	/// thread. Otherwise resources it may have allocated will be leaked.
 	void release_all_resources();
+#endif
 	
 	// For debug.
 	void show_linked_chunks(chunk_type* chunk_base, chunk_index head);

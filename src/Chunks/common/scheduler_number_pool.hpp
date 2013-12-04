@@ -162,6 +162,9 @@ public:
 	 */
 	bool acquire(value_type* item, owner_id id,
 	smp::spinlock::milliseconds timeout);
+
+	bool acquire(value_type item, owner_id id,
+	smp::spinlock::milliseconds timeout);
 	
 	/// Release an item to the container.
 	/**

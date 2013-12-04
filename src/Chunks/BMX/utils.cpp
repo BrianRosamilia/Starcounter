@@ -174,6 +174,14 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
 
     _SC_ASSERT(!aggregated_flag);
 
+#ifdef GW_MEMORY_MANAGEMENT
+
+    // Enforcing usage of one chunk.
+    if (buf_len_bytes > num_bytes_left_first_chunk)
+        buf_len_bytes = num_bytes_left_first_chunk;
+    
+#endif
+
     // Checking if data fits in one chunk.
     if (buf_len_bytes <= num_bytes_left_first_chunk)
     {
@@ -292,6 +300,7 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
 
 // Does everything to send the small linear user buffer to the client.
 uint32_t __stdcall sc_bmx_send_small_buffer(
+    uint8_t gw_worker_id,
     uint8_t* buf,
     int32_t buf_len_bytes,
     starcounter::core::chunk_index& the_chunk_index,
@@ -316,7 +325,7 @@ uint32_t __stdcall sc_bmx_send_small_buffer(
     _SC_ASSERT(smc->is_terminated());
 
     // Sending linked chunks to client.
-    err_code = cm_send_to_client(the_chunk_index);
+    err_code = cm_send_to_client(gw_worker_id, the_chunk_index);
     _SC_ASSERT(err_code == 0);
 
     the_chunk_index = shared_memory_chunk::link_terminator;
@@ -326,6 +335,7 @@ uint32_t __stdcall sc_bmx_send_small_buffer(
 
 // Does everything to send the big linear user buffer to the client.
 uint32_t __stdcall sc_bmx_send_big_buffer(
+    uint8_t gw_worker_id,
     uint8_t* buf,
     int32_t buf_len_bytes,
     starcounter::core::chunk_index& the_chunk_index,
@@ -378,7 +388,7 @@ uint32_t __stdcall sc_bmx_send_big_buffer(
                 return err_code;
 
             // Sending linked chunks to client.
-            err_code = cm_send_to_client(the_chunk_index);
+            err_code = cm_send_to_client(gw_worker_id, the_chunk_index);
             _SC_ASSERT(err_code == 0);
 
             // Switching to next cloned chunk.
@@ -392,7 +402,7 @@ uint32_t __stdcall sc_bmx_send_big_buffer(
         else
         {
             // Sending linked chunks to client.
-            err_code = cm_send_to_client(the_chunk_index);
+            err_code = cm_send_to_client(gw_worker_id, the_chunk_index);
             _SC_ASSERT(err_code == 0);
             the_chunk_index = shared_memory_chunk::link_terminator;
 
@@ -407,6 +417,7 @@ uint32_t __stdcall sc_bmx_send_big_buffer(
 
 // The entry point to send any-size user data to client.
 EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
+    uint8_t gw_worker_id,
     uint8_t* buf,
     int32_t buf_len_bytes,
     starcounter::core::chunk_index* the_chunk_index,
@@ -444,13 +455,13 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     if (buf_len_bytes < remaining_bytes_in_orig_chunk)
     {
         // Sending using the same request chunk.
-        err_code = sc_bmx_send_small_buffer(buf, buf_len_bytes, *the_chunk_index, chunk_user_data_offset);
+        err_code = sc_bmx_send_small_buffer(gw_worker_id, buf, buf_len_bytes, *the_chunk_index, chunk_user_data_offset);
         _SC_ASSERT(err_code == 0);
     }
     else
     {
         // Sending using multiple linked chunks.
-        err_code = sc_bmx_send_big_buffer(buf, buf_len_bytes, *the_chunk_index, chunk_user_data_offset);
+        err_code = sc_bmx_send_big_buffer(gw_worker_id, buf, buf_len_bytes, *the_chunk_index, chunk_user_data_offset);
     }
 
     // Chunk becomes unusable.

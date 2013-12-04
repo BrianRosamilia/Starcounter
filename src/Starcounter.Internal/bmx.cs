@@ -19,55 +19,16 @@ namespace Starcounter.Internal
     public static class bmx
     {
         /// <summary>
-        /// Struct SC_SESSION_ID
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public struct SC_SESSION_ID
-        {
-            /// <summary>
-            /// The low
-            /// </summary>
-            internal UInt64 low;
-            /// <summary>
-            /// The high
-            /// </summary>
-            internal UInt64 high;
-        };
-
-        /// <summary>
         /// Struct BMX_TASK_INFO
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct BMX_TASK_INFO
         {
-            /// <summary>
-            /// The flags
-            /// </summary>
             internal Byte flags;
-            /// <summary>
-            /// The scheduler_number
-            /// </summary>
             internal Byte scheduler_number;
-            /// <summary>
-            /// The handler_id
-            /// </summary>
             internal UInt16 handler_id;
-            /// <summary>
-            /// The fill1
-            /// </summary>
-            internal Byte fill1;
-            /// <summary>
-            /// The chunk_index
-            /// </summary>
+            internal Byte client_worker_id;
             internal UInt32 chunk_index;
-            /// <summary>
-            /// The transaction_handle
-            /// </summary>
-            internal UInt64 transaction_handle;
-            /// <summary>
-            /// The session_id
-            /// </summary>
-            internal SC_SESSION_ID session_id;
         };
 
         /// <summary>
@@ -96,11 +57,13 @@ namespace Starcounter.Internal
             Diagnostics.ErrorHandlingCallback error_handling_callback
             );
 
+#if false
         /// <summary>
         /// Sc_wait_for_bmx_readies this instance.
         /// </summary>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static Int32 sc_wait_for_bmx_ready(UInt32 max_time_to_wait_ms);
+#endif
 
         /// <summary>
         /// sc_bmx_copy_all_chunks the specified chunk_index.
@@ -146,6 +109,7 @@ namespace Starcounter.Internal
         /// <returns>UInt32.</returns>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_bmx_send_buffer(
+            Byte gw_worker_id,
             Byte* buf,
             UInt32 buf_len_bytes,
             UInt32* the_chunk_index,
@@ -238,7 +202,7 @@ namespace Starcounter.Internal
                 throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
 
             // Creating network data stream object.
-            NetworkDataStream data_stream = new NetworkDataStream();
+            NetworkDataStream data_stream = new NetworkDataStream(new_chunk_mem, true, new_chunk_index, session.session_struct_.gw_worker_id_);
 
             Byte* socket_data_begin = new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 

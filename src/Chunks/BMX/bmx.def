@@ -3,7 +3,6 @@ LIBRARY	"bmx"
 
 EXPORTS
 	sc_init_bmx_manager
-	sc_wait_for_bmx_ready
 	sc_handle_incoming_chunks
 	sc_bmx_register_port_handler
     sc_bmx_unregister_port

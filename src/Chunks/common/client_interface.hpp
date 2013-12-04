@@ -79,8 +79,15 @@ public:
 	const char* segment_name = 0, int32_t id = -1)
 	: notify_(false),
 	owner_id_(owner_id::none),
+	available_(0) {
+#if 0
+	explicit client_interface(const allocator_type& alloc = allocator_type(),
+	const char* segment_name = 0, int32_t id = -1)
+	: notify_(false),
+	owner_id_(owner_id::none),
 	allocated_channels_(0),
 	database_cleanup_index_(-1) {
+#endif
 		if (segment_name != 0) {
 			char work_notify_name[segment_and_notify_name_size];
 			std::size_t length;
@@ -267,6 +274,15 @@ public:
 		return owner_id_;
 	}
 
+	void set_available() {
+		_mm_sfence();
+		available_ = 1;
+		_mm_sfence();
+	}
+
+	int available() { return available_; }
+
+#if 0
 	/// Set number of channels acquired by the client.
 	/**
 	 * @param n The number of channels allocated.
@@ -294,7 +310,7 @@ public:
 		_InterlockedDecrement((LONG*) &allocated_channels_);
 		return allocated_channels_;
 	}
-	
+
 	/// Get the number of allocated channels. Used by the clean-up mechanism.
 	/**
 	 * @return The number of allocated channels.
@@ -302,7 +318,9 @@ public:
 	uint32_t allocated_channels() const {
 		return allocated_channels_;
 	}
+#endif
 	
+#if 0	
 	resource_map& get_resource_map() {
 		return resource_map_;
 	}
@@ -314,13 +332,12 @@ public:
 	void clear_chunk_flag(std::size_t index) {
 		resource_map_.clear_chunk_flag(index);
 	}
-	
+
 	void set_channel_flag(std::size_t scheduler_num, std::size_t channel_num) {
 		resource_map_.set_channel_flag(scheduler_num, channel_num);
 	}
 	
-	void clear_channel_flag(std::size_t scheduler_num, std::size_t channel_num)
-	{
+	void clear_channel_flag(std::size_t scheduler_num, std::size_t channel_num) {
 		resource_map_.clear_channel_flag(scheduler_num, channel_num);
 	}
 	
@@ -337,6 +354,7 @@ public:
 	bool is_chunk_owner(uint32_t n) const {
 		return resource_map_.owns_chunk(n);
 	}
+#endif
 
 	::HANDLE get_work_event() const {
 		return work_;
@@ -392,6 +410,12 @@ private:
 	// The owner of this client_interface also owns resources marked in the
 	// resource_map_.
 	owner_id owner_id_;
+
+	// Used by client (gateway) to indicate that client is initialized and
+	// available.
+	int available_;
+
+#if 0
 	volatile uint32_t allocated_channels_;
 	
 	// The IPC monitor will set database_cleanup_index_ (range 0 to databases -1)
@@ -403,11 +427,15 @@ private:
 	// There it will find this, and use the data there to access the IPC shared memory
 	// segment and search through the client_interface[s] for
 	volatile int32_t database_cleanup_index_;
+#endif
 
 	char cache_line_pad_3_[CACHE_LINE_SIZE
 	-sizeof(owner_id) // owner_id_
+	-sizeof(int) // available_
+#if 0
 	-sizeof(uint32_t) // allocated_channels_
 	-sizeof(int32_t) // database_cleanup_index_
+#endif
 	];
 	
 	// The spinlock_ is used to synchronize release of chunks_.
@@ -417,7 +445,9 @@ private:
 	-sizeof(smp::spinlock) // spinlock_
 	];
 
+#if 0
 	resource_map resource_map_;
+#endif
 
 	// In order to reduce the time taken to open the work_ event the name is
 	// cached. Otherwise the name have to be formated before opening it.

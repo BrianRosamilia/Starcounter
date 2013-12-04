@@ -6,10 +6,6 @@ using namespace starcounter::core;
 // Pushes registered port handler.
 uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
 {
-    // Checking if we are ready to push.
-    if (!bmx_data->is_push_ready())
-        return 0;
-
     starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
@@ -29,13 +25,14 @@ uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
 
     // Writing handler information into chunk.
     if (!WriteRegisteredPortHandler(resp_chunk))
-        return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
+        return SCERRHANDLERINFOEXCEEDSLIMITS;
 
     // Terminating last chunk.
     smc->terminate_link();
 
     // Sending prepared chunk to client.
-    err_code = cm_send_to_client(chunk_index);
+    client_index_type client_index = 0;
+	err_code = cm_send_to_client(client_index, chunk_index);
 
     return err_code;
 }
@@ -43,10 +40,6 @@ uint32_t HandlersList::PushRegisteredPortHandler(BmxData* bmx_data)
 // Pushes registered subport handler.
 uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
 {
-    // Checking if we are ready to push.
-    if (!bmx_data->is_push_ready())
-        return 0;
-
     starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
@@ -66,13 +59,14 @@ uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
 
     // Writing handler information into chunk.
     if (!WriteRegisteredSubPortHandler(resp_chunk))
-        return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
+        return SCERRHANDLERINFOEXCEEDSLIMITS;
 
     // Terminating last chunk.
     smc->terminate_link();
 
     // Sending prepared chunk to client.
-    err_code = cm_send_to_client(chunk_index);
+    client_index_type client_index = 0;
+    err_code = cm_send_to_client(client_index, chunk_index);
 
     return err_code;
 }
@@ -80,10 +74,6 @@ uint32_t HandlersList::PushRegisteredSubportHandler(BmxData* bmx_data)
 // Pushes registered URI handler.
 uint32_t HandlersList::PushRegisteredUriHandler(BmxData* bmx_data)
 {
-    // Checking if we are ready to push.
-    if (!bmx_data->is_push_ready())
-        return 0;
-
     starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
@@ -103,13 +93,14 @@ uint32_t HandlersList::PushRegisteredUriHandler(BmxData* bmx_data)
 
     // Writing handler information into chunk.
     if (!WriteRegisteredUriHandler(resp_chunk))
-        return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
+        return SCERRHANDLERINFOEXCEEDSLIMITS;
 
     // Terminating last chunk.
     smc->terminate_link();
 
     // Sending prepared chunk to client.
-    err_code = cm_send_to_client(chunk_index);
+    client_index_type client_index = 0;
+    err_code = cm_send_to_client(client_index, chunk_index);
 
     return err_code;
 }
@@ -122,7 +113,7 @@ uint32_t BmxData::RegisterPortHandler(
 {
     // Checking number of handlers.
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
-        return SCERRUNSPECIFIED; // SCERRMAXHANDLERSREACHED
+        return SCERRMAXHANDLERSREACHED;
 
     unique_handler_num_++;
 
@@ -203,7 +194,7 @@ uint32_t BmxData::RegisterSubPortHandler(
 {
     // Checking number of handlers.
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
-        return SCERRUNSPECIFIED; // SCERRMAXHANDLERSREACHED
+        return SCERRMAXHANDLERSREACHED;
 
     unique_handler_num_++;
 
@@ -292,13 +283,9 @@ uint32_t BmxData::RegisterUriHandler(
 {
     // Checking number of handlers.
     if (max_num_entries_ >= MAX_TOTAL_NUMBER_OF_HANDLERS)
-        return SCERRUNSPECIFIED; // SCERRMAXHANDLERSREACHED
+        return SCERRMAXHANDLERSREACHED;
 
     unique_handler_num_++;
-
-    // Checking if URI starts with slash.
-    //if (uri_string[0] != '/')
-    //    return SCERRUNSPECIFIED; // SCERRURIMUSTSTARTWITHSLASH
 
     uint32_t err_code = 0;
 
@@ -307,14 +294,7 @@ uint32_t BmxData::RegisterUriHandler(
     uint32_t processed_uri_len_chars = (uint32_t)strlen(processed_uri_info);
     if ((original_uri_len_chars >= MixedCodeConstants::MAX_URI_STRING_LEN) ||
         (processed_uri_len_chars >= MixedCodeConstants::MAX_URI_STRING_LEN))
-        return SCERRUNSPECIFIED; // SCERRURIHANDLERSTRINGLENGTH
-
-    // Copying the URI string.
-    //strncpy_s(uri_str_lc, MAX_URI_STRING_LEN, original_uri_info, original_uri_len_chars);
-
-    // Convert string to lower case.
-    // TODO: Remove lower casing if not needed.
-    //_strlwr_s(uri_str_lc);
+        return SCERRHANDLERINFOEXCEEDSLIMITS;
 
     BMX_HANDLER_INDEX_TYPE i, empty_slot = max_num_entries_;
 
@@ -398,7 +378,7 @@ uint32_t BmxData::UnregisterHandler(
     *is_empty_handler = false;
 
     // Checking all registered handlers.
-    uint32_t err_code = SCERRUNSPECIFIED;
+    uint32_t err_code = 0;
     for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
     {
         // Checking if the same handler.
@@ -533,53 +513,6 @@ uint32_t BmxData::UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, bool* 
     return UnregisterHandler(handler_index, NULL, is_empty_handler);
 }
 
-// Number of schedulers.
-static uint8_t g_schedulers_count = 0;
-
-// Is push to gateway already possible?
-bool BmxData::is_push_ready()
-{
-    return (g_schedulers_count > 0) && (num_registered_push_channels_ >= g_schedulers_count);
-}
-
-// Number of remaining push channels.
-int32_t BmxData::get_num_remaining_push_channels()
-{
-    return g_schedulers_count - num_registered_push_channels_;
-}
-
-// Registers push channel and send the response.
-uint32_t BmxData::SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
-{
-    // Entering critical section.
-    uint32_t err_code = 0;
-
-    // NOTE:
-    // Channel attached to thread. No storing away channel reference in
-    // shared memory.
-    err_code = coalmine_set_current_channel_as_default();
-    if (err_code)
-        return err_code;
-
-    // Getting number of schedulers if needed.
-    if (!g_schedulers_count)
-        cm3_get_cpuc(NULL, &g_schedulers_count);
-
-    response_chunk_part *response = smc->get_response_chunk();
-    response->reset_offset();
-
-    // Writing response on push channel registration.
-    response->write(BMX_REGISTER_PUSH_CHANNEL_RESPONSE);
-
-    // Increasing number of registered push channels.
-    InterlockedIncrement(&num_registered_push_channels_);
-
-    // Now the chunk is ready to be sent.
-    err_code = cm_send_to_client(task_info->chunk_index);
-
-    return err_code;
-}
-
 // Handles destroyed session message.
 uint32_t BmxData::HandleSessionDestruction(request_chunk_part* request, TASK_INFO_TYPE* task_info)
 {
@@ -595,7 +528,7 @@ uint32_t BmxData::HandleSessionDestruction(request_chunk_part* request, TASK_INF
     //std::cout << "Session " << linear_index << ":" << random_salt << " was destroyed." << std::endl;
 
     // Returning chunk to pool.
-    uint32_t err_code = cm_release_linked_shared_memory_chunks(task_info->chunk_index);
+    uint32_t err_code = cm_release_linked_shared_memory_chunks(task_info->the_chunk_index);
     if (err_code)
         return err_code;
 
@@ -624,86 +557,7 @@ uint32_t BmxData::HandleErrorFromGateway(request_chunk_part* request, TASK_INFO_
 RETURN_CHUNK:
 
     // Returning chunk to pool.
-    cm_release_linked_shared_memory_chunks(task_info->chunk_index);
-
-    return err_code;
-}
-
-// Sends information about all registered handlers.
-uint32_t BmxData::SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info)
-{
-    // Entering critical section.
-    uint32_t err_code = 0;
-
-    // TODO: fix linked chunks when not enough chunk space.
-
-    // Filling the chunk.
-    response_chunk_part *response = smc->get_response_chunk();
-    response->reset_offset();
-
-    // Sending information about each registered handler.
-    // NOTE: Gateway needs to know only about the registered handler id of the particular type.
-    // No need to know about individual handlers within handlers list.
-    // So push should be done only when first handler is registered on the list.
-    // And unregistration - when last handler is removed from the list.
-
-    // Skipping first handler (BMX management).
-    for (BMX_HANDLER_TYPE i = 1; i < max_num_entries_; i++)
-    {
-        // Checking the type of handler.
-        switch(registered_handlers_[i].get_type())
-        {
-            case PORT_HANDLER:
-            {
-                if (!registered_handlers_[i].WriteRegisteredPortHandler(response))
-                {
-                    // TODO: Solve multi linked chunks.
-                    return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
-                }
-
-                break;
-            }
-
-            case SUBPORT_HANDLER:
-            {
-                if (!registered_handlers_[i].WriteRegisteredSubPortHandler(response))
-                {
-                    // TODO: Solve multi linked chunks.
-                    return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
-                }
-
-                break;
-            }
-
-            case URI_HANDLER:
-            {
-                if (!registered_handlers_[i].WriteRegisteredUriHandler(response))
-                {
-                    // TODO: Solve multi linked chunks.
-                    return SCERRUNSPECIFIED; // SCERRTOOBIGHANDLERINFO
-                }
-
-                break;
-            }
-
-            default:
-            {
-                err_code = SCERRUNSPECIFIED; // SCERRUNKNOWNHANDLER
-
-                break;
-            }
-        }
-    }
-
-    // Terminating last chunk.
-    smc->terminate_link();
-
-    // Checking that there was no error.
-    if ((!err_code) && (max_num_entries_ > 1))
-    {
-        // Now the chunk is ready to be sent.
-        err_code = cm_send_to_client(task_info->chunk_index);
-    }
+    cm_release_linked_shared_memory_chunks(task_info->the_chunk_index);
 
     return err_code;
 }
@@ -726,18 +580,19 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     task_info.session_id.low = 0;
 #endif
     cm3_get_cpun(0, &task_info.scheduler_number);
-    task_info.chunk_index = (uint32_t)task_data->Output2;
+    task_info.client_worker_id = (uint8_t)task_data->Output1;
+    task_info.the_chunk_index = (uint32_t)task_data->Output2;
 
 //do_work:
     loop_count = 0;
 
     // Retrieve the chunk.
-    err_code = cm_get_shared_memory_chunk(task_info.chunk_index, &raw_chunk);
+    err_code = cm_get_shared_memory_chunk(task_info.the_chunk_index, &raw_chunk);
     _SC_ASSERT(err_code == 0);
 
     // Read the metadata in the chunk (session id and handler id).
     smc = (shared_memory_chunk*)raw_chunk;
-    //session_id = smc->get_user_data(); The user data field in chunks is no longer used.
+    
     BMX_HANDLER_TYPE handler_info = smc->get_bmx_handler_info();
     BMX_HANDLER_INDEX_TYPE handler_index = GetBmxHandlerIndex(handler_info);
     _SC_ASSERT(handler_index < unique_handler_num_);
@@ -750,19 +605,10 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     if (smc->get_link() != smc->link_terminator)
         task_info.flags |= MixedCodeConstants::LINKED_CHUNKS_FLAG;
 
-    // TODO: Init session values.
-
-    // Switching the session if needed.
-    //	errorcode = CheckAndSwitchSession(&task_info, session_id);
-    //	if (errorcode != 0) goto finish;
-
-    // TODO:
-    // tag the chunk with needed metadata.
-
     // Send the response back.
     /*if (((*(uint32_t*)(raw_chunk + MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED) != 0)
     {
-        err_code = cm_send_to_client(task_info.chunk_index);
+        err_code = cm_send_to_client(task_info.client_worker_id, task_info.the_chunk_index);
         if (err_code != 0) goto finish;
 
         goto finish;
@@ -796,67 +642,20 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 release_chunks:
 
     // Just releasing the chunk.
-    cm_release_linked_shared_memory_chunks(task_info.chunk_index);
+    cm_release_linked_shared_memory_chunks(task_info.the_chunk_index);
 
 finish:
 
     // Resetting current transaction.
     sccoredb_set_current_transaction(0, 0, 0); // You may comment this line to avoid throwing an exception when using NODB.
-#if 0
-	if (task_info.session_id.low != 0)
-    {
-        sccorensm_leave_session(task_info.session_id.high);
-        task_info.session_id.low = 0;
-    }
-#endif
 
     return err_code;
 
 }
 
-#if 0
-// Checks if session has changed from current one.
-uint32_t BmxData::CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t session_id)
-{
-    uint64_t current_session_low;
-
-    current_session_low = task_info->session_id.low;
-    if (current_session_low != session_id)
-    {
-        if (current_session_low != 0)
-        {
-            // Leave the old session before enter the new one.
-            sccorensm_leave_session(task_info->session_id.high);
-        }
-
-        task_info->session_id.low = session_id;
-        task_info->session_id.high = 0;
-
-        uint32_t err_code = sccorensm_enter_session_and_get_default_transaction(
-            task_info->scheduler_number,
-            task_info->session_id, 
-            &task_info->session_id.high,
-            &task_info->transaction_handle
-            );
-
-        if (!err_code)
-            return 0;
-
-        task_info->session_id.low = 0;
-        return err_code;
-    }
-
-    return 0;
-}
-#endif
-
 // Pushes unregistered handler.
 uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info)
 {
-    // Checking if we are ready to push.
-    if (!is_push_ready())
-        return 0;
-
     starcounter::core::chunk_index chunk_index;
     shared_memory_chunk* smc;
 
@@ -878,7 +677,8 @@ uint32_t BmxData::PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info)
     smc->terminate_link();
 
     // Sending prepared chunk to client.
-    err_code = cm_send_to_client(chunk_index);
+    client_index_type client_index = 0;
+    err_code = cm_send_to_client(client_index, chunk_index);
 
     return err_code;
 }

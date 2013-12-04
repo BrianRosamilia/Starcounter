@@ -5,6 +5,37 @@
 namespace starcounter {
 namespace network {
 
+class WorkerChunks
+{
+    LinearQueue<SocketDataChunk*, MAX_GATEWAY_CHUNKS> worker_chunks_;
+
+public:
+
+    WorkerChunks()
+    {
+
+    }
+
+    // Releasing existing chunk to the list.
+    void ReleaseChunk(SocketDataChunkRef sd)
+    {
+        worker_chunks_.PushBack(sd);
+        sd = NULL;
+    }
+
+    // Getting free chunk from the list or creating a new one.
+    SocketDataChunk* ObtainChunk()
+    {
+        if (worker_chunks_.get_num_entries())
+            return worker_chunks_.PopBack();
+
+        // Creating new chunk.
+        SocketDataChunk* sd =  (SocketDataChunk*) _aligned_malloc(MixedCodeConstants::SOCKET_DATA_MAX_SIZE, MEMORY_ALLOCATION_ALIGNMENT);
+
+        return sd;
+    }
+};
+
 class Profiler;
 class WorkerDbInterface;
 class GatewayWorker
@@ -13,7 +44,7 @@ class GatewayWorker
     Profiler profiler_;
 
     // Worker ID.
-    int32_t worker_id_;
+    worker_id_type worker_id_;
 
     // Worker IOCP handle.
     HANDLE worker_iocp_;
@@ -61,6 +92,9 @@ class GatewayWorker
     // Aggregation timer.
     PreciseTimer aggr_timer_;
 
+    // Worker chunks.
+    WorkerChunks worker_chunks_;
+
 #ifdef GW_LOOPED_TEST_MODE
     LinearQueue<SocketDataChunk*, MAX_TEST_ECHOES> emulated_measured_network_events_queue_;
     LinearQueue<SocketDataChunk*, MAX_TEST_ECHOES> emulated_preparation_network_events_queue_;
@@ -70,6 +104,12 @@ class GatewayWorker
     uint8_t pad[CACHE_LINE_SIZE];
 
 public:
+
+    // Worker chunks.
+    WorkerChunks* GetWorkerChunks()
+    {
+        return &worker_chunks_;
+    }
 
     // Performs a send of given socket data on aggregation socket.
     uint32_t SendOnAggregationSocket(SocketDataChunkRef sd);
@@ -399,7 +439,7 @@ public:
     uint32_t WorkerRoutine();
 
     // Getting worker ID.
-    int32_t get_worker_id() { return worker_id_; }
+    worker_id_type get_worker_id() { return worker_id_; }
 
     // Gets worker IOCP.
     HANDLE get_worker_iocp() { return worker_iocp_; }

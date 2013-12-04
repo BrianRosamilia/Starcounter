@@ -192,6 +192,31 @@ smp::spinlock::milliseconds timeout) {
 }
 
 template<class T, std::size_t N>
+inline bool scheduler_number_pool<T, N>::acquire(value_type item, owner_id id,
+smp::spinlock::milliseconds timeout) {
+	smp::spinlock::scoped_lock lock(spinlock(), id.get(),
+	timeout -timeout.tick_count());
+
+	if (lock.owns()) {
+		auto n = item;
+		if (elem_[n] == 1) {
+			// 0 = not an entry (place holder.)
+			// 1 = a free entry.
+			// > 1 = an allocated entry.
+			elem_[n] = id.get();
+			mask_[n / 64] = mask_[n / 64] & ~(1 << (n % 64));
+            ++size_;
+
+			// Successfully acquired.
+			return true;
+		}
+	}
+
+	// Not acquired.
+	return false;
+}
+
+template<class T, std::size_t N>
 inline bool scheduler_number_pool<T, N>::release(value_type item, owner_id id,
 smp::spinlock::milliseconds timeout) {
 	smp::spinlock::scoped_lock lock(spinlock(), id.get(),

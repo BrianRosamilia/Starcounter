@@ -216,9 +216,9 @@ namespace StarcounterInternal.Bootstrap
             // Waiting until BMX component is ready.
             if (!configuration.NoNetworkGateway)
             {
-                Int32 numRemainingPushChannels = bmx.sc_wait_for_bmx_ready(10000);
-                if (numRemainingPushChannels != 0)
-                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED, "sc_wait_for_bmx_ready didn't finish within given time interval. Number of remaining push channels: " + numRemainingPushChannels);
+                int ir = sccorelib.fix_wait_for_gateway_available(10000);
+                if (ir == 0)
+                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNSPECIFIED, "fix_wait_for_gateway_available didn't finish within given time interval.");
 
                 OnNetworkGatewayConnected();
             }

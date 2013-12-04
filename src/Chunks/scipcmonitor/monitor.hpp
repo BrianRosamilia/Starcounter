@@ -112,10 +112,12 @@ public:
 		// Up to (events_per_group * database_process_event_groups) database
 		// processes can be monitored.
 		database_process_event_groups = 1,
-		
+
+#if 0		
 		// Up to (events_per_group * client_process_event_groups) client
 		// processes can be monitored.
 		client_process_event_groups = 4
+#endif
 	};
 	
 	enum {
@@ -158,7 +160,8 @@ public:
 	 *		group has up to 64 process events.
 	 */
 	static void wait_for_database_process_event(std::pair<monitor*,std::size_t> arg);
-	
+
+#if 0	
 	//--------------------------------------------------------------------------
 	/// The wait_for_client_process_event() will wait for up to 64 client
 	/// process events per group.
@@ -172,6 +175,7 @@ public:
 	 *		group has up to 64 client process events.
 	 */
 	static void wait_for_client_process_event(std::pair<monitor*,std::size_t> arg);
+#endif
 	
 #if 0 // idea
 	// Methods for updating the process_register_.
@@ -190,10 +194,12 @@ public:
 	/// Remove database process event.
 	void remove_database_process_event(process_info::handle_type e);
 	void remove_database_process_event(std::size_t group, uint32_t event_code);
-	
+
+#if 0	
 	/// Remove client process event.
 	void remove_client_process_event(process_info::handle_type e);
 	void remove_client_process_event(std::size_t group, uint32_t event_code);
+#endif
 
 	/// Print pid register requires the pid register to be locked for a
 	/// relatively long time so this is only used for debug.
@@ -239,9 +245,11 @@ public:
 	/// Get const reference to the log.
 	const starcounter::log& log() const;
 
+#if 0
 	HANDLE& ipc_monitor_cleanup_event() {
 		return ipc_monitor_cleanup_event_;
 	}
+#endif
 
 	monitor_interface* the_monitor_interface() {
 		return the_monitor_interface_;
@@ -257,15 +265,19 @@ public:
 		return database_process_group_[i];
 	}
 
+#if 0
 	struct client_process_group_type {
 		thread thread_; // TODO: Access method.
 		thread::native_handle_type thread_handle_; // TODO: Access method.
 		std::vector<::HANDLE> event_; // TODO: Access method.
 	};
+#endif
 
+#if 0
 	client_process_group_type& client_process_group(std::size_t i) {
 		return client_process_group_[i];
 	}
+#endif
 
 	boost::mutex& register_mutex() {
 		return register_mutex_;
@@ -307,15 +319,19 @@ private:
 
 	/// The registration thread calls this.
 	static void registrar(monitor*);
-	
+
+#if 0	
 	/// The cleanup_ thread calls this.
 	static void cleanup(monitor*);
+#endif
 	
 	static void __stdcall apc_function(uint64_t arg);
 	
 	enum {
 		// The IPC monitor also have an owner_id and it is 2 because 1 is anonymous.
-		ipc_monitor_owner_id = 2
+		ipc_monitor_owner_id = 2,
+
+		single_client_owner_id = 3
 	};
 
 	/// Return a const reference to the IPC monitor's owner_id.
@@ -344,9 +360,11 @@ private:
 	
 	// The state of the monitor.
 	state state_; /// TODO: implement shutdown.
-	
+
+#if 0	
 	// Event to notify the monitor to do cleanup.
 	HANDLE ipc_monitor_cleanup_event_;
+#endif
 
 	/// TODO Maybe put this in a nested struct. Saved time not doing it.
 	// The register_mutex_ is locked whenever a thread need to update any of the
@@ -374,7 +392,9 @@ private:
 	bool active_databases_updated_flag_;
 	
 	database_process_group_type database_process_group_[database_process_event_groups];
+#if 0
 	client_process_group_type client_process_group_[client_process_event_groups];
+#endif
 	
 	// The name of the server that started this monitor.
 	std::string server_name_;
@@ -410,15 +430,19 @@ private:
 	// client_process_event_thread_group_. Then it waits for that thread to
 	// complete the wait_for_registration
 	thread registrar_;
-	
+
+#if 0	
 	// Cleanup thread.
 	thread cleanup_;
+#endif
 
+#if 0
 	// The active databases file updater thread waits for a notification from
 	// any thread that updates the register, and will write a list of active
 	// databases to the file:
 	// %UserProfile%\AppData\Local\Starcounter\active_databases
 	thread active_databases_file_updater_thread_;
+#endif
 	
 	// The resources watching thread is used for debug, verifying that resources
 	// are recovered. It will keep an eye of all registered databases shared

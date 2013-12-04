@@ -34,8 +34,15 @@ inline bool monitor_interface::out::is_data_available() const {
 inline monitor_interface::monitor_interface()
 : in_(),
 out_(),
+is_ready_flag_(false) {}
+
+#if 0
+inline monitor_interface::monitor_interface()
+: in_(),
+out_(),
 is_ready_flag_(false),
 cleanup_task_() {}
+#endif
 
 inline void monitor_interface::wait_until_ready() {
 	boost::interprocess::scoped_lock<boost::interprocess
@@ -164,6 +171,7 @@ segment_name, owner_id& oid, uint32_t timeout_milliseconds) {
 	return 0;
 }
 
+#if 0
 inline uint32_t monitor_interface::register_client_process(pid_type pid, owner_id& oid,
 uint32_t timeout_milliseconds) {
 	// The timeout is used multiple times below, while time passes, so all
@@ -252,6 +260,7 @@ uint32_t timeout_milliseconds) {
 	// Successfully registered the client process.
 	return 0;
 }
+#endif
 
 inline uint32_t monitor_interface::unregister_database_process(pid_type pid, owner_id&
 oid, uint32_t timeout_milliseconds) {
@@ -342,6 +351,7 @@ oid, uint32_t timeout_milliseconds) {
 	return 0;
 }
 
+#if 0
 inline uint32_t monitor_interface::unregister_client_process(pid_type pid, owner_id&
 oid, uint32_t timeout_milliseconds) {
 	// The timeout is used multiple times below, while time passes, so all
@@ -430,6 +440,7 @@ oid, uint32_t timeout_milliseconds) {
 	// Successfully unregistered the client process.
 	return 0;
 }
+#endif
 
 inline void monitor_interface::wait_for_registration() {
 	// The monitor starts the registrar thread which calls this function.
@@ -492,6 +503,7 @@ inline owner_id monitor_interface::get_owner_id() const {
 	return out_.owner_id_;
 }
 
+#if 0
 inline monitor_interface::cleanup_task::cleanup_task()
 : segment_name_mask_(0),
 cleanup_mask_(0),
@@ -578,7 +590,9 @@ inline uint64_t monitor_interface::cleanup_task::get_cleanup_flag() {
 	smp::spinlock::scoped_lock lock(spinlock());
 	return cleanup_mask_;
 }
+#endif
 
+#if 0
 inline int32_t monitor_interface::insert_segment_name(const char* segment_name) {
 	return cleanup_task_.insert_segment_name(segment_name);
 }
@@ -613,6 +627,7 @@ inline uint64_t monitor_interface::get_cleanup_flag() {
 inline smp::spinlock& monitor_interface::spinlock() {
 	return cleanup_task_.spinlock();
 }
+#endif
 
 inline monitor_interface::active_databases::active_databases()
 : size_(0),
@@ -747,9 +762,11 @@ const monitor_interface::process_type& u) {
 	case monitor_interface::database_process:
 		name = "database";
 		break;
+#if 0
 	case monitor_interface::client_process:
 		name = "client";
 		break;
+#endif
 	default:
 		name = "?";
 	}

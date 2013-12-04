@@ -154,6 +154,7 @@ public:
 			// Error: No server name. Throw exception error_code.
 		}
 
+#if 0
 		///=====================================================================
 		/// Open the ipc_monitor_cleanup_event.
 		///=====================================================================
@@ -209,6 +210,7 @@ public:
 		else {
 			//std::cout << "Successfully opened the ipc_monitor_cleanup_event_name." << std::endl;
 		}
+#endif
 	}
 	
 	~scheduler_interface() {
@@ -223,6 +225,10 @@ public:
 
 	void pop_back_channel_number(channel_number* the_channel_number, owner_id id) {
 		channel_number_.acquire(the_channel_number, id, smp::spinlock::milliseconds(10000));
+	}
+
+	bool pop_back_channel_number(channel_number the_channel_number, owner_id id) {
+		return channel_number_.acquire(the_channel_number, id, smp::spinlock::milliseconds(10000));
 	}
 	
 	void push_front_channel_number(channel_number the_channel_number, owner_id id) {
@@ -433,6 +439,10 @@ public:
 		boost::interprocess::scoped_lock
 		<boost::interprocess::interprocess_mutex> lock(client_interface_mutex_);
 		client_interface_ = reinterpret_cast<uint64_t>(p);
+	}
+
+	client_interface_type *client_interface() {
+		return reinterpret_cast<client_interface_type *>(client_interface_);
 	}
 	
 	/// Get the work notify name, used to open the event. In order to reduce the

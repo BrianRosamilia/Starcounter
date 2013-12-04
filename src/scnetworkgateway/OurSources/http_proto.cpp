@@ -113,9 +113,6 @@ uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bo
     // Going through all handler list.
     for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
     {
-        // Setting destination database.
-        sd->set_target_db_index(handler_lists_[i]->get_db_index());
-
         // Ensuring that initial database is zero.
         //GW_ASSERT(0 == sd->get_db_index());
 
@@ -517,17 +514,6 @@ uint32_t HttpProto::HttpUriDispatcher(
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
     {
-        // Checking if already determined further handler.
-        if (INVALID_URI_INDEX != sd->GetMatchedUriIndex())
-        {
-            // Running determined handler now.
-
-            ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
-            RegisteredUris* reg_uris = server_port->get_registered_uris();
-
-            return reg_uris->GetEntryByIndex(sd->GetMatchedUriIndex())->RunHandlers(gw, sd, is_handled);
-        }
-
         // Checking if we are already passed the WebSockets handshake.
         if (sd->IsWebSocket())
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_index, is_handled);
@@ -640,15 +626,15 @@ uint32_t HttpProto::HttpUriDispatcher(
         // Getting matched URI index.
         RegisteredUri* matched_uri = port_uris->GetEntryByIndex(matched_index);
 
+        // Setting matched URI index.
+        sd->SetDestDbIndex(matched_uri->GetFirstDbIndex());
+
         // Checking if we have a session parameter.
         if (matched_uri->get_session_param_index() != INVALID_PARAMETER_INDEX)
         {
             MixedCodeConstants::UserDelegateParamInfo* p = ((MixedCodeConstants::UserDelegateParamInfo*)sd->get_accept_or_params_data()) + matched_uri->get_session_param_index();
             ProcessSessionString(sd, method_and_uri + p->offset_);
         }
-
-        // Indicating that matching URI index was found.
-        //sd->SetMatchedUriIndex(matched_index);
 
         // Setting determined HTTP URI settings (e.g. for reverse proxy).
         sd->get_http_proto()->http_request_.uri_offset_ = sd->GetAccumOrigBufferSocketDataOffset() + uri_offset;
@@ -718,7 +704,8 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             || ((http_request_.content_offset_ <= 0) && (http_request_.content_len_bytes_ > 0)))
         {
             // Checking if any space left in chunk.
-            GW_ASSERT(sd->get_accum_buf()->get_chunk_num_available_bytes() > 0);
+            if (sd->get_accum_buf()->get_chunk_num_available_bytes() <= 0)
+                return SCERRGWMAXHTTPHEADERSSIZEREACHED;
 
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);
@@ -1002,6 +989,10 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
         if (((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
             || ((http_request_.content_offset_ <= 0) && (http_request_.content_len_bytes_ > 0)))
         {
+            // Checking if any space left in chunk.
+            if (sd->get_accum_buf()->get_chunk_num_available_bytes() <= 0)
+                return SCERRGWMAXHTTPHEADERSSIZEREACHED;
+
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);
             GW_ERR_CHECK(err_code);

@@ -190,6 +190,21 @@ uint32_t timeout_milliseconds) {
 	return have_client_number;
 }
 
+inline bool shared_interface::acquire_client_number2(client_number v, uint32_t spin_count,
+uint32_t timeout_milliseconds) {
+	bool have_client_number = common_client_interface_->acquire_client_number
+	(v, client_interface_, owner_id_, spin_count, timeout_milliseconds);
+
+	if (have_client_number) {
+		client_number_ = v;
+
+		if (get_client_number() != no_client_number) {
+			open_client_work_event(get_client_number());
+		}
+	}
+	return have_client_number;
+}
+
 inline bool shared_interface::release_client_number(uint32_t spin_count,
 uint32_t timeout_milliseconds) {
 	close_client_work_event();
@@ -231,28 +246,53 @@ uint32_t timeout_milliseconds) {
 		return false;
 	}
 
+	*the_channel_number = temp_channel_number;
+	init_acquired_channel(temp_channel_number, the_scheduler_number);
+	return true; /// TODO: Timeout doesn't work yet.
+}
+
+inline bool shared_interface::acquire_channel2(channel_number
+the_channel_number, scheduler_number the_scheduler_number, uint32_t spin_count,
+uint32_t timeout_milliseconds) {
+	
+	if (scheduler_interface_[the_scheduler_number].pop_back_channel_number(
+	the_channel_number, get_owner_id()))
+	{
+		init_acquired_channel(the_channel_number, the_scheduler_number);
+		return true;
+	}
+	return false;
+}
+
+inline void shared_interface::init_acquired_channel(channel_number the_channel_number,
+scheduler_number the_scheduler_number)
+{
+#if 0
 	// Mark this channel as owned by this client.
 	client_interface().set_channel_flag(the_scheduler_number,
-	temp_channel_number);
-	
+	the_channel_number);
+#endif
+
+#if 0	
 	// The number of owned channels counter is incremented.
 	client_interface().increment_number_of_allocated_channels();
+#endif
 	
     // Set the chunk base address relative to the clients address space.
-	channel_[temp_channel_number].in_overflow().set_chunk_ptr(chunk_);
+	channel_[the_channel_number].in_overflow().set_chunk_ptr(chunk_);
     
 	// Set index to the scheduler_interface.
-	channel_[temp_channel_number].set_scheduler_number(the_scheduler_number);
+	channel_[the_channel_number].set_scheduler_number(the_scheduler_number);
 	
 	// Set pointer to the scheduler_interface.
-	channel_[temp_channel_number].set_scheduler_interface
+	channel_[the_channel_number].set_scheduler_interface
 	(&scheduler_interface_[the_scheduler_number]);
 	
 	// Set index to the client_interface.
-	channel_[temp_channel_number].set_client_number(client_number_);
+	channel_[the_channel_number].set_client_number(client_number_);
 	
 	// Set pointer to the client_interface.
-	channel_[temp_channel_number].set_client_interface_as_qword
+	channel_[the_channel_number].set_client_interface_as_qword
 	(scheduler_interface_[the_scheduler_number].get_client_interface_as_qword()
 	+(client_number_ * sizeof(client_interface_type)));
 	
@@ -260,12 +300,10 @@ uint32_t timeout_milliseconds) {
 	// scheduler_interface and the client_interface.
 	// This is done to enable the server scanning of the particular channel.
 	scheduler_interface_[the_scheduler_number]
-	.set_channel_number_flag(temp_channel_number);
-	
-	*the_channel_number = temp_channel_number;
-	return true; /// TODO: Timeout doesn't work yet.
+	.set_channel_number_flag(the_channel_number);
 }
 
+#if 0
 inline void shared_interface::release_channel(channel_number the_channel_number)
 {
 	scheduler_interface_type* the_scheduler
@@ -289,6 +327,7 @@ inline void shared_interface::release_channel(channel_number the_channel_number)
 	the_channel.scheduler()->notify(scheduler_work_event(the_channel
 	.get_scheduler_number()));
 }
+#endif
 
 //------------------------------------------------------------------------------
 // TODO: Rename to acquire_linked_chunks()
