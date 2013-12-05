@@ -17,8 +17,7 @@ namespace Starcounter.Metadata {
         internal class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_table_id = 1;
-            internal static int columnHandle_name = 2;
+            internal static int columnHandle_name;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -76,9 +75,8 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_table_id = 1;
-            internal static int columnHandle_name = 2;
-            internal static int columnHandle_primitive_type = 3;
+            internal static int columnHandle_name;
+            internal static int columnHandle_primitive_type;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -135,9 +133,8 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_table_id = 1;
-            internal static int columnHandle_name = 2;
-            internal static int columnHandle_vm_name = 3;
+            internal static int columnHandle_name;
+            internal static int columnHandle_vm_name;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -193,11 +190,10 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_table_id = 1;
-            internal static int columnHandle_name = 2;
-            internal static int columnHandle_vm_name = 3;
-            internal static int columnHandle_write_loss = 4;
-            internal static int columnHandle_read_loss = 5;
+            internal static int columnHandle_name;
+            internal static int columnHandle_vm_name;
+            internal static int columnHandle_write_loss;
+            internal static int columnHandle_read_loss;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -265,10 +261,9 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_table_id = 1;
-            internal static int columnHandle_name = 2;
-            internal static int columnHandle_vm_name = 3;
-            internal static int columnHandle_table_ref = 4;
+            internal static int columnHandle_name;
+            internal static int columnHandle_vm_name;
+            internal static int columnHandle_table_ref;
         }
 #pragma warning disable 0628, 0169
         #endregion
