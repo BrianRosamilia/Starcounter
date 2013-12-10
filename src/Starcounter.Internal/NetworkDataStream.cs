@@ -135,26 +135,11 @@ namespace Starcounter
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length_bytes">The length in bytes.</param>
-        /// <param name="isStarcounterThread">Is Starcounter thread.</param>
-        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags, Boolean isStarcounterThread)
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
         {
             // Checking if already destroyed.
             if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
                 throw new ArgumentNullException("Response was already sent on this Request!");
-
-            // Checking if we are not on Starcounter thread now.
-            if (!isStarcounterThread)
-            {
-                NetworkDataStream thisInst = this;
-
-                StarcounterBase._DB.RunSync(() => {
-                    fixed (Byte* p = buffer) {
-                        thisInst.SendResponseBufferInternal(p, offset, length_bytes, conn_flags);
-                    }
-                });
-
-                return;
-            }
 
             // Running on current Starcounter thread.
             fixed (Byte* p = buffer)

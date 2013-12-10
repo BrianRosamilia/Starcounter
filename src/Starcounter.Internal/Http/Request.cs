@@ -1034,22 +1034,10 @@ namespace Starcounter {
         /// <param name="buffer">The buffer to send.</param>
         /// <param name="offset">The offset within buffer.</param>
         /// <param name="length">The length of the data to send.</param>
-        /// <param name="length">The connection flags.</param>
-        internal void SendResponseScThread(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
-        {
-            unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags, true); }
-        }
-
-        /// <summary>
-        /// Sends the response.
-        /// </summary>
-        /// <param name="buffer">The buffer to send.</param>
-        /// <param name="offset">The offset within buffer.</param>
-        /// <param name="length">The length of the data to send.</param>
         /// <param name="connFlags">The connection flags.</param>
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
-            unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags, false); }
+            unsafe { data_stream_.SendResponse(buffer, offset, length, connFlags); }
         }
 
         /// <summary>
@@ -1280,7 +1268,7 @@ namespace Starcounter {
                 unsafe
                 {
                     if (null == http_request_struct_)
-                        throw new ArgumentException("HTTP request not initialized.");
+                        return null;
 
                     return http_request_struct_->GetHeaderValue(name, ref headersString_);
                 }

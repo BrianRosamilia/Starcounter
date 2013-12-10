@@ -249,6 +249,11 @@ namespace HttpStructs
         public LinkedListNode<UInt32> linear_index_node_;
 
         /// <summary>
+        /// Using session cookie.
+        /// </summary>
+        public Boolean use_session_cookie_;
+
+        /// <summary>
         /// Prefix to data location URI.
         /// </summary>
         public static string DataLocationUriPrefix = "/__" + StarcounterEnvironment.DatabaseNameLower + "/";

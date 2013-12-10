@@ -184,6 +184,16 @@ namespace Starcounter.Internal
         public const String AdministratorAppName = "Administrator";
 
         /// <summary>
+        /// Name of session cookie.
+        /// </summary>
+        public const String ScSessionCookieName = "ScSessionCookie";
+
+        /// <summary>
+        /// Session cookie length.
+        /// </summary>
+        public const int ScSessionCookieNameLength = 15;
+
+        /// <summary>
         /// Denotes the type of network protocol.
         /// </summary>
         public enum NetworkProtocolType

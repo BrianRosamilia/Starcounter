@@ -18,6 +18,7 @@ enum HttpWsFields
     SCSESSIONID_FIELD,
     REFERRER_FIELD,
     XREFERRER_FIELD,
+    COOKIE_FIELD,
     CONTENT_LENGTH_FIELD,
     ACCEPT_FIELD,
     ACCEPT_ENCODING_FIELD,
@@ -37,6 +38,7 @@ const int64_t XREFERER_HEADER_VALUE_8BYTES = 7310016635636690264;
 const int64_t CONTENT_LENGTH_HEADER_VALUE_8BYTES = 3275364211029339971;
 const int64_t UPGRADE_HEADER_VALUE_8BYTES = 4207879796541583445;
 const int64_t WEBSOCKET_HEADER_VALUE_8BYTES = 6008476277963711827;
+const int64_t COOKIE_HEADER_VALUE_8BYTES = 2322280061311348547;
 
 // Fast way to determine field type.
 inline HttpWsFields DetermineField(const char *at, size_t length)
@@ -55,6 +57,11 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
                 return XREFERRER_FIELD; // X-Referer
 
             break;
+        }
+
+        case COOKIE_HEADER_VALUE_8BYTES:
+        {
+            return COOKIE_FIELD; // Cookie
         }
 
         case ACCEPT_ENCODING_HEADER_VALUE_8BYTES:

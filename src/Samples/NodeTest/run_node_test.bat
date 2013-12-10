@@ -4,24 +4,11 @@ IF "%SC_RUN_NODE_TEST%"=="False" GOTO :EOF
 :: Killing all processes.
 staradmin -killall
 
-:: Creating repository if it does not exist.
-IF NOT EXIST ".srv" star.exe @@CreateRepo .srv
-COPY /Y scnetworkgateway.xml .srv\personal\scnetworkgateway.xml
-
-:: Setting StarcounterBin as current directory.
-SET StarcounterBin=%CD%
-
-:: Starting service in background.
-START CMD /C "scservice.exe"
-
-:: Waiting for service to initialize.
-ping -n 10 127.0.0.1 > nul
-
 :: Starting NetworkIoTest in background.
 START CMD /C "star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS"
 
 :: Waiting for test to initialize.
-ping -n 15 127.0.0.1 > nul
+ping -n 10 127.0.0.1 > nul
 
 :: Starting the client part of the test.
 NodeTest.exe %*

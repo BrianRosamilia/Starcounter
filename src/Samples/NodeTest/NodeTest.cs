@@ -37,7 +37,7 @@ namespace NodeTest
 
         public const String ServerNodeTestHttpRelativeUri = "/echotest";
 
-        public const String ServerNodeTestWsRelativeUri = "/ws";
+        public const String ServerNodeTestWsRelativeUri = "/echotestws";
 
         public String ServerIp = "127.0.0.1";
 

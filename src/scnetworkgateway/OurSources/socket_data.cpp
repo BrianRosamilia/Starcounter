@@ -435,6 +435,8 @@ uint32_t SocketDataChunk::CreateWSABuffers(
     uint32_t first_chunk_num_bytes,
     uint32_t total_bytes)
 {
+    GW_ASSERT(total_bytes > first_chunk_num_bytes);
+
     // Getting total user data length.
     uint32_t bytes_left = total_bytes, cur_wsa_buf_offset = 0;
 
@@ -507,6 +509,7 @@ uint32_t SocketDataChunk::CreateWSABuffers(
 
     // Checking that maximum number of WSABUFs in chunk is correct.
     GW_ASSERT(num_chunks_ <= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS + 1);
+    GW_ASSERT(0 == bytes_left);
 
     return 0;
 }

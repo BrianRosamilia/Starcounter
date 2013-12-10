@@ -700,11 +700,23 @@ namespace Starcounter
         /// </summary>
         /// <param name="resp"></param>
         /// <param name="userDelegate"></param>
-        internal void CallUserDelegate(Response resp, Action<Response, Object> userDelegate, Object userObject)
+        internal void CallUserDelegate(
+            Response resp,
+            Action<Response, Object> userDelegate,
+            Object userObject,
+            Byte boundSchedulerId)
         {
             try
             {
-                userDelegate.Invoke(resp, userObject);
+                // Invoking user delegate either on the same scheduler if inside Starcounter.
+                if (StarcounterEnvironment.IsCodeHosted)
+                {
+                    StarcounterBase._DB.RunAsync(() => { userDelegate.Invoke(resp, userObject); }, boundSchedulerId);
+                }
+                else
+                {
+                    userDelegate.Invoke(resp, userObject);
+                }
 
                 // Checking if response should be sent.
                 if (resp.Request != null)
@@ -879,8 +891,13 @@ namespace Starcounter
                     nt = new NodeTask(this);
                 }
 
+                // Getting current scheduler number if in Starcounter.
+                Byte currentSchedulerId = 0;
+                if (StarcounterEnvironment.IsCodeHosted)
+                    currentSchedulerId = StarcounterEnvironment.GetCurrentSchedulerId();
+
                 // Initializing connection.
-                nt.Reset(requestBytes, requestBytesLength, userDelegate, userObject, receiveTimeoutMs);
+                nt.Reset(requestBytes, requestBytesLength, userDelegate, userObject, receiveTimeoutMs, currentSchedulerId);
 
                 // Checking if we don't use aggregation.
                 if (!UsesAggregation())
@@ -900,7 +917,7 @@ namespace Starcounter
             lock (finished_async_tasks_)
             {
                 // Initializing connection.
-                sync_task_info_.Reset(requestBytes, requestBytesLength, userDelegate, userObject, receiveTimeoutMs);
+                sync_task_info_.Reset(requestBytes, requestBytesLength, null, userObject, receiveTimeoutMs, 0);
 
                 // Doing synchronous request and returning response.
                 return sync_task_info_.PerformSyncRequest();

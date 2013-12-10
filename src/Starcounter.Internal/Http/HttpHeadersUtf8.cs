@@ -19,7 +19,8 @@ namespace Starcounter.Internal {
         internal readonly static byte[] HostStart;
 		internal readonly static byte[] SetCookieStart;
 		internal readonly static byte[] SetCookieLocationMiddle;
-		internal readonly static byte[] setCookiePathEnd;
+        internal readonly static byte[] SetSessionCookieMiddle;
+		internal readonly static byte[] SetCookiePathEnd;
 		internal readonly static byte[] CRLF;
 		internal readonly static byte[] CRLFCRLF;
 		internal readonly static int TotalByteSize;
@@ -32,6 +33,7 @@ namespace Starcounter.Internal {
         internal const String ContentLengthHeader = "Content-Length";
         internal const String HostHeader = "Host";
         internal const String SetLocationHeader = SetCookieHeader + ": Location=";
+        internal const String SetSessionCookieHeader = SetCookieHeader + ": " + MixedCodeConstants.ScSessionCookieName + "=";
 
 		static HttpHeadersUtf8() {
 			Http11 = Encoding.UTF8.GetBytes("HTTP/1.1 ");
@@ -45,7 +47,8 @@ namespace Starcounter.Internal {
             HostStart = Encoding.UTF8.GetBytes(HostHeader + ": ");
 			SetCookieStart = Encoding.UTF8.GetBytes(SetCookieHeader + ": ");
 			SetCookieLocationMiddle = Encoding.UTF8.GetBytes(";Location=");
-			setCookiePathEnd = Encoding.UTF8.GetBytes("; path=/");
+            SetSessionCookieMiddle = Encoding.UTF8.GetBytes(";" + MixedCodeConstants.ScSessionCookieName + "=");
+			SetCookiePathEnd = Encoding.UTF8.GetBytes("; path=/");
 			CRLF = Encoding.UTF8.GetBytes(Constants.CRLF);
 			CRLFCRLF = Encoding.UTF8.GetBytes(Constants.CRLFCRLF);
 
@@ -58,7 +61,7 @@ namespace Starcounter.Internal {
 							+ ContentLengthStart.Length 
 							+ SetCookieStart.Length
 							+ SetCookieLocationMiddle.Length 
-							+ setCookiePathEnd.Length 
+							+ SetCookiePathEnd.Length 
 							+ CRLF.Length 
 							+ CRLFCRLF.Length;
 

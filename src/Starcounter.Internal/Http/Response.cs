@@ -855,10 +855,19 @@ namespace Starcounter
                                     {
                                         if (null != AppsSession)
                                         {
-                                            writer.Write(HttpHeadersUtf8.SetCookieLocationMiddle);
-                                            writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
-                                            writer.Write(AppsSession.ToAsciiString());
-                                            writer.Write(HttpHeadersUtf8.setCookiePathEnd);
+                                            if (AppsSession.use_session_cookie_)
+                                            {
+                                                writer.Write(HttpHeadersUtf8.SetSessionCookieMiddle);
+                                                writer.Write(AppsSession.ToAsciiString());
+                                                writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
+                                            }
+                                            else
+                                            {
+                                                writer.Write(HttpHeadersUtf8.SetCookieLocationMiddle);
+                                                writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+                                                writer.Write(AppsSession.ToAsciiString());
+                                                writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
+                                            }
                                         }
                                     }
                                     writer.Write(HttpHeadersUtf8.CRLF);
@@ -866,14 +875,26 @@ namespace Starcounter
                             }
 
                             // Checking if session is in place.
-                            if (null != AppsSession) {
-					            if (this[HttpHeadersUtf8.SetCookieHeader] == null) {
-						            writer.Write(HttpHeadersUtf8.SetLocationHeader);
-							        writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
-							        writer.Write(AppsSession.ToAsciiString());
-							        writer.Write(HttpHeadersUtf8.setCookiePathEnd);
-							        writer.Write(HttpHeadersUtf8.CRLF);	
-						        }
+                            if (null != AppsSession)
+                            {
+                                if (this[HttpHeadersUtf8.SetCookieHeader] == null)
+                                {
+                                    if (AppsSession.use_session_cookie_)
+                                    {
+                                        writer.Write(HttpHeadersUtf8.SetSessionCookieHeader);
+                                        writer.Write(AppsSession.ToAsciiString());
+                                        writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
+                                        writer.Write(HttpHeadersUtf8.CRLF);
+                                    }
+                                    else
+                                    {
+						                writer.Write(HttpHeadersUtf8.SetLocationHeader);
+							            writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+							            writer.Write(AppsSession.ToAsciiString());
+							            writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
+							            writer.Write(HttpHeadersUtf8.CRLF);	
+                                    }
+                                }
 					        }
 
 					        if (null != bodyString_) {
@@ -1791,7 +1812,7 @@ namespace Starcounter
                 unsafe
                 {
                     if (null == http_response_struct_)
-                        throw new ArgumentException("HTTP response not initialized.");
+                        return null;
 
                     return http_response_struct_->GetHeaderValue(name, ref headersString_);
                 }
@@ -1865,9 +1886,9 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Getting internal Apps session.
+        /// Getting session for apps.
         /// </summary>
-        public ScSessionClass AppsSession { get; set; }
+        internal ScSessionClass AppsSession { get; set; }
 
         /// <summary>
         /// Gets the session struct.

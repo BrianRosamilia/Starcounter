@@ -400,6 +400,30 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
             break;
         }
 
+        case COOKIE_FIELD:
+        {
+            // Null terminating the string.
+            char c = at[length - 1];
+            ((char*)at)[length - 1] = '\0';
+
+            // Checking if session is contained within cookies.
+            const char* session_cookie = strstr(at, MixedCodeConstants::ScSessionCookieName);
+            ((char*)at)[length - 1] = c;
+
+            // XReferer has higher priority and overrides session value.
+            if (session_cookie && !g_xhreferer_read_)
+            {
+                // Skipping session cookie name and equals character.
+                int32_t offset = MixedCodeConstants::ScSessionCookieNameLength + 1;
+                while (session_cookie[offset] == ' ')
+                    offset++;
+
+                g_ts_sd_->get_http_proto()->ProcessSessionString(g_ts_sd_, session_cookie + offset);
+            }
+
+            break;
+        }
+
         case CONTENT_LENGTH_FIELD:
         {
             // Calculating content length.

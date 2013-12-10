@@ -88,6 +88,11 @@ namespace Starcounter {
         public Action<Response, Object> UserDelegate = null;
 
         /// <summary>
+        /// Bound scheduler id.
+        /// </summary>
+        public Byte BoundSchedulerId = 0;
+
+        /// <summary>
         /// User object.
         /// </summary>
         public Object UserObject = null;
@@ -110,7 +115,13 @@ namespace Starcounter {
         /// <summary>
         /// Resets the connection details.
         /// </summary>
-        public void Reset(Byte[] requestBytes, Int32 requestBytesLength,Action<Response, Object> userDelegate, Object userObject, Int32 receiveTimeoutMs)
+        public void Reset(
+            Byte[] requestBytes,
+            Int32 requestBytesLength,
+            Action<Response, Object> userDelegate,
+            Object userObject,
+            Int32 receiveTimeoutMs,
+            Byte boundSchedulerId)
         {
             Resp = null;
             TotallyReceivedBytes = 0;
@@ -127,6 +138,7 @@ namespace Starcounter {
             ConnectionTimedOut = false;
 
             MemStream = new MemoryStream();
+            BoundSchedulerId = boundSchedulerId;
         }
 
         /// <summary>
@@ -231,7 +243,7 @@ namespace Starcounter {
                     Resp.SetResponseBuffer(MemStream.GetBuffer(), MemStream, TotallyReceivedBytes);
 
                     // Invoking user delegate.
-                    NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject);
+                    NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject, BoundSchedulerId);
 
                     // Freeing connection resources.
                     NodeInst.FreeConnection(this, false);
@@ -403,7 +415,7 @@ namespace Starcounter {
             Resp.SetResponseBuffer(resp_bytes, null, resp_len_bytes);
 
             // Invoking user delegate.
-            NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject);
+            NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject, BoundSchedulerId);
         }
 
         /// <summary>
@@ -545,7 +557,7 @@ namespace Starcounter {
 
             // Invoking user delegate.
             if (null != UserDelegate)
-                NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject);
+                NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject, BoundSchedulerId);
 
             // Freeing connection resources.
             NodeInst.FreeConnection(this, isSyncCall);

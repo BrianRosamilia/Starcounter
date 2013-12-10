@@ -1506,6 +1506,14 @@ uint32_t GatewayWorker::WorkerRoutine()
 #ifndef GW_MEMORY_MANAGEMENT
                 GW_ASSERT(INVALID_CHUNK_INDEX != sd->get_chunk_index());
 #endif
+                // Checking error code (lower 32-bits of Internal).
+                if (ERROR_SUCCESS != (uint32_t) fetched_ovls[i].lpOverlapped->Internal)
+                {
+                    // Disconnecting this socket data.
+                    DisconnectAndReleaseChunk(sd);
+
+                    continue;
+                }
 
                 // Getting number of bytes in operation.
                 oper_num_bytes = fetched_ovls[i].dwNumberOfBytesTransferred;

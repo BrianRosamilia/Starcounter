@@ -3,13 +3,6 @@ IF "%SC_RUN_IPC_TEST%"=="False" GOTO :EOF
 
 staradmin -killall
 
-:: Creating repository if it does not exist.
-IF NOT EXIST ".srv" star.exe @@CreateRepo .srv
-COPY /Y scnetworkgateway.xml .srv\personal\scnetworkgateway.xml
-
-:: Setting StarcounterBin as current directory.
-SET StarcounterBin=%CD%
-
 :: Starting service in background.
 START CMD /C "scservice.exe"
 
