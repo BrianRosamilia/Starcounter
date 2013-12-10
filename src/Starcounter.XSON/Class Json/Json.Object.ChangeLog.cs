@@ -18,15 +18,20 @@ namespace Starcounter {
 		/// </summary>
 		internal void CheckpointChangeLog() {
 			if (this.IsArray) {
-				var tjson = (TObjArr)Template;
 				this.ArrayAddsAndDeletes = null;
-				tjson.Checkpoint(this.Parent);
+				if (Template != null) {
+					var tjson = (TObjArr)Template;
+					tjson.Checkpoint(this.Parent);
+				}
 			} else {
-				var tjson = (TObject)Template;
-				for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
-					var property = tjson.Properties.ExposedProperties[i] as TValue;
-					if (property != null) {
-						property.Checkpoint(this);
+				if (Template != null) {
+					var tjson = (TObject)Template;
+
+					for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
+						var property = tjson.Properties.ExposedProperties[i] as TValue;
+						if (property != null) {
+							property.Checkpoint(this);
+						}
 					}
 				}
 			}
@@ -181,18 +186,19 @@ namespace Starcounter {
 				}
 			} else {
 				ResumeTransaction(false);
-
 				TObject tobj = (TObject)Template;
-				for (int i = 0; i < tobj.Properties.Count; i++) {
-					var t = tobj.Properties[i];
+				if (tobj != null) {
+					for (int i = 0; i < tobj.Properties.Count; i++) {
+						var t = tobj.Properties[i];
 
-					if (t is TContainer) {
-						var childJson = ((TContainer)t).GetValue(this);
-						childJson.SetBoundValuesInTuple();
-					} else {
-						var vt = t as TValue;
-						if (vt != null)
-							vt.CheckAndSetBoundValue(this, false);
+						if (t is TContainer) {
+							var childJson = ((TContainer)t).GetValue(this);
+							childJson.SetBoundValuesInTuple();
+						} else {
+							var vt = t as TValue;
+							if (vt != null)
+								vt.CheckAndSetBoundValue(this, false);
+						}
 					}
 				}
 			}

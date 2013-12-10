@@ -72,19 +72,22 @@ namespace Starcounter.Templates {
 		}
 
 		internal override void Checkpoint(Json parent) {
-			((Json)UnboundGetter(parent)).CheckpointChangeLog();
+			var json = UnboundGetter(parent);
+			if (json != null)
+				json.CheckpointChangeLog();
 			base.Checkpoint(parent);
 		}
 
 		internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
 			Json value = UnboundGetter(parent);
-			value.SetBoundValuesInTuple();
+			if (value != null)
+				value.SetBoundValuesInTuple();
 		}
 
 		internal override Json GetValue(Json parent) {
 			var json = UnboundGetter(parent);
 
-			if (UseBinding(parent)) {
+			if (json != null && UseBinding(parent)) {
 				json.CheckBoundObject(BoundGetter(parent));
 			}
 
@@ -93,7 +96,8 @@ namespace Starcounter.Templates {
 
 		internal void SetValue(Json parent, object value) {
 			Json current = UnboundGetter(parent);
-			current.AttachData(value);
+			if (current != null)
+				current.AttachData(value);
 		}
 
 		/// <summary>
