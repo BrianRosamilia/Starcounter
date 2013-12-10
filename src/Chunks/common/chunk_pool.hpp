@@ -115,7 +115,8 @@ public:
 	 *		head is set to chunk_type::LINK_TERMINATOR, otherwise false.
 	 */
 	bool release_linked_chunks(chunk_type* chunk_base, chunk_index& head);
-	
+
+#if 0	
 	//--------------------------------------------------------------------------
 	/// Acquire linked chunks - when the chunks are not owned by any client.
 	/// A scheduler can use this function, but not a client.
@@ -163,6 +164,7 @@ public:
 	 */
 	bool release_linked_chunks(chunk_type* chunk_base, chunk_index& head,
 	client_interface_type* client_interface_ptr);
+#endif
 };
 
 } // namespace core

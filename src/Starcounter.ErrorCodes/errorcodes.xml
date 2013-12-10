@@ -3422,6 +3422,12 @@
         with the weaver cache. Run the weaver with the --nocache option to remedy.
       </message>
     </code>
+    <code hex="004E" severity="Error" name="ScErrMaxHandlersReached">
+        <message>Maximum number of handlers reached.</message>
+    </code>
+    <code hex="004F" severity="Error" name="ScErrHandlerInfoExceedsLimits">
+        <message>Handler info exceeds size limits.</message>
+    </code>
  </facility>
 
   <!-- Error codes related to query processing. -->

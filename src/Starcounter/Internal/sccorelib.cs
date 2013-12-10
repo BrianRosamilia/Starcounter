@@ -474,12 +474,9 @@ namespace Starcounter.Internal
         public static extern void mh4_menv_trim_cache(ulong hmenv, int periodic);
 
         /// <summary>
-        /// Cm_send_to_clients the specified chunk_index.
         /// </summary>
-        /// <param name="chunk_index">The chunk_index.</param>
-        /// <returns>UInt32.</returns>
         [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static UInt32 cm_send_to_client(UInt32 chunk_index);
+        internal extern static uint cm_send_to_client(uint client_index, uint chunk_index);
 
         /// <summary>
         /// </summary>
@@ -502,6 +499,11 @@ namespace Starcounter.Internal
         internal extern static unsafe uint cm3_mevt_wait(void* h, uint time, uint flags);
 
         internal const uint CM3_WAIT_FLAG_BLOCK_SCHED = 0x00000001;
+
+        /// <summary>
+        /// </summary>
+        [DllImport("coalmine.dll")]
+        public extern static int fix_wait_for_gateway_available(uint timeout_milliseconds);
 
         /// <summary>
         /// Gets the cpu count.

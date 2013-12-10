@@ -15,14 +15,20 @@
 namespace starcounter {
    namespace core {
 
-      monitor::monitor(int argc, wchar_t* argv[])
-         : ipc_monitor_cleanup_event_(),
+      monitor::monitor(int argc, wchar_t* argv[]) :
+#if 0
+		 ipc_monitor_cleanup_event_(),
+#endif
          monitor_interface_(),
          active_segments_update_(active_segments_buffer_capacity),
          active_databases_updated_flag_(false),
          registrar_(),
+#if 0
          cleanup_(),
+#endif
+#if 0
          active_databases_file_updater_thread_(),
+#endif
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
          resources_watching_thread_(),
 #endif // defined (IPC_MONITOR_SHOW_ACTIVITY)
@@ -137,6 +143,7 @@ namespace starcounter {
             monitor_interface_shared_memory_object_name = server_name_ +"_"
                +MONITOR_INTERFACE_SUFFIX;
 
+#if 0
             //--------------------------------------------------------------------------
             // Construct the ipc_monitor_cleanup_event_name.
             char ipc_monitor_cleanup_event_name[ipc_monitor_cleanup_event_name_size];
@@ -171,6 +178,7 @@ namespace starcounter {
                   log().error(SCERRCREATEIPCMONITORCLEANUPEV);
                   throw ipc_monitor_exception(SCERRCREATEIPCMONITORCLEANUPEV);
             }
+#endif
 
             //--------------------------------------------------------------------------
             // Construct the active_databases_updated_event_name.
@@ -276,9 +284,11 @@ namespace starcounter {
                database_process_group(i).event_.reserve(events_per_group);
             }
 
+#if 0
             for (std::size_t i = 0; i < client_process_event_groups; ++i) {
                client_process_group(i).event_.reserve(events_per_group);
             }
+#endif
 
             //--------------------------------------------------------------------------
             if (is_system) {
@@ -336,13 +346,19 @@ namespace starcounter {
             database_process_group(i).thread_.join();
          }
 
+#if 0
          for (std::size_t i = 0; i < client_process_event_groups; ++i) {
             client_process_group(i).thread_.join();
          }
+#endif
 
          registrar_.join();
+#if 0
          cleanup_.join();
+#endif
+#if 0
          active_databases_file_updater_thread_.join();
+#endif
 
 #if defined (IPC_MONITOR_SHOW_ACTIVITY)
          resources_watching_thread_.join();
@@ -365,6 +381,7 @@ namespace starcounter {
                = database_process_group(i).thread_.native_handle();
          }
 
+#if 0
          // Start a group of threads monitoring client process event.
          for (std::size_t i = 0; i < client_process_event_groups; ++i) {
 			std::pair<monitor*,std::size_t>* arg = new std::pair<monitor*,std::size_t>(this, i); // TODO: Fix this leak.
@@ -376,6 +393,7 @@ namespace starcounter {
             client_process_group(i).thread_handle_
                = client_process_group(i).thread_.native_handle();
          }
+#endif
 
          // Start the registrar thread. This must be done after the
          // database_process_group(s) and client_process_group(s) native_handle(s)
@@ -383,8 +401,10 @@ namespace starcounter {
          // QueueUserAPC() by the registrar_ thread.
          registrar_.create((thread::start_routine_type) &monitor::registrar, this);
 
+#if 0
          // Start the cleanup thread.
          cleanup_.create((thread::start_routine_type) &monitor::cleanup, this);
+#endif
 
 #if 0
          // Start the active databases thread.
@@ -457,10 +477,12 @@ namespace starcounter {
                                     // shared memory segment that this database
                                     // process had created.
 
+#if 0
                                     // Erase the segment name from the cleanup_task table if it exists.
                                     monitor->the_monitor_interface()->erase_segment_name
                                     (process_register_it_2->second.get_segment_name().c_str(),
                                     monitor->ipc_monitor_cleanup_event());
+#endif
 
                                     try {
 
@@ -556,9 +578,11 @@ namespace starcounter {
                               monitor->log().error(SCERRTRYOPENSEGMENTUNKNOWNEXCEPT);
                            }
                            break;
+#if 0
                         case monitor_interface::client_process: /// It can't be!
                            monitor->log().error(SCERRGOTCLIENTPROCESSTYPENOTDB);
                            break;
+#endif
                         default: /// Impossible!
                            // Unknown proess type exit. Cosmic X-ray corrupted RAM?
                            monitor->log().error(SCERRGOTUNKNOWNPROCESSTYPENOTDB);
@@ -715,6 +739,7 @@ namespace starcounter {
          }
       }
 
+#if 0
       void monitor::wait_for_client_process_event(std::pair<monitor*,std::size_t> arg) {
 		monitor* monitor = arg.first;
 		std::size_t group = arg.second;
@@ -1094,6 +1119,7 @@ namespace starcounter {
             }
          }
       }
+#endif
 
       /// private:
 
@@ -1131,6 +1157,7 @@ namespace starcounter {
                   break;
                }
                break;
+#if 0
             case monitor_interface::client_process:
                switch (monitor->the_monitor_interface()->get_operation()) {
                case monitor_interface::registration_request:
@@ -1201,10 +1228,12 @@ namespace starcounter {
                   }
                }
                break;
+#endif
             }
          }
       }
 
+#if 0
       void monitor::cleanup(monitor* monitor) {
          /// TODO: Shutdown mechanism.
          while (true) {
@@ -1309,6 +1338,7 @@ namespace starcounter {
             }
          }
       }
+#endif
 
       void __stdcall monitor::apc_function(uint64_t arg) {
          // Instead of accessing the object from here like this:
@@ -1340,7 +1370,8 @@ namespace starcounter {
 
             if (owner_id_counter_ != owner_id::none
                && owner_id_counter_ != owner_id::anonymous
-               && owner_id_counter_ != ipc_monitor_owner_id) {
+               && owner_id_counter_ != ipc_monitor_owner_id
+               && owner_id_counter_ != single_client_owner_id) {
                   if (process_register_.find(owner_id_counter_) == process_register_.end()) {
                      // This owner_id is not used by any monitored process.
                      return owner_id_counter_;
@@ -1355,6 +1386,7 @@ namespace starcounter {
 
 #else // !defined (IPC_OWNER_ID_IS_32_BIT)
       inline owner_id monitor::get_new_owner_id() {
+	     // TODO: Does not work since reserved owner ids will be allocated.
          return ++owner_id_counter_;
       }
 #endif // defined (IPC_OWNER_ID_IS_32_BIT)
@@ -1699,6 +1731,7 @@ namespace starcounter {
             database_process_group(group).event_.pop_back();
       }
 
+#if 0
       void monitor::remove_client_process_event(process_info::handle_type e) {
          for (std::size_t group = 0; group < client_process_event_groups; ++group) {
             for (uint32_t i = 0; i < events_per_group; ++i) {
@@ -1722,6 +1755,7 @@ namespace starcounter {
             // Remove the last element.
             client_process_group(group).event_.pop_back();
       }
+#endif
 
       void monitor::print_event_register() {
          boost::mutex::scoped_lock register_lock(register_mutex_);

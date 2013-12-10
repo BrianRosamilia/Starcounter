@@ -68,8 +68,12 @@ public:
 	out(),
 	scheduler_interface_(0),
 	client_interface_(0),
+#if 0
 	server_refs_(0),
+#endif
+#if 0
 	is_to_be_released_(false),
+#endif
 	in_overflow_(),
 	out_overflow_() {}
 	
@@ -111,7 +115,8 @@ public:
 	client_number get_client_number() const {
 		return client_number_;
 	}
-	
+
+#if 0	
 	int32_t add_server_ref() {
 		return ++server_refs_;
 	}
@@ -124,7 +129,9 @@ public:
 		_mm_mfence();
 		return server_refs_;
 	}
-	
+#endif
+
+#if 0	
 	void set_to_be_released() {
 		_mm_sfence();
 		is_to_be_released_ = true;
@@ -140,6 +147,7 @@ public:
 	bool is_to_be_released() const {
 		return is_to_be_released_;
 	}
+#endif
 
 public:
 	atomic_buffer<T, channel_capacity_bits> in;
@@ -340,26 +348,34 @@ private:
 	// to the database process address space, so only the database process that
 	// owns this channel can use it.
 	uint64_t client_interface_; // client_interface_type*
-	
+
+#if 0	
 	// Only read from and written to on the server side. Used to keep track of
 	// when a channel can be released if the client terminates unexpectedly.
 	int32_t server_refs_;
+#endif
 	
 	// Indexes to interfaces.
 	scheduler_number scheduler_number_;
 	client_number client_number_;
-	
+
+#if 0	
 	// Flag to indicate that the client no longer uses the channel and the
 	// scheduler shall empty the in and out queues and release the channel.
 	volatile bool is_to_be_released_;
+#endif
 	
 	char cache_line_pad_0_[CACHE_LINE_SIZE -(
 	+sizeof(scheduler_interface_type*) // scheduler_interface_
 	+sizeof(uint64_t) // client_interface_
+#if 0
 	+sizeof(int32_t) // server_refs_
+#endif
 	+sizeof(scheduler_number) // scheduler_number_
 	+sizeof(client_number) // client_number_
+#if 0
 	+sizeof(bool) // is_to_be_released_
+#endif
 	) % CACHE_LINE_SIZE];
 
 	queue in_overflow_;

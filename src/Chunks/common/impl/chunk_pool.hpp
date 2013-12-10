@@ -113,6 +113,7 @@ chunk_index& head) {
 	return true;
 }
 
+#if 0
 //------------------------------------------------------------------------------
 // For schedulers - to be tested.
 template<class T, class Alloc>
@@ -180,7 +181,7 @@ client_interface_ptr) {
 			pop_back(&current);
 			
 			_mm_mfence(); // TODO: Figure if _mm_mfence() is enough/required.
-			
+
 			// This must never occur before the pop_back() above, because if
 			// it occurs before pop_back() and the client process terminates
 			// unexpectedly (crashes), then the clean up will be messed up
@@ -228,6 +229,7 @@ chunk_index& head, client_interface_type* client_interface_ptr) {
 	// Successfully released all linked chunks.
 	return true;
 }
+#endif
 
 } // namespace core
 } // namespace starcounter

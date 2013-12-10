@@ -89,9 +89,6 @@ class SocketDataChunk
     // Type of network protocol.
     uint8_t type_of_network_protocol_;
 
-    // Target database index.
-    db_index_type target_db_index_;
-
     /////////////////////////
     // Data structures.
     /////////////////////////
@@ -115,6 +112,26 @@ class SocketDataChunk
     uint8_t data_blob_[SOCKET_DATA_BLOB_SIZE_BYTES];
 
 public:
+
+    worker_id_type get_bound_worker_id()
+    {
+        return session_.gw_worker_id_;
+    }
+
+    void set_bound_worker_id(worker_id_type worker_id)
+    {
+        session_.gw_worker_id_ = worker_id;
+    }
+
+    void CopyFromAnotherSocketData(SocketDataChunk* sd)
+    {
+        memcpy(this, sd, sizeof(SocketDataChunk));
+    }
+
+    void CopyFromSharedMemoryChunk(shared_memory_chunk* smc)
+    {
+        memcpy(this, (uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA, sizeof(SocketDataChunk));
+    }
 
     // Get Http protocol instance.
     HttpProto* get_http_proto()
@@ -183,7 +200,6 @@ public:
         std::cout << "offset db_index_ = "<< ((uint8_t*)&db_index_ - sd) << std::endl;
         std::cout << "offset type_of_network_oper_ = "<< ((uint8_t*)&type_of_network_oper_ - sd) << std::endl;
         std::cout << "offset type_of_network_protocol_ = "<< ((uint8_t*)&type_of_network_protocol_ - sd) << std::endl;
-        std::cout << "offset target_db_index_ = "<< ((uint8_t*)&target_db_index_ - sd) << std::endl;
         std::cout << "offset accum_buf_ = "<< ((uint8_t*)&accum_buf_ - sd) << std::endl;
         std::cout << "offset http_proto_ = "<< ((uint8_t*)&http_proto_ - sd) << std::endl;
         std::cout << "offset ws_proto_ = "<< ((uint8_t*)&ws_proto_ - sd) << std::endl;
@@ -226,6 +242,7 @@ public:
         std::cout << "SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_WS_OPCODE = "<< (&get_ws_proto()->get_frame_info()->opcode_ - sd) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_BOUND_WORKER_ID = "<< ((uint8_t*)&(session_.gw_worker_id_) - sd) << std::endl;
 
         GW_ASSERT(8 == sizeof(SOCKET));
         GW_ASSERT(8 == sizeof(random_salt_type));
@@ -269,6 +286,8 @@ public:
         GW_ASSERT(((uint8_t*)&socket_info_index_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
 
         GW_ASSERT((&get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
+
+        GW_ASSERT(((uint8_t*)&(session_.gw_worker_id_) - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_BOUND_WORKER_ID);
 
         return 0;
     }
@@ -619,16 +638,22 @@ public:
         return g_gateway.GetSocketAggregatedFlag(socket_info_index_);
     }
 
-    // Getting matched URI index.
-    uri_index_type GetMatchedUriIndex()
+    // Getting worker id to which this socket is bound.
+    worker_id_type GetBoundWorkerId()
     {
-        return g_gateway.GetMatchedUriIndex(socket_info_index_);
+        return g_gateway.GetBoundWorkerId(socket_info_index_);
     }
 
-    // Setting matched URI index.
-    void SetMatchedUriIndex(uri_index_type uri_index)
+    // Getting destination database index.
+    db_index_type GetDestDbIndex()
     {
-        return g_gateway.SetMatchedUriIndex(socket_info_index_, uri_index);
+        return g_gateway.GetDestDbIndex(socket_info_index_);
+    }
+
+    // Setting destination database index.
+    void SetDestDbIndex(db_index_type db_index)
+    {
+        return g_gateway.SetDestDbIndex(socket_info_index_, db_index);
     }
 
     // Getting saved user handler id.
@@ -796,6 +821,11 @@ public:
         return chunk_index_;
     }
 
+    void InvalidateDbIndex(db_index_type newindex)
+    {
+        db_index_ = newindex;
+    }
+
     // Gets extra chunk index.
     core::chunk_index GetNextLinkedChunkIndex()
     {
@@ -904,18 +934,6 @@ public:
         accum_buf_.Init(SOCKET_DATA_BLOB_SIZE_BYTES, data_blob_, true);
     }
 
-    // Index into target databases array.
-    db_index_type get_target_db_index()
-    {
-        return target_db_index_;
-    }
-
-    // Index into target databases array.
-    void set_target_db_index(db_index_type db_index)
-    {
-        target_db_index_ = db_index;
-    }
-
     // Index into databases array.
     db_index_type get_db_index()
     {
@@ -963,7 +981,8 @@ public:
     void Init(
         session_index_type socket_info_index,
         db_index_type db_index,
-        core::chunk_index chunk_index);
+        core::chunk_index chunk_index,
+        worker_id_type bound_worker_id);
 
     // Resetting socket.
     void ResetOnDisconnect();

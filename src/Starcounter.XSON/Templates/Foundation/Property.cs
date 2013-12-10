@@ -23,12 +23,12 @@ namespace Starcounter.Templates {
 		internal string DebugUnboundGetter;
 #endif
 
-		public readonly Action<Json, T> Setter;
-		public readonly Func<Json, T> Getter;
+		public Action<Json, T> Setter;
+		public Func<Json, T> Getter;
 		internal Action<Json, T> BoundSetter;
 		internal Func<Json, T> BoundGetter;
-		internal Action<Json, T> UnboundSetter;
-		internal Func<Json, T>  UnboundGetter;
+		public Action<Json, T> UnboundSetter;
+		public Func<Json, T>  UnboundGetter;
 
         internal Func<Json, Property<T>, T, Input<T>> CustomInputEventCreator = null;
         internal List<Action<Json, Input<T>>> CustomInputHandlers = new List<Action<Json, Input<T>>>();

@@ -175,7 +175,7 @@ namespace Starcounter.Internal {
                 case HandlerStatusInternal.Done:
                 {
                     // Standard response send.
-                    request.SendResponseScThread(response.Uncompressed, 0, response.UncompressedLength, response.ConnFlags);
+                    request.SendResponse(response.Uncompressed, 0, response.UncompressedLength, response.ConnFlags);
                     request.Destroy();
                     break;
                 }

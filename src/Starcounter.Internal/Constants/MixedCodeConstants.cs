@@ -5,6 +5,8 @@
 // C++ code--removes public keyword for C++
 #define public
 
+//#define GW_MEMORY_MANAGEMENT
+
 typedef char* const String;
 typedef unsigned int uint;
 
@@ -110,6 +112,7 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 32;
         public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 48;
         public const int SOCKET_DATA_OFFSET_WS_OPCODE = 171;
+        public const int SOCKET_DATA_OFFSET_BOUND_WORKER_ID = 189;
         
         /// <summary>
         /// Maximum number of URI callback parameters.
@@ -179,6 +182,16 @@ namespace Starcounter.Internal
         /// Name of Administrator application.
         /// </summary>
         public const String AdministratorAppName = "Administrator";
+
+        /// <summary>
+        /// Name of session cookie.
+        /// </summary>
+        public const String ScSessionCookieName = "ScSessionCookie";
+
+        /// <summary>
+        /// Session cookie length.
+        /// </summary>
+        public const int ScSessionCookieNameLength = 15;
 
         /// <summary>
         /// Denotes the type of network protocol.

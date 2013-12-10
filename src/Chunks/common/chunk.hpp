@@ -126,7 +126,7 @@ public:
 		// The last chunk in a stream (chain) of 1..N chunks is terminated by setting
 		// the link (stream_link) to link_terminator. Likewise, to terminate the "overflow"
 		// linked list the next_link is set to link_terminator.
-		link_terminator = -1
+		link_terminator = MixedCodeConstants::INVALID_CHUNK_INDEX
 	};
 	
 	enum {

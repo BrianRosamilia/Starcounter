@@ -192,7 +192,8 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 		///=========================================================================
 		/// "8" Register with the same IPC monitor as the database, if not already.
 		///=========================================================================
-		
+
+#if 0		
 		if (!registered) {
 			// Get monitor_interface_ptr for monitor_interface_name.
 			the_monitor_interface().init(monitor_interface_name);
@@ -214,6 +215,9 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 
 			registered = true;
 		}
+#else
+		owner_id_ = 3;
+#endif
 
 		// Threads in this process can now acquire resources.
 

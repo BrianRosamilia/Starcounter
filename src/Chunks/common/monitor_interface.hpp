@@ -54,15 +54,19 @@ public:
 	
 	uint32_t register_database_process(pid_type pid, std::string segment_name,
 	owner_id& oid, uint32_t timeout_milliseconds);
-	
+
+#if 0	
 	uint32_t register_client_process(pid_type pid, owner_id& oid,
 	uint32_t timeout_milliseconds);
+#endif
 	
 	uint32_t unregister_database_process(pid_type pid, owner_id& oid,
 	uint32_t timeout_milliseconds);
-	
+
+#if 0	
 	uint32_t unregister_client_process(pid_type pid, owner_id& oid,
 	uint32_t timeout_milliseconds);
+#endif
 	
 	// The monitor thread registrar_ calls this function in order to wait for
 	// processes to register and unregister. It obtains the parameters.
@@ -70,13 +74,17 @@ public:
 	
 	enum process_type {
 		database_process,
+#if 0
 		client_process
+#endif
 	};
 	
 	enum operation {
 		registration_request,
 		unregistration_request,
-		shutdown /// TODO: Implement this and see if it works fine.
+#if 0
+		shutdown
+#endif
 	};
 	
 	void set_pid(pid_type pid); // make it private?
@@ -103,7 +111,8 @@ public:
 	
 	void set_in_data_available_state(bool state);
 	void set_out_data_available_state(bool state);
-	
+
+#if 0	
 	/// insert_segment_name() is used by the monitor::wait_for_client_process_event()
 	/// to insert segment names that are involved in cleanup tasks. The index in the
 	/// table is set in the client_interface[] where cleanup is to be done by the
@@ -153,6 +162,7 @@ public:
 
 	/// Get reference to the spinlock.
 	smp::spinlock& spinlock();
+#endif
 
 	class active_databases {
 	public:	
@@ -259,6 +269,7 @@ private:
 	// Hack until I can figure how to bind it.
 	bool out_is_data_available() const;
 
+#if 0
 	struct cleanup_task {
 		typedef uint64_t mask_type;
 
@@ -332,6 +343,7 @@ private:
 		// spinlock_ synchronizes updates to cleanup_mask_ and set/reset of the event.
 		smp::spinlock spinlock_;
 	} cleanup_task_;
+#endif
 
 	active_databases active_databases_;
 };

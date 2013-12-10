@@ -1126,7 +1126,7 @@ session_index_type Gateway::ObtainFreeSocketIndex(
         si->set_socket_proxy_connect_flag();
 
     // Creating new socket info.
-    CreateNewSocketInfo(si->read_only_index_, port_index);
+    CreateNewSocketInfo(si->read_only_index_, port_index, gw->get_worker_id());
 
     // Creating unique ids.
     GenerateUniqueSocketInfoIds(si->read_only_index_, gw->GenerateSchedulerId(db_index));
@@ -1544,9 +1544,12 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
             // Leaving global lock.
             LeaveGlobalLock();
 
-            // Registering push channel on first worker.
-            err_code = gw_workers_[0].GetWorkerDb(empty_db_index)->RegisterAllPushChannels();
-            GW_ERR_CHECK(err_code);
+            // Registering gateway ready on first worker.
+            for (int32_t i = 0; i < setting_num_workers_; i++)
+            {
+                err_code = gw_workers_[i].GetWorkerDb(empty_db_index)->SetGatewayReadyForDbPushes();
+                GW_ERR_CHECK(err_code);
+            }
         }
     }
 
@@ -1600,7 +1603,6 @@ void ActiveDatabase::Init(
     db_index_ = db_index;
     were_sockets_closed_ = false;
 
-    num_confirmed_push_channels_ = 0;
     is_empty_ = false;
     is_ready_for_cleanup_ = false;
 
@@ -1914,6 +1916,7 @@ uint32_t Gateway::Init()
     shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
     GW_COUT << "opened!" << GW_ENDL;
 
+#if 0
     // Send registration request to the monitor and try to acquire an owner_id.
     // Without an owner_id we can not proceed and have to exit.
     // Get process id and store it in the monitor_interface.
@@ -1922,6 +1925,10 @@ uint32_t Gateway::Init()
     // Try to register gateway process pid. Wait up to 10000 ms.
     uint32_t err_code = shm_monitor_interface_->register_client_process(gateway_pid_, gateway_owner_id_, 10000/*ms*/);
     GW_ASSERT(0 == err_code);
+#else
+    gateway_pid_.set_current();
+	gateway_owner_id_ = 3;
+#endif
 
     // Indicating that network gateway is ready
     // (should be first line of the output).

@@ -100,14 +100,19 @@ namespace HttpStructs
         // Scheduler id.
         public Byte scheduler_id_;
 
+        // Gateway worker id.
+        public Byte gw_worker_id_;
+
         public void Init(
             Byte scheduler_id,
             UInt32 linear_index,
-            UInt64 random_salt)
+            UInt64 random_salt,
+            Byte gw_worker_id)
         {
             scheduler_id_ = scheduler_id;
             linear_index_ = linear_index;
             random_salt_ = random_salt;
+            gw_worker_id_ = gw_worker_id;
         }
 
         // Checks if this session is active.
@@ -126,10 +131,11 @@ namespace HttpStructs
         // Print current session.
         public void PrintSession()
         {
-            Console.WriteLine(String.Format("Session: scheduler={0}, index={1}, salt={2}.",
+            Console.WriteLine(String.Format("Session: scheduler={0}, index={1}, salt={2}, gwworkerid={3}.",
                 scheduler_id_,
                 linear_index_,
-                random_salt_));
+                random_salt_,
+                gw_worker_id_));
         }
 
         /// <summary>
@@ -241,6 +247,11 @@ namespace HttpStructs
 
         // Linear index node.
         public LinkedListNode<UInt32> linear_index_node_;
+
+        /// <summary>
+        /// Using session cookie.
+        /// </summary>
+        public Boolean use_session_cookie_;
 
         /// <summary>
         /// Prefix to data location URI.
@@ -428,7 +439,8 @@ namespace HttpStructs
             s.session_struct_.Init(
                 ss.scheduler_id_,
                 ss.linear_index_,
-                ss.random_salt_);
+                ss.random_salt_,
+                ss.gw_worker_id_);
 
             // Serializing to bytes.
             s.SerializeToBytes();

@@ -50,7 +50,7 @@ namespace Starcounter {
     /// In the release version of Starcounter, Obj objects trees will be optimized for storage in "blobs" rather than on
     /// the garbage collected heap. This is such that stateful sessions can employ them without causing unnecessary system
     /// stress.
-    //
+    ///
     /// A Json object can be data bound to a database object such as its bound properties
     /// merely reflect the values of the database objects.
     /// </remarks>
@@ -63,14 +63,14 @@ namespace Starcounter {
             /// <summary>
             /// Used by to support inheritance when using Json-by-example compiler
             /// </summary>
-            /// <typeparam name="JsonType">The Json instances described by this schema</typeparam>
             public class Schema : Starcounter.Templates.TObject {
             }
 
             /// <summary>
             /// Used by to support inheritance when using Json-by-example compiler
             /// </summary>
-            /// <typeparam name="JsonType">The Json instances described by this schema</typeparam>
+			/// <typeparam name="SchemaType">The schema for the Json.</typeparam>
+            /// <typeparam name="JsonType">The Json instance type described by this schema</typeparam>
             public class Metadata<SchemaType, JsonType> : Starcounter.Templates.ObjMetadata<SchemaType, JsonType>
                 where SchemaType : Starcounter.Templates.TObject
                 where JsonType : Json {
@@ -88,7 +88,6 @@ namespace Starcounter {
             //    XSON.CodeGeneration.Initializer.InitializeXSON();
         }
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Obj" /> class.
         /// </summary>
@@ -101,69 +100,6 @@ namespace Starcounter {
                 Template = GetDefaultTemplate();
             }
         }
-
-//		/// <summary>
-//		/// 
-//		/// </summary>
-//		/// <param name="property"></param>
-//		/// <param name="value"></param>
-//		private void _OnSetProperty(TValue property, object value) {
-//			var thisj = this as Json;
-
-
-//			if (property.UseBinding(thisj)) {
-//				if (property is TObject) {
-//					thisj.SetBound(property, (value as Json).Data);
-//				}
-//				else {
-//					thisj.SetBound(property, value);
-//				}
-//			}
-//			var index = property.TemplateIndex;
-//			if (property is TObjArr) {
-//				Json valuearr;
-//				if (value is Json) {
-//					valuearr = value as Json;
-//				}
-//				else {
-//					valuearr = (Json)property.CreateInstance(this);// new Json((IEnumerable)value);
-//					valuearr._data = value;
-//					valuearr._PendingEnumeration = true;
-
-////                    valuearr.Parent = this;
-//					//valuearr._PendingEnumeration = true;
-//				}
-//				if (index < _list.Count) {
-//					var oldValue = (Json)_list[index];
-//					if (oldValue != null) {
-//						oldValue.InternalClear();
-//						//                oldValue.Clear();
-//						oldValue.SetParent(null);
-//					}
-//				}
-//				list[index] = valuearr;
-
-//				valuearr.Array_InitializeAfterImplicitConversion(thisj, (TObjArr)property);
-//			}
-//			else if (property is TObject) {
-//				var j = (Json)value;
-//				// We need to update the cached index array
-//				if (j != null) {
-//					j.Parent = this;
-//					j._cacheIndexInArr = property.TemplateIndex;
-//				}
-//				var vals = list;
-//				var oldValue = (Json)list[index];
-//				if (oldValue != null) {
-//					oldValue.SetParent(null);
-//					oldValue._cacheIndexInArr = -1;
-//				}
-//				list[index] = j;
-//			}
-//			else {
-//				list[index] = value;
-//			}
-//		}
 
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.
@@ -205,32 +141,11 @@ namespace Starcounter {
 #if QUICKTUPLE
                 _InitializeValues();
 #endif
-                //         if (this is App) {
-                //             ((App)this).CallInit();
-                //         }
-                //              this.Init();
             }
             get {
                 return _Template;
             }
         }
-
-
-        /// <summary>
-        /// Inits this instance.
-        /// </summary>
-        //protected virtual void Init() {
-        //}
-
-
-
-        /// <summary>
-        /// Used to generate change logs for all pending property changes in this object and
-        /// and its children and grandchidren (recursivly) including changes to bound data
-        /// objects.
-        /// </summary>
-        /// <param name="session">The session (for faster access)</param>
-
 
         ///// <summary>
         ///// Called when [set parent].
@@ -249,10 +164,6 @@ namespace Starcounter {
         public virtual void ChildArrayHasReplacedAnElement(TObjArr property, int elementIndex) {
         }
 
-
-
-
-
         /// <summary>
         /// Called when a Obj or Arr property value has been removed from its parent.
         /// </summary>
@@ -265,7 +176,6 @@ namespace Starcounter {
             // TheCache.RemoveEntry( child );
             //
         }
-
 
         /// <summary>
         /// Returns True if current Obj is within the given tree.
@@ -283,9 +193,6 @@ namespace Starcounter {
 
             return false;
         }
-
-
-
 
         protected virtual Template GetDefaultTemplate() {
             return null;
@@ -330,15 +237,6 @@ namespace Starcounter {
             //    Session.UpdateValue(this, property);
         }
 
-        //        /// <summary>
-        //        /// The template defining the schema (properties) of this Obj.
-        //        /// </summary>
-        //        /// <value>The template</value>
-        //        public new Schema Template {
-        //            get { return (Schema)base.Template; }
-        //            set { base.Template = value; }
-        //        }
-
         /// <summary>
         /// Here you can set properties for each property in this Obj (such as Editable, Visible and Enabled).
         /// The changes only affect this instance.
@@ -352,8 +250,6 @@ namespace Starcounter {
                 return _Metadata;
             }
         }
-
-
 
         /// <summary>
         /// Gets or sets the parent.
@@ -385,8 +281,6 @@ namespace Starcounter {
             _parent = value;
         }
 
-
-
         /// <summary>
         /// 
         /// </summary>
@@ -410,15 +304,6 @@ namespace Starcounter {
                 return Template.IsPrimitive;
             }
         }
-
-        //		/// <summary>
-        //		/// If set true and a ChangeLog is set on the current thread, all 
-        //		/// changes done to this Obj will be logged.
-        //		/// </summary>
-        //		public bool LogChanges { get; set; }
-
-        //        public virtual void ProcessInput<V>(TValue<V> template, V value) {
-        //        }
 
 		public object this[int index] {
 			get {
@@ -477,74 +362,6 @@ namespace Starcounter {
 				this[prop.TemplateIndex] = value;
 			}
 		}
-
-		//public object this[int index] {
-		//	get {
-		//		if (this.IsArray) {
-		//			return _GetAt(index);
-		//		}
-		//		else {
-		//			var json = this as Json;
-		//			var property = (TValue)((TObject)Template).Properties[index];
-		//			if (property.UseBinding(json)) {
-		//				object ret;
-		//				ret = json.GetBound(property);
-		//				if (property is TObject) {
-		//					Json value = (Json)_GetAt(property.TemplateIndex);
-		//					value.CheckBoundObject(ret);
-		//					return value;
-		//				}
-		//				else if (property is TObjArr) {
-		//					Json value = (Json)_GetAt(property.TemplateIndex);
-		//					value.CheckBoundArray((IEnumerable)ret);
-		//					return value;
-		//				}
-		//				return ret;
-		//			}
-		//			else {
-		//				return _GetAt(property.TemplateIndex);
-		//			}
-		//		}
-		//	}
-		//	set {
-
-
-
-
-		//		if (IsArray) {
-		//			// We need to update the cached index array
-		//			var thisj = this as Json;
-		//			var j = value as Json;
-		//			if (j != null) {
-		//				j.Parent = this;
-		//				j._cacheIndexInArr = index;
-		//			}
-		//			var oldValue = (Json)_list[index];
-		//			if (oldValue != null) {
-		//				oldValue.SetParent(null);
-		//				oldValue._cacheIndexInArr = -1;
-		//			}
-		//			list[index] = value;
-
-		//		}
-		//		else {
-
-		//			var property = (TValue)((TObject)Template).Properties[index];
-		//			this._OnSetProperty(property, value);
-		//		}
-
-		//		if (HasBeenSent) {
-		//			MarkAsReplaced(index);
-		//		}
-
-		//		if (IsArray) {
-		//			(this as Json)._CallHasChanged(this.Template as TObjArr, index);
-		//		}
-		//		else {
-		//			(this as Json)._CallHasChanged(this.Template as TValue);
-		//		}
-		//	}
-		//}
 
 		internal void CheckBoundObject(object boundValue) {
 			if (!CompareDataObjects(boundValue, Data))

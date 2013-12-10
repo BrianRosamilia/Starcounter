@@ -30,13 +30,13 @@
 #include "..\common\chunk.hpp"
 
 // BMX task information.
-struct TASK_INFO_TYPE {
+struct TASK_INFO_TYPE
+{
     uint8_t flags;
     uint8_t scheduler_number;
     BMX_HANDLER_INDEX_TYPE handler_index;
-    uint8_t fill1;
-    starcounter::core::chunk_index chunk_index;
-    uint64_t transaction_handle;
+    uint8_t client_worker_id;
+    starcounter::core::chunk_index the_chunk_index;
 };
 
 // User handler callback.
@@ -85,11 +85,7 @@ namespace bmx
     const uint8_t BMX_REGISTER_URI = 2;
     const uint8_t BMX_UNREGISTER = 3;
     const uint8_t BMX_ERROR = 4;
-    const uint8_t BMX_REGISTER_PUSH_CHANNEL = 5;
-    const uint8_t BMX_REGISTER_PUSH_CHANNEL_RESPONSE = 6;
-    const uint8_t BMX_DEREGISTER_PUSH_CHANNEL = 7;
-    const uint8_t BMX_SEND_ALL_HANDLERS = 8;
-    const uint8_t BMX_SESSION_DESTROY = 10;
+    const uint8_t BMX_SESSION_DESTROY = 5;
     const uint8_t BMX_PING = 254;
     const uint8_t BMX_PONG = 255;
 
@@ -263,11 +259,11 @@ namespace bmx
         {
             // Reached maximum amount of handlers.
             if (num_entries_ >= bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST)
-                return SCERRUNSPECIFIED; // SCERRMAXPORTHANDLERS
+                return SCERRMAXHANDLERSREACHED;
 
             // Checking if handler already exists.
             if (HandlerAlreadyExists(handler_callback))
-                return SCERRUNSPECIFIED; // SCERRHANDLEREXISTS
+                return SCERRHANDLERALREADYREGISTERED;
 
             // Adding handler to array.
             handlers_[num_entries_] = handler_callback;
@@ -347,7 +343,7 @@ namespace bmx
 
                 default:
                 {
-                    return SCERRUNSPECIFIED; // SCERRWRONGHANDLERTYPE
+                    _SC_ASSERT(false);
                 }
             }
 
@@ -464,7 +460,7 @@ namespace bmx
             if (num_entries_ <= 0)
                 return Unregister();
 
-            return SCERRUNSPECIFIED; // SCERRHANDLERNOTFOUND
+            return SCERRHANDLERNOTFOUND;
         }
 
         // Runs user handlers.
@@ -487,7 +483,10 @@ namespace bmx
                     return err_code;
             }
 
-            return SCERRUNSPECIFIED; // SCERRHANDLERNOTCALLED
+            // All handlers should be called at this point.
+            _SC_ASSERT(false);
+
+            return 0;
         }
     };
 
@@ -499,9 +498,6 @@ namespace bmx
 
         // All registered handlers.
         HandlersList* registered_handlers_;
-
-        // Number of registered push channels.
-        volatile uint32_t num_registered_push_channels_;
 
         // Current unique number.
         BMX_HANDLER_UNIQUE_NUM_TYPE unique_handler_num_;
@@ -519,9 +515,6 @@ namespace bmx
             return max_num_entries_;
         }
 
-        // Is push to gateway already possible?
-        bool is_push_ready();
-
         // Number of remaining push channels.
         int32_t get_num_remaining_push_channels();
 
@@ -532,7 +525,6 @@ namespace bmx
             BmxData* new_copy = new BmxData(max_num_entries_ + 1);
 
             new_copy->max_num_entries_ = max_num_entries_;
-            new_copy->num_registered_push_channels_ = num_registered_push_channels_;
             new_copy->unique_handler_num_ = unique_handler_num_;
 
             // Note: for non-linear HandlersList structure, need to copy element by element.
@@ -541,17 +533,10 @@ namespace bmx
             return new_copy;
         }
 
-        // Checks if session has changed from current one.
-//        uint32_t CheckAndSwitchSession(TASK_INFO_TYPE* task_info, uint64_t session_id);
-
         // Pushes unregistered handler.
         uint32_t PushHandlerUnregistration(BMX_HANDLER_TYPE handler_info);
-        uint32_t SendRegisterPushChannelResponse(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
         uint32_t HandleSessionDestruction(request_chunk_part* request, TASK_INFO_TYPE* task_info);
         uint32_t HandleErrorFromGateway(request_chunk_part* request, TASK_INFO_TYPE* task_info);
-
-        // Sends information about all registered handlers.
-        uint32_t SendAllHandlersInfo(shared_memory_chunk* smc, TASK_INFO_TYPE* task_info);
 
         // Unregisters certain handler.
         uint32_t UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, bool* is_empty_handler);
@@ -601,7 +586,6 @@ namespace bmx
             registered_handlers_ = new HandlersList[max_total_handlers];
             max_num_entries_ = 0;
             unique_handler_num_ = 0;
-            num_registered_push_channels_ = 0;
         }
 
         // Destructor.
@@ -648,8 +632,10 @@ namespace bmx
 }  // namespace bmx
 }; // namespace starcounter
 
+#if 0
 // Waits for BMX manager to be ready.
 EXTERN_C int32_t __stdcall sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms);
+#endif
 
 // Handles all incoming chunks.
 EXTERN_C uint32_t __stdcall sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);

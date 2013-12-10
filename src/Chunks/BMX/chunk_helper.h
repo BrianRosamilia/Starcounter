@@ -103,8 +103,7 @@ public:
     uint32_t read_wstring(wchar_t* dest_str, uint32_t num_chars_to_copy, uint32_t max_len_chars)
     {
         // Copying the URI string.
-        if (wcsncpy_s(dest_str, max_len_chars, (wchar_t *)get_raw_chunk(), num_chars_to_copy))
-            return SCERRUNSPECIFIED; // SCERRURISTRINGCOPYPROBLEM
+        _SC_ASSERT(0 == wcsncpy_s(dest_str, max_len_chars, (wchar_t *)get_raw_chunk(), num_chars_to_copy));
 
         // Skipping all read characters.
         skip(num_chars_to_copy << 1);
@@ -115,8 +114,7 @@ public:
     uint32_t read_string(char* dest_str, uint32_t num_chars_to_copy, uint32_t max_len_chars)
     {
         // Copying the URI string.
-        if (strncpy_s(dest_str, max_len_chars, (char *)get_raw_chunk(), num_chars_to_copy))
-            return SCERRUNSPECIFIED; // SCERRURISTRINGCOPYPROBLEM
+        _SC_ASSERT(0 == strncpy_s(dest_str, max_len_chars, (char *)get_raw_chunk(), num_chars_to_copy));
 
         // Skipping all read characters.
         skip(num_chars_to_copy);
@@ -144,12 +142,10 @@ public:
         write(num_chars_to_write);
 
         // Checking if enough space.
-        if (num_chars_to_write >= ((starcounter::core::chunk_size - offset_) >> 1))
-            return SCERRUNSPECIFIED; // SCERRURISTRINGCOPYPROBLEM
+        _SC_ASSERT(num_chars_to_write < ((starcounter::core::chunk_size - offset_) >> 1));
 
         // Copying the URI string.
-        if (wcsncpy_s((wchar_t *)get_raw_chunk(), num_chars_to_write + 1, str, num_chars_to_write))
-            return SCERRUNSPECIFIED; // SCERRURISTRINGCOPYPROBLEM
+        _SC_ASSERT(0 == wcsncpy_s((wchar_t *)get_raw_chunk(), num_chars_to_write + 1, str, num_chars_to_write));
 
         // Skipping all written characters.
         skip(num_chars_to_write << 1);
@@ -163,12 +159,10 @@ public:
         write(num_chars_to_write);
 
         // Checking if enough space.
-        if (num_chars_to_write >= (starcounter::core::chunk_size - offset_))
-            return SCERRUNSPECIFIED; // SCERRURISTRINGCOPYPROBLEM
+        _SC_ASSERT(num_chars_to_write < (starcounter::core::chunk_size - offset_));
 
         // Copying the URI string.
-        if (strncpy_s((char *)get_raw_chunk(), num_chars_to_write + 1, str, num_chars_to_write))
-            return SCERRUNSPECIFIED; // SCERRURISTRINGCOPYPROBLEM
+        _SC_ASSERT(0 == strncpy_s((char *)get_raw_chunk(), num_chars_to_write + 1, str, num_chars_to_write));
 
         // Skipping all written characters.
         skip(num_chars_to_write);

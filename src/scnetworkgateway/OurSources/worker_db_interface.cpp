@@ -27,6 +27,33 @@ uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_chunks)
     return 0;
 }
 
+// Obtains chunk from a private pool if its not empty
+// (otherwise fetches from shared chunk pool).
+uint32_t WorkerDbInterface::GetOneChunkFromPrivatePool(
+    core::chunk_index* chunk_index,
+    shared_memory_chunk** smc)
+{
+    // Trying to fetch chunk from private pool.
+    uint32_t err_code;
+    while (!private_chunk_pool_.acquire_linked_chunks_counted(&shared_int_.chunk(0), *chunk_index, 1))
+    {
+        // Getting chunks from shared chunk pool.
+        err_code = AcquireChunksFromSharedPool(MAX_CHUNKS_IN_PRIVATE_POOL);
+        if (err_code)
+            return err_code;
+    }
+
+    // Getting data pointer.
+    (*smc) = (shared_memory_chunk *)(&shared_int_.chunk(*chunk_index));
+
+#ifdef GW_CHUNKS_DIAG
+    GW_PRINT_WORKER_DB << "Getting new chunk: " << *chunk_index << GW_ENDL;
+#endif
+
+    return 0;
+}
+
+
 // Scans all channels for any incoming chunks.
 uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep_interval_ms)
 {
@@ -61,8 +88,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
 
             // A message on channel ch was received. Notify the database
             // that the out queue in this channel is not full.
-            the_channel.scheduler()->notify(shared_int_.scheduler_work_event
-            (the_channel.get_scheduler_number()));
+            the_channel.scheduler()->notify(shared_int_.scheduler_work_event(the_channel.get_scheduler_number()));
 
             // Get the chunk.
             shared_memory_chunk* smc = (shared_memory_chunk*) &(shared_int_.chunk(cur_chunk_index));
@@ -70,6 +96,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             // Check if its a BMX handlers management message.
             if (bmx::BMX_MANAGEMENT_HANDLER_INFO == smc->get_bmx_handler_info())
             {
+                GW_ASSERT(smc->is_terminated());
+
                 // Changing number of database chunks.
                 ChangeNumUsedChunks(1);
 
@@ -92,19 +120,42 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             }
 
             // Process the chunk.
-            SocketDataChunk* sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+            SocketDataChunk* sd;
 
-            // Checking for socket data correctness.
-            GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
+#ifndef GW_MEMORY_MANAGEMENT
 
-            // Initializing socket data that arrived from database.
-            sd->PreInitSocketDataFromDb(db_index_, cur_chunk_index);
+            sd = (SocketDataChunk*)((uint8_t *)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
+            // Checking for correct chunks number.
             if (!smc->is_terminated())
                 GW_ASSERT(sd->get_num_chunks() > 1);
             else
                 GW_ASSERT(sd->get_num_chunks() == 1);
-            
+
+            // Initializing socket data that arrived from database.
+            sd->PreInitSocketDataFromDb(db_index_, cur_chunk_index);
+
+#else
+            // Allowing only one chunk.
+            GW_ASSERT(smc->is_terminated());
+
+            sd = gw->GetWorkerChunks()->ObtainChunk();
+            sd->CopyFromSharedMemoryChunk(smc);
+
+            // Releasing management chunks.
+            ReturnLinkedChunksToPool(1, cur_chunk_index);
+
+            // Initializing socket data that arrived from database.
+            sd->PreInitSocketDataFromDb(db_index_, INVALID_CHUNK_INDEX);
+#endif
+
+            // Checking that socket arrived on correct worker.
+            GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
+            GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+
+            // Checking for socket data correctness.
+            GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
+
             ActiveDatabase* current_db = g_gateway.GetDatabase(db_index_);
 
             // Changing number of used chunks.
@@ -114,7 +165,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t& next_sleep
             GW_ASSERT(sd->get_num_chunks() <= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS);
 
 #ifdef GW_CHUNKS_DIAG
-            GW_PRINT_WORKER << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+            GW_PRINT_WORKER_DB << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
             // NOTE: We always override the global session with active session received from database.
@@ -298,6 +349,10 @@ void WorkerDbInterface::PushLinkedChunksToDb(
 // NOTE: This function should always succeed.
 void WorkerDbInterface::ReturnLinkedChunksToPool(uint16_t num_linked_chunks, core::chunk_index& first_linked_chunk)
 {
+#ifdef GW_CHUNKS_DIAG
+    GW_PRINT_WORKER_DB << "Returning linked chunks to pool: " << first_linked_chunk << ", chain size:" << num_linked_chunks << GW_ENDL;
+#endif
+
     // Releasing chunk to private pool.
     bool success = private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), first_linked_chunk);
     GW_ASSERT(success == true);
@@ -314,6 +369,8 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(uint16_t num_linked_chunks, cor
         // TODO: Uncomment when centralized chunks are ready!
         //GW_ASSERT(0 == err_code);
     }
+
+    first_linked_chunk = INVALID_CHUNK_INDEX;
 }
 
 // Releases all private chunks to shared chunk pool.
@@ -339,7 +396,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     BMX_HANDLER_TYPE user_handler_id)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER_DB << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
     // Obtaining the current scheduler id.
@@ -350,7 +407,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
         sched_id = sd->get_scheduler_id();
 
     // Modifying chunk data to use correct handler.
-    shared_memory_chunk *smc = (shared_memory_chunk*) &(shared_int_.chunk(sd->get_chunk_index()));
+    shared_memory_chunk *smc = sd->get_smc();
     smc->set_bmx_handler_info(user_handler_id); // User code handler id.
     smc->set_request_size(4);
 
@@ -364,41 +421,20 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     // Checking that scheduler is correct for this database.
     GW_ASSERT(sched_id < num_schedulers_);
 
-    // Checking that chunk is terminated.
-    if (1 == sd->get_num_chunks())
-        GW_ASSERT_DEBUG(sd->get_smc()->is_terminated());
+    // Checking for correct chunks number.
+    if (!smc->is_terminated())
+        GW_ASSERT(sd->get_num_chunks() > 1);
+    else
+        GW_ASSERT(sd->get_num_chunks() == 1);
+
+    // Invalidating chunk.
+    sd->InvalidateDbIndex(-100);
 
     // Pushing socket data as a chunk.
     PushLinkedChunksToDb(sd->get_chunk_index(), sd->get_num_chunks(), sched_id);
 
     // Making SD unusable.
     sd = NULL;
-
-    return 0;
-}
-
-// Registers push channel.
-uint32_t WorkerDbInterface::RegisterPushChannel(int32_t sched_id)
-{
-    // Get a reference to the chunk.
-    shared_memory_chunk *smc = NULL;
-
-    // Getting a free chunk.
-    core::chunk_index new_chunk;
-    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
-    GW_ERR_CHECK(err_code);
-
-    // Predefined BMX management handler.
-    smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
-
-    request_chunk_part* request = smc->get_request_chunk();
-    request->reset_offset();
-
-    // Writing BMX message type.
-    request->write(bmx::BMX_REGISTER_PUSH_CHANNEL);
-
-    // Pushing the chunk.
-    PushLinkedChunksToDb(new_chunk, 1, sched_id);
 
     return 0;
 }
@@ -474,32 +510,6 @@ uint32_t WorkerDbInterface::PushErrorMessage(
     return 0;
 }
 
-// Requesting previously registered handlers.
-uint32_t WorkerDbInterface::RequestRegisteredHandlers(int32_t sched_id)
-{
-    // Get a reference to the chunk.
-    shared_memory_chunk *smc = NULL;
-
-    // Getting a free chunk.
-    core::chunk_index new_chunk; 
-    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
-    GW_ERR_CHECK(err_code);
-
-    // Filling the chunk as BMX management handler.
-    smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
-
-    request_chunk_part* request = smc->get_request_chunk();
-    request->reset_offset();
-
-    // Writing BMX message type.
-    request->write(bmx::BMX_SEND_ALL_HANDLERS);
-
-    // Pushing the chunk.
-    PushLinkedChunksToDb(new_chunk, 1, sched_id);
-
-    return 0;
-}
-
 // Allocates different channels and pools.
 WorkerDbInterface::WorkerDbInterface(
     const int32_t new_db_index,
@@ -529,8 +539,13 @@ WorkerDbInterface::WorkerDbInterface(
     channels_ = new core::channel_number[num_schedulers_];
 
     // Getting unique client interface for this worker.
-    bool shared_int_acquired = shared_int_.acquire_client_number();
+    bool shared_int_acquired = shared_int_.acquire_client_number2(worker_id);
     GW_ASSERT(true == shared_int_acquired);
+
+#if 0
+	bool shared_int_acquired = shared_int_.acquire_client_number();
+    GW_ASSERT(true == shared_int_acquired);
+#endif
 
 #ifdef GW_DATABASES_DIAG
     // Diagnostics.
@@ -541,8 +556,14 @@ WorkerDbInterface::WorkerDbInterface(
     // Acquiring unique channel for each scheduler.
     for (int32_t s = 0; s < num_schedulers_; ++s)
     {
+		channels_[s] = (worker_id * num_schedulers_) + s;
+        bool channel_acquired = shared_int_.acquire_channel2(channels_[s], static_cast<core::scheduler_number> (s));
+        GW_ASSERT(true == channel_acquired);
+
+#if 0
         bool channel_acquired = shared_int_.acquire_channel(&channels_[s], static_cast<core::scheduler_number> (s));
         GW_ASSERT(true == channel_acquired);
+#endif
 
 #ifdef GW_DATABASES_DIAG
         GW_COUT << channels_[s] << ", ";
@@ -552,53 +573,13 @@ WorkerDbInterface::WorkerDbInterface(
 #ifdef GW_DATABASES_DIAG
     GW_COUT << GW_ENDL;
 #endif
-
 }
 
-// Registers push channels on all schedulers.
-uint32_t WorkerDbInterface::RegisterAllPushChannels()
+// Declares gateway ready for database pushes.
+uint32_t WorkerDbInterface::SetGatewayReadyForDbPushes()
 {
-    uint32_t err_code;
-
-    // Sending push channel on each scheduler.
-    for (int32_t i = 0; i < num_schedulers_; ++i)
-    {
-        // Pushing registration chunk.
-        err_code = RegisterPushChannel(i);
-        GW_ERR_CHECK(err_code);
-
-#ifdef GW_DATABASES_DIAG
-        GW_PRINT_WORKER << "Registered push channel on scheduler: " << i << GW_ENDL;
-#endif
-    }
-
-    // Sending 100 pings.
-    /*for (uint64_t i = 0; i < 100; i++)
-    {
-        shared_memory_chunk* smc;
-        core::chunk_index new_chunk;
-        err_code = GetOneChunkFromPrivatePool(&new_chunk, &smc);
-        GW_ERR_CHECK(err_code);
-
-        sc_bmx_construct_ping(i, smc);
-        PushLinkedChunksToDb(new_chunk, 1, 0);
-    }*/
-
-    return 0;
-}
-
-// Requests registered user handlers.
-uint32_t WorkerDbInterface::RequestRegisteredHandlers()
-{
-    uint32_t err_code;
-
-    // Asking for existing handlers on scheduler 0.
-    err_code = RequestRegisteredHandlers(0);
-    GW_ERR_CHECK(err_code);
-
-#ifdef GW_DATABASES_DIAG
-    GW_PRINT_WORKER << "Requested registered handlers." << GW_ENDL;
-#endif
+    // Signal to server that worker is available. Needed for server push.
+    shared_int_.client_interface().set_available();
 
     return 0;
 }
@@ -637,25 +618,6 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                     return err_code;
 
                 GW_PRINT_WORKER << "Pong with data: " << ping_data << GW_ENDL;
-
-                return 0;
-            }
-
-            case bmx::BMX_REGISTER_PUSH_CHANNEL_RESPONSE:
-            {
-                // We have received a confirmation push channel chunk.
-                g_gateway.GetDatabase(db_index_)->ReceivedPushChannelConfirmation();
-
-                // Checking if we have all push channels confirmed from database.
-                if (num_schedulers_ == g_gateway.GetDatabase(db_index_)->get_num_confirmed_push_channels())
-                {
-                    GW_PRINT_WORKER << "All push channels confirmed!" << GW_ENDL;
-
-                    // Requesting all registered handlers.
-                    //err_code = RequestRegisteredHandlers();
-                    //if (err_code)
-                    //    return err_code;
-                }
 
                 return 0;
             }

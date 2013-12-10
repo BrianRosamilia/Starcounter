@@ -64,38 +64,13 @@ EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
         return err_code;
 
     // Checking that handler id is 0 for BMX management.
-    if (bmx_handler_id != BMX_MANAGEMENT_HANDLER_ID)
-        return SCERRUNSPECIFIED; // SCERRWRONGBMXMANAGERHANDLER
+    _SC_ASSERT(bmx_handler_id == BMX_MANAGEMENT_HANDLER_ID);
 
     g_destroy_apps_session_callback = destroy_apps_session_callback;
     g_create_new_apps_session_callback = create_new_apps_session_callback;
     g_error_handling_callback = error_handling_callback;
 
     return 0;
-}
-
-// Waits for BMX component to be ready.
-int32_t sc_wait_for_bmx_ready(uint32_t max_time_to_wait_ms)
-{
-    _SC_BEGIN_FUNC
-
-    uint32_t num_ms_elapsed = 0;
-
-    // Looping until all push channels are initialized.
-    while (!g_bmx_data->is_push_ready())
-    {
-        //std::cout << ".";
-        Sleep(1);
-
-        num_ms_elapsed++;
-
-        if (num_ms_elapsed >= max_time_to_wait_ms)
-            return g_bmx_data->get_num_remaining_push_channels();
-    }
-
-    return 0;    
-
-    _SC_END_FUNC
 }
 
 // Main message loop for incoming requests. Handles the 
@@ -377,7 +352,8 @@ uint32_t SendPongResponse(request_chunk_part *request, shared_memory_chunk* smc,
     response->write(orig_data);
 
     // Now the chunk is ready to be sent.
-    uint32_t err_code = cm_send_to_client(task_info->chunk_index);
+    client_index_type client_index = 0; // TODO:
+    uint32_t err_code = cm_send_to_client(client_index, task_info->the_chunk_index);
 
     return err_code;
 }
@@ -420,38 +396,6 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
 			break;
         }
 
-        case BMX_REGISTER_PUSH_CHANNEL:
-        {
-            //std::cout << "Received chunk: " << task_info->chunk_index << " on scheduler: " << (int32_t)task_info->scheduler_number << std::endl;
-            //std::cout << "Received BMX_REGISTER_PUSH_CHANNEL." << std::endl;
-
-            // Calling push channel registration.
-            err_code = g_bmx_data->SendRegisterPushChannelResponse(smc, task_info);
-
-            //std::cout << "Left critical section." << std::endl;
-
-            if (err_code)
-                return err_code;
-
-            break;
-        }
-
-        case BMX_SEND_ALL_HANDLERS:
-        {
-            //std::cout << "Received chunk: " << task_info->chunk_index << " on scheduler: " << (int32_t)task_info->scheduler_number << std::endl;
-            //std::cout << "Received BMX_SEND_ALL_HANDLERS." << std::endl;
-
-            // Sending all currently registered handlers to gateway.
-            err_code = g_bmx_data->SendAllHandlersInfo(smc, task_info);
-
-            //std::cout << "Left critical section." << std::endl;
-
-            if (err_code)
-                return err_code;
-
-            break;
-        }
-
         case BMX_SESSION_DESTROY:
         {
             // Handling session destruction.
@@ -465,7 +409,7 @@ uint32_t starcounter::bmx::OnIncomingBmxMessage(
 
         default:
         {
-            return SCERRUNSPECIFIED; // SCERRUNKNOWNBMXMESSAGE;
+            _SC_ASSERT(false);
         }
     }
 

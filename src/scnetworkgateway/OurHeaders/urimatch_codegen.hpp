@@ -47,6 +47,9 @@ public:
     {
         uri_code_size_bytes_ = MAX_URI_MATCHING_CODE_BYTES;
 
+        // Measuring time taken for generating matcher.
+        uint64_t begin_time = timeGetTime();
+
         uint32_t err_code = generate_uri_matcher_(
             g_gateway.get_sc_log_handle(),
             root_function_name, 
@@ -57,6 +60,9 @@ public:
 
         // Asserting that URI matcher code generation always succeeds.
         GW_ASSERT(0 == err_code);
+
+        // Printing how much time it took for generating the matcher.
+        std::cout << "Wrapper URI matcher generation(" << num_uris << ") took: " << timeGetTime() - begin_time << " ms." << std::endl;
 
         /*std::ifstream config_file_stream(L"codegen_uri_matcher.cpp");
         std::stringstream str_stream;

@@ -58,7 +58,15 @@
 
 typedef struct _sc_io_event
 {
-	unsigned long channel_index_;
+	unsigned long client_index_;
+
+	//
+	// Server has no need for channel index so we don't output this (yes, this
+	// is a bit inconsistent with the interface since send takes the channel
+	// index and not the client index).
+	//
+//	unsigned long channel_index_;
+
 	unsigned long chunk_index_;
 } sc_io_event;
 
@@ -72,13 +80,16 @@ EXTERN_C unsigned long sc_try_receive_from_client(void *port, unsigned long chan
 EXTERN_C unsigned long sc_send_to_client(void *port, unsigned long channel_index, unsigned long chunk_index);
 EXTERN_C unsigned long server_send_task_to_scheduler(void *port, unsigned long port_number, unsigned long message);
 EXTERN_C unsigned long server_send_signal_to_scheduler(void *port, unsigned long port_number, unsigned long message);
-EXTERN_C unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_index, unsigned long *pchunk_index);
-EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long needed_size);
-EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long num_chunks);
+EXTERN_C unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long *pchunk_index);
+EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index, unsigned long needed_size);
+EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long start_chunk_index, unsigned long num_chunks);
 EXTERN_C void *sc_get_shared_memory_chunk(void *port, unsigned long chunk_index);
 EXTERN_C unsigned long sc_release_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index);
+#if 0
 EXTERN_C void sc_add_ref_to_channel(void *port, unsigned long channel_index);
 EXTERN_C void sc_release_channel(void *port, unsigned long channel_index);
+#endif
+EXTERN_C uint32_t server_get_clients_available(void *port);
 
 namespace starcounter {
 namespace core {
@@ -153,13 +164,16 @@ public:
 #endif
 	unsigned long send_task_to_scheduler(unsigned long port_number, chunk_index the_chunk_index);
 	unsigned long send_signal_to_scheduler(unsigned long port_number, chunk_index the_chunk_index);
+#if 0
 	void add_ref_to_channel(unsigned long the_channel_index);
 	
 	/// Release a reference to the channel. NOTE: This have nothing to do with
 	/// actually releasing the channel so that any client can allocate it.
 	/// A better name might be remove_ref_to_channel(channel_number);
 	void release_channel(unsigned long the_channel_index);
-	
+#endif
+
+#if 0	
 	/// Scheduler's call do_release_channel() after they see that the
 	/// channel is marked "to be released", and if the clean up flag is set also
 	/// then all resources (chunks, channels, client_interface) the client had
@@ -174,9 +188,11 @@ public:
 	 */
 	void do_release_channel(channel_number the_channel_number);
 	void release_channel_marked_for_release(channel_number the_channel_index);
+#endif
 
 	std::size_t number_of_active_schedulers();
 	
+#if 0
 	//--------------------------------------------------------------------------
 	/// open_ipc_monitor_cleanup_event() is called by the constructor.
 	HANDLE& open_ipc_monitor_cleanup_event();
@@ -184,6 +200,7 @@ public:
 	/// Get a reference to the ipc_monitor_cleanup_event. It is opened by the
 	/// constructor and closed by the destructor.
 	HANDLE& ipc_monitor_cleanup_event();
+#endif
 
 	//--------------------------------------------------------------------------
 	// This function is obsolete and shall be replaced with
@@ -288,9 +305,9 @@ public:
 	std::size_t chunks_to_release, uint32_t timeout_milliseconds = 10000);
 	
 	//--------------------------------------------------------------------------
-	unsigned long acquire_linked_chunk_indexes(unsigned long channel_number, unsigned long start_chunk, unsigned long needed_size);
-    unsigned long acquire_linked_chunk_indexes_counted(unsigned long channel_number, unsigned long start_chunk, unsigned long num_chunks);
-    unsigned long acquire_one_chunk(unsigned long channel_number, chunk_index* out_chunk_index);
+	unsigned long acquire_linked_chunk_indexes(unsigned long start_chunk, unsigned long needed_size);
+    unsigned long acquire_linked_chunk_indexes_counted(unsigned long start_chunk, unsigned long num_chunks);
+    unsigned long acquire_one_chunk(chunk_index* out_chunk_index);
 
     /// Releases linked chunks to a private chunk_pool and if there is a bunch there
     /// then to the shared_chunk_pool.
@@ -352,6 +369,16 @@ public:
 	 */
 	common_client_interface_type& common_client_interface() const {
 		return *common_client_interface_;
+	}
+
+	uint32_t get_clients_available() {
+		client_interface_type *client_interface = this_scheduler_interface_->
+		client_interface();
+		uint32_t clients_available = 0;
+		for (int i = 0; i < 8; i++) {
+			if (client_interface[i].available()) clients_available++;
+		}
+		return clients_available;
 	}
 
 private:
@@ -503,7 +530,8 @@ sc_io_event& the_io_event) try {
 	while (true) {
 		if (this_scheduler_signal_channel_->in.try_pop_back(&the_chunk_index) == true)
 		{
-			the_io_event.channel_index_ = invalid_channel_number;
+			the_io_event.client_index_ = no_client_number;
+//			the_io_event.channel_index_ = invalid_channel_number;
 			the_io_event.chunk_index_ = the_chunk_index;
 			return 0;
 		}
@@ -512,7 +540,8 @@ sc_io_event& the_io_event) try {
 		if (this_scheduler_task_channel_->in.try_pop_back(&the_chunk_index) == true)
 		{
 			// Got an internal message from some scheduler.
-			the_io_event.channel_index_ = invalid_channel_number;
+			the_io_event.client_index_ = no_client_number;
+//			the_io_event.channel_index_ = invalid_channel_number;
 			the_io_event.chunk_index_ = the_chunk_index;
 			return 0;
 		}
@@ -658,10 +687,15 @@ check_next_channel:
 
 		///=====================================================================
 #else // !defined (IPC_VERSION_2_0)
+
+		if (true) {
+#if 0
 		if (!common_client_interface().client_interfaces_to_clean_up()) {
+#endif
 			// No cleanup to do.
 			goto check_next_channel;
 		}
+#if 0
 		else {
 			/// At least one client_interface shall be cleaned up. Since the
 			/// "attention" to various channels or schedulers can vary, the best
@@ -702,6 +736,7 @@ check_next_channel:
 				}
 			}
 		}
+#endif
 		
 check_next_channel:
 		for (channel_number mask_word_counter = next_channel_ >> 6;
@@ -717,7 +752,10 @@ check_next_channel:
 				channel_type& the_channel = channel_[this_channel];
 				
 				// Check if the channel is marked for release, assuming not.
+				if (true) {
+#if 0
 				if (!the_channel.is_to_be_released()) {
+#endif
 					// An attempt to improve the flow of messages circulating in
 					// the system is that the scheduler shall attempt to move
 					// all items (if any) from the out overflow queue in the given
@@ -763,17 +801,22 @@ check_next_channel:
 						
 						// Notify the client that the in queue is not full.
 						the_channel.client()->notify();
-						
+
+#if 0						
 						// Add a reference to for the caller. The caller will
 						// release the channel request has been processed.
 						the_channel.add_server_ref();
-						the_io_event.channel_index_ = this_channel;
+#endif
+
+						the_io_event.client_index_ = the_channel.get_client_number();
+//						the_io_event.channel_index_ = this_channel;
 						the_io_event.chunk_index_ = the_chunk_index;
 						
 						// Successfully fetched a message from the given channel.
 						return 0;
 					}
 				}
+#if 0
 				else {
 					// The channel has been marked for release. The release of
 					// the channel will be done when there are no more server
@@ -790,6 +833,7 @@ check_next_channel:
 						release_channel_marked_for_release(this_channel);
 					}
 				}
+#endif
 			}
 			
 			// A 64-bit mask word have been scanned, therefore add mask size 64.
@@ -962,6 +1006,7 @@ chunk_index the_chunk_index) {
 	return _E_INPUT_QUEUE_FULL;
 }
 
+#if 0
 void server_port::add_ref_to_channel(unsigned long the_channel_index)
 {
 	channel_type &channel = channel_[the_channel_index];
@@ -978,7 +1023,10 @@ void server_port::release_channel(unsigned long the_channel_index)
 	if (!new_server_refs)
 	{
 		//if (!channel.client()->get_owner_id().get_clean_up()) {
+		if (true) {
+#if 0
 		if (!channel.is_to_be_released()) {
+#endif
 			// No clean up job to do.
 			return;
 		}
@@ -990,7 +1038,9 @@ void server_port::release_channel(unsigned long the_channel_index)
 		}
 	}
 }
+#endif
 
+#if 0
 void server_port::do_release_channel(channel_number the_channel_index) {
 	channel_type& channel = channel_[the_channel_index];
 	int32_t server_refs = channel.get_server_refs();
@@ -1225,11 +1275,13 @@ void server_port::release_channel_marked_for_release(channel_number the_channel_
 		// The channel has been released and can now be allocated by any client.
 	}
 }
+#endif
 
 std::size_t server_port::number_of_active_schedulers() {
 	return common_scheduler_interface_->number_of_active_schedulers();
 }
 
+#if 0
 //------------------------------------------------------------------------------
 inline HANDLE& server_port::open_ipc_monitor_cleanup_event() {
 #if 0
@@ -1244,10 +1296,13 @@ inline HANDLE& server_port::open_ipc_monitor_cleanup_event() {
 #endif
 	return ipc_monitor_cleanup_event();
 }
+#endif
 
+#if 0
 inline HANDLE& server_port::ipc_monitor_cleanup_event() {
 	return this_scheduler_interface_->ipc_monitor_cleanup_event();
 }
+#endif
 
 //------------------------------------------------------------------------------
 inline bool server_port::acquire_linked_chunks(chunk_index& head, std::size_t
@@ -1294,24 +1349,21 @@ void server_port::acquire_chunk_index(unsigned long& the_chunk_index)
 }
 #endif // OBSOLETE API
 
-unsigned long server_port::acquire_linked_chunk_indexes(unsigned long channel_number, unsigned long start_chunk_index, unsigned long needed_size)
+unsigned long server_port::acquire_linked_chunk_indexes(unsigned long start_chunk_index, unsigned long needed_size)
 {
 	lldiv_t div_value = div((int64_t)needed_size, (int64_t)chunk_type::static_data_size);
 	uint32_t num_needed_chunks = div_value.quot;
 	if (div_value.rem != 0)
         num_needed_chunks++;
 
-    return acquire_linked_chunk_indexes_counted(channel_number, start_chunk_index, num_needed_chunks);
+    return acquire_linked_chunk_indexes_counted(start_chunk_index, num_needed_chunks);
 }
 
-unsigned long server_port::acquire_one_chunk(unsigned long channel_number, chunk_index* out_chunk_index)
+unsigned long server_port::acquire_one_chunk(chunk_index* out_chunk_index)
 {
-    channel_type& the_channel = channel_[channel_number];
-
 try_to_acquire_from_private_chunk_pool:
-
     // Try to acquire the linked chunks from the private chunk_pool.
-    if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), *out_chunk_index, 1, the_channel.client()))
+    if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), *out_chunk_index, 1))
     {
         // Successfully acquired the linked chunks from the private chunk_pool.
         return 0;
@@ -1333,15 +1385,14 @@ try_to_acquire_from_private_chunk_pool:
     }
 }
 
-unsigned long server_port::acquire_linked_chunk_indexes_counted(unsigned long channel_number, unsigned long start_chunk_index, unsigned long num_chunks)
+unsigned long server_port::acquire_linked_chunk_indexes_counted(unsigned long start_chunk_index, unsigned long num_chunks)
 {
-	channel_type& the_channel = channel_[channel_number];
 	chunk_index head;
 	
 try_to_acquire_from_private_chunk_pool:
 
     // First trying to fetch from private chunk pool.
-	if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), head, num_chunks, the_channel.client()))
+	if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), head, num_chunks))
     {
 		// Successfully acquired the linked chunks from the private
 		// chunk_pool. Link chunk[start_chunk_index] to head.
@@ -1498,45 +1549,49 @@ port_number, unsigned long message) {
 	return the_port->send_signal_to_scheduler(port_number, message);
 }
 
+#if 0
 void sc_add_ref_to_channel(void *port, unsigned long the_channel_index)
 {
 	using namespace starcounter::core;
 	server_port *the_port = (server_port *)port;
 	the_port->add_ref_to_channel(the_channel_index);
 }
+#endif
 
+#if 0
 void sc_release_channel(void *port, unsigned long the_channel_index)
 {
 	using namespace starcounter::core;
 	server_port *the_port = (server_port *)port;
 	the_port->release_channel(the_channel_index);
 }
+#endif
 
-unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long channel_index, unsigned long *pchunk_index)
+unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long *pchunk_index)
 {
     using namespace starcounter::core;
 
     server_port* the_port = (server_port*)port;
 
-    return the_port->acquire_one_chunk(channel_index, (chunk_index*)pchunk_index);
+    return the_port->acquire_one_chunk((chunk_index*)pchunk_index);
 }
 
-unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long needed_size)
+unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index, unsigned long needed_size)
 {
 	using namespace starcounter::core;
 	
 	server_port* the_port = (server_port*)port;
 	
-	return the_port->acquire_linked_chunk_indexes(channel_index, start_chunk_index, needed_size);
+	return the_port->acquire_linked_chunk_indexes(start_chunk_index, needed_size);
 }
 
-unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long channel_index, unsigned long start_chunk_index, unsigned long num_chunks)
+unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long start_chunk_index, unsigned long num_chunks)
 {
     using namespace starcounter::core;
 
     server_port* the_port = (server_port*)port;
 
-    return the_port->acquire_linked_chunk_indexes_counted(channel_index, start_chunk_index, num_chunks);
+    return the_port->acquire_linked_chunk_indexes_counted(start_chunk_index, num_chunks);
 }
 
 void *sc_get_shared_memory_chunk(void *port, unsigned long chunk_index)
@@ -1555,4 +1610,12 @@ unsigned long sc_release_linked_shared_memory_chunks(void *port, unsigned long s
     server_port* the_port = (server_port*)port;
 
     return the_port->release_linked_chunks(start_chunk_index);
+}
+
+uint32_t server_get_clients_available(void *port)
+{
+    using namespace starcounter::core;
+
+    server_port* the_port = (server_port*)port;
+    return the_port->get_clients_available();
 }

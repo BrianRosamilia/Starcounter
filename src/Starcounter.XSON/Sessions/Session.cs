@@ -85,6 +85,14 @@ namespace Starcounter {
         public static Session Current { get { return _Current; } }
 
         /// <summary>
+        /// Indicates if user wants to use session cookie.
+        /// </summary>
+        public Boolean UseSessionCookie {
+            get { return InternalSession.use_session_cookie_; }
+            set { InternalSession.use_session_cookie_ = value; }
+        }
+
+        /// <summary>
         /// Returns the original request for session.
         /// </summary>
         /// <value></value>

@@ -35,7 +35,7 @@ class WorkerDbInterface
     db_index_type db_index_;
 
     // Worker id to which this interface belongs.
-    int32_t worker_id_;
+    worker_id_type worker_id_;
 
     // Open socket handles.
     std::bitset<MAX_POSSIBLE_CONNECTIONS> active_sockets_bitset_;
@@ -76,13 +76,6 @@ class WorkerDbInterface
 
         return 0;
     }
-
-
-    // Registers push channel.
-    uint32_t RegisterPushChannel(int32_t sched_num);
-
-    // Requesting previously registered handlers.
-    uint32_t RequestRegisteredHandlers(int32_t sched_num);
 
 public:
 
@@ -184,11 +177,8 @@ public:
         return &shared_int_;
     }
 
-    // Registers all push channels.
-    uint32_t RegisterAllPushChannels();
-
-    // Request registered user handlers.
-    uint32_t RequestRegisteredHandlers();
+    // Declares gateway ready for database pushes.
+    uint32_t SetGatewayReadyForDbPushes();
 
     // Resets the existing interface.
     void Reset()
@@ -219,6 +209,7 @@ public:
     // Deallocates active database.
     ~WorkerDbInterface()
     {
+#if 0
         // Freeing all occupied channels.
         for (std::size_t s = 0; s < num_schedulers_; s++)
         {
@@ -229,6 +220,7 @@ public:
 
             the_channel.set_to_be_released();
         }
+#endif
 
         // Deleting channels.
         delete[] channels_;
@@ -252,7 +244,7 @@ public:
                 (the_channel.get_scheduler_number()));
 
 #ifdef GW_CHUNKS_DIAG
-            GW_PRINT_WORKER << "   successfully pushed: chunk " << the_chunk_index << GW_ENDL;
+            GW_PRINT_WORKER_DB << "   successfully pushed: chunk " << the_chunk_index << GW_ENDL;
 #endif
 
             // Chunk was pushed successfully either to channel or overflow pool.
@@ -330,27 +322,7 @@ public:
     // (otherwise fetches from shared chunk pool).
     uint32_t GetOneChunkFromPrivatePool(
         core::chunk_index* chunk_index,
-        shared_memory_chunk** smc)
-    {
-        // Trying to fetch chunk from private pool.
-        uint32_t err_code;
-        while (!private_chunk_pool_.acquire_linked_chunks_counted(&shared_int_.chunk(0), *chunk_index, 1))
-        {
-            // Getting chunks from shared chunk pool.
-            err_code = AcquireChunksFromSharedPool(MAX_CHUNKS_IN_PRIVATE_POOL);
-            if (err_code)
-                return err_code;
-        }
-
-        // Getting data pointer.
-        (*smc) = (shared_memory_chunk *)(&shared_int_.chunk(*chunk_index));
-
-#ifdef GW_CHUNKS_DIAG
-        GW_COUT << "Getting new chunk: " << *chunk_index << GW_ENDL;
-#endif
-
-        return 0;
-    }
+        shared_memory_chunk** smc);
 
     // Obtains chunks from a private pool if its not empty
     // (otherwise fetches from shared chunk pool).

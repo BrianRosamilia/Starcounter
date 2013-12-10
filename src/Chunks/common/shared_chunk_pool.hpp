@@ -342,7 +342,8 @@ public:
 	template<typename U>
 	std::size_t release_from_chunk_pool(U& private_chunk_pool, std::size_t
 	chunks_to_release, smp::spinlock::milliseconds timeout = 10000);
-	
+
+#if 0	
 	//--------------------------------------------------------------------------
 	/// client_release_linked_chunks() is used by the scheduler to do the clean
 	/// up, releasing chunks of a client_interface. The pointer to the
@@ -358,6 +359,7 @@ public:
 	 */
 	bool release_clients_chunks(client_interface_type* client_interface_ptr,
 	smp::spinlock::milliseconds timeout = 10000);
+#endif
 	
 	//--------------------------------------------------------------------------
 	// For debug

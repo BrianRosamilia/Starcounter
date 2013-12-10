@@ -190,6 +190,36 @@ smp::spinlock::milliseconds timeout) {
 }
 
 template<class T, std::size_t N>
+inline bool client_number_pool<T, N>::acquire(value_type item,
+client_interface_type* client_interface_base, owner_id id,
+smp::spinlock::milliseconds timeout) {
+	smp::spinlock::scoped_lock lock(spinlock(), id.get(),
+	timeout -timeout.tick_count());
+	
+	if (lock.owns()) {
+		auto n = item;
+		if (elem_[n] == 1) {
+			// 0 = not an entry (place holder.)
+			// 1 = a free entry.
+			// > 1 = an allocated entry.
+			elem_[n] = id.get();
+			mask_[n / 64] = mask_[n / 64] & ~(1 << (n % 64));
+            ++size_;
+			client_interface_base[n].set_owner_id(id);
+
+			// Successfully acquired.
+			return true;
+		}
+		else {
+			// The mask is not up to date. Should be impossible.
+		}
+	}
+
+	// Not acquired.
+	return false;
+}
+
+template<class T, std::size_t N>
 inline bool client_number_pool<T, N>::release(value_type item,
 client_interface_type* client_interface_base, owner_id id,
 smp::spinlock::milliseconds timeout) {
