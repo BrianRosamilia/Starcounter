@@ -237,9 +237,10 @@ namespace Starcounter.Hosting {
 
                 OnQueryModuleSchemaInfoUpdated();
 
-                Db.Transaction(delegate {
-                    Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
-                });
+                if (typeDefs[0].Name == "Starcounter.Metadata.MaterializedTable")
+                    Db.Transaction(delegate {
+                        Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
+                    });
 
                 OnRuntimeMetadataPopulated();
             }
