@@ -45,9 +45,10 @@ namespace QueryProcessingTest {
         internal static void CreateIndexes() {
             if (Starcounter.Db.SQL("select i from MaterializedIndex i where name = ?", "accountidindx").First == null)
                 Starcounter.Db.SQL("create index AccountTypeActiveIndx on Account (notactive, AccountType)");
-            if (Starcounter.Db.SQL("select i from MaterializedIndex i where name = ?", "AccountTypeIndx").First == null)
+            if (Starcounter.Db.SQL("select i from MaterializedIndex i where name = ?", "AccountTypeIndx").First == null) {
                 Starcounter.Db.SQL("create index AccountTypeIndx on Account (AccountType)");
                 Starcounter.Db.SQL("create index accountidindx on Account(accountid)");
+            }
             if (Starcounter.Db.SQL("select i from MaterializedIndex i where name = ?", "nicknameindx").First == null) {
                 Starcounter.Db.SlowSQL("create index nicknameindx on User(NickName)");
                 Starcounter.Db.SlowSQL("create index anothernicknameindx on User(AnotherNickName)");

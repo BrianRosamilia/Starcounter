@@ -111,6 +111,11 @@ namespace Starcounter {
                 }
                 return _Session;
             }
+
+            set {
+                _Session = value;
+                _Session.Data = this;
+            }
         }
 
         /// <summary>

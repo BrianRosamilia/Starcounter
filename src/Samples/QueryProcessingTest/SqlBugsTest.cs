@@ -288,30 +288,39 @@ namespace QueryProcessingTest {
             Trace.Assert(nrs == 30000);
             string dailyChannel = "DailyBuilds";
             string nightlyChannel = "NightlyBuilds";
-            Db.Transaction(delegate {
-                new VersionSource {
-                    BuildError = false,
-                    Channel = nightlyChannel,
-                    Version = "2.0.1191.3",
-                    VersionDate = new DateTime(2013, 11, 16, 01, 00, 00)
-                };
-                new VersionSource {
-                    BuildError = false,
-                    Channel = nightlyChannel,
-                    Version = "2.0.1197.3",
-                    VersionDate = new DateTime(2013, 11, 18, 08, 29, 00)
-                };
-                new VersionSource {
-                    BuildError = false,
-                    Channel = dailyChannel,
-                    Version = "2.0.5823.2",
-                                    VersionDate = new DateTime(2013, 11, 18, 22, 25, 00) };
-                new VersionSource {
-                    BuildError = false, Channel = dailyChannel, Version = "2.0.5835.2",
-                 VersionDate = new DateTime(2013, 11, 19, 12, 25, 00) };
-                new VersionSource { BuildError = false, Channel = dailyChannel, Version = "2.0.5837.2",
-                    VersionDate = new DateTime(2013, 11, 19, 15, 00, 00) };
-            });
+            if (Db.SQL("select vs from versionsource vs").First == null)
+                Db.Transaction(delegate {
+                    new VersionSource {
+                        BuildError = false,
+                        Channel = nightlyChannel,
+                        Version = "2.0.1191.3",
+                        VersionDate = new DateTime(2013, 11, 16, 01, 00, 00)
+                    };
+                    new VersionSource {
+                        BuildError = false,
+                        Channel = nightlyChannel,
+                        Version = "2.0.1197.3",
+                        VersionDate = new DateTime(2013, 11, 18, 08, 29, 00)
+                    };
+                    new VersionSource {
+                        BuildError = false,
+                        Channel = dailyChannel,
+                        Version = "2.0.5823.2",
+                        VersionDate = new DateTime(2013, 11, 18, 22, 25, 00)
+                    };
+                    new VersionSource {
+                        BuildError = false,
+                        Channel = dailyChannel,
+                        Version = "2.0.5835.2",
+                        VersionDate = new DateTime(2013, 11, 19, 12, 25, 00)
+                    };
+                    new VersionSource {
+                        BuildError = false,
+                        Channel = dailyChannel,
+                        Version = "2.0.5837.2",
+                        VersionDate = new DateTime(2013, 11, 19, 15, 00, 00)
+                    };
+                });
             var vsources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.BuildError=?",
                 dailyChannel, false).GetEnumerator();
             nrs = 0;

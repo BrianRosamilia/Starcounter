@@ -77,7 +77,7 @@ namespace Starcounter.Internal {
                     lock (consoleWriter) {
                         if (!WebSocketSessions[schedId].Contains(session)) {
                             WebSocketSessions[schedId].Add(session);
-                            session.SetDestroyCallback((Session s) => {
+                            session.SetSessionDestroyCallback((Session s) => {
                                 WebSocketSessions[schedId].Remove(s);
                             });
                         }
@@ -114,7 +114,10 @@ namespace Starcounter.Internal {
 
                 Debug.Assert(null != session);
 
-                Json json = Session.Data;
+                Json json = null;
+                if (null != Session.Current)
+                    json = Session.Current.Data;
+
                 if (json == null) {
                     return HttpStatusCode.NotFound;
                 }
@@ -130,10 +133,11 @@ namespace Starcounter.Internal {
 
                 Debug.Assert(null != session);
 
-                Json root;
+                Json root = null;
 
                 try {
-                    root = Session.Data;
+                    if (null != Session.Current)
+                        root = Session.Current.Data;
 
                     jp::JsonPatch.EvaluatePatches(root, request.BodyBytes);
 

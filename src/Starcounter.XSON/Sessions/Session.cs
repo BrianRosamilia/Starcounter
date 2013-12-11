@@ -18,20 +18,37 @@ namespace Starcounter {
     /// Class Session
     /// </summary>
     public partial class Session : IAppsSession {
+        /// <summary>
+        /// Current static JSON object.
+        /// </summary>
         [ThreadStatic]
-        static Session _Current;
+        internal static Session _Current;
 
+        /// <summary>
+        /// Current static Request object.
+        /// </summary>
         [ThreadStatic]
         static Request _Request;
 
+        /// <summary>
+        /// Attached Json object.
+        /// </summary>
         internal Json _Data;
 
-        bool isInUse;
+        /// <summary>
+        /// Indicates if session is being used.
+        /// </summary>
+        bool _IsInUse;
 
         /// <summary>
         /// Cached pages dictionary.
         /// </summary>
-        Dictionary<String, Json> JsonNodeCacheDict;
+        Dictionary<String, Json> _JsonNodeCacheDict;
+
+        /// <summary>
+        /// Destroy session delegate.
+        /// </summary>
+        internal Action<Session> _SessionDestroyUserDelegate_;
 
         /// <summary>
         /// Tries to get cached JSON node.
@@ -42,7 +59,7 @@ namespace Starcounter {
         {
             Json obj;
 
-            if ((JsonNodeCacheDict == null) || (!JsonNodeCacheDict.TryGetValue(uri, out obj)))
+            if ((_JsonNodeCacheDict == null) || (!_JsonNodeCacheDict.TryGetValue(uri, out obj)))
                 return null;
 
             Debug.Assert(null != obj);
@@ -63,26 +80,14 @@ namespace Starcounter {
         /// </summary>
         /// <param name="uri"></param>
         /// <param name="obj"></param>
-        internal void AddJsonNodeToCache(String uri, Json obj)
-        {
+        internal void AddJsonNodeToCache(String uri, Json obj) {
             // Checking if cached state dictionary is already created.
-            if (null == JsonNodeCacheDict)
-                JsonNodeCacheDict = new Dictionary<String, Json>();
+            if (null == _JsonNodeCacheDict)
+                _JsonNodeCacheDict = new Dictionary<String, Json>();
 
             // Adding current URI to cache.
-            JsonNodeCacheDict[uri] = obj;
+            _JsonNodeCacheDict[uri] = obj;
         }
-
-        /// <summary>
-        /// Destroy session delegate.
-        /// </summary>
-        internal Action<Session> destroy_user_delegate_;
-
-        /// <summary>
-        /// Returns the current active session.
-        /// </summary>
-        /// <value></value>
-        public static Session Current { get { return _Current; } }
 
         /// <summary>
         /// Indicates if user wants to use session cookie.
@@ -107,75 +112,41 @@ namespace Starcounter {
         public ScSessionClass InternalSession { get; set; }
 
         /// <summary>
-        /// Creates new empty session.
+        /// Current static session object.
         /// </summary>
-        /// <returns></returns>
-        internal static Session CreateNewEmptySession()
+        public static Session Current
         {
-            Debug.Assert(_Current == null);
+            get {
+                return _Current;
+            }
 
-            _Current = new Session();
+            set {
+                // If we are replacing the JSON tree, we need to dispose previous one.
+                if (_Current != null)
+                    _Current.DisposeJsonRecursively(_Current._Data);
 
-            return _Current;
+                // Creating new empty session.
+                _Current = value;
+            }
         }
 
         /// <summary>
         /// Sets session data.
         /// </summary>
-        public static Json Data {
+        public Json Data {
             get {
-                Session s = _Current;
-                if (s == null) {
-                    s = CreateNewEmptySession();
-                }
-                if (s != null && s._Data != null) {
-                    return s._Data;
-                }
-                return null;
+                return _Data;
             }
+
             set {
-                if (_Current == null) {
+                _Data = value;
 
-                    // Creating new empty session.
-                    _Current = new Session();
-
-                    UInt32 errCode = 0;
-
-                    if (_Request != null) {
-#if DEBUG
-                        // Checking if we have a predefined session.
-                        if (_Request.IsSessionPredefined()) {
-                            errCode = _Request.GenerateForcedSession(_Current);
-                        }
-                        else {
-                            errCode = _Request.GenerateNewSession(_Current);
-                        }
-#else
-                    errCode = _Request.GenerateNewSession(_Current);
-#endif
-                    }
-
-                    if (errCode != 0)
-                        throw ErrorCode.ToException(errCode);
+                if (value != null) {
+                    value._Session = this;
                 }
-                _Current.SetData(value);
-            }
-        }
 
-        /// <summary>
-        /// Setting data object.
-        /// </summary>
-        /// <param name="data"></param>
-        private void SetData(Json data) {
-
-            // If we are replacing the JSON tree, we need to dispose previous one.
-            if (_Data != null) {
-                DisposeJsonRecursively(_Current._Data);
-            }
-            _Data = data;
-
-            if (data != null) {
-                data._Session = this;
+                // Setting current session.
+                Current = this;
             }
         }
 
@@ -185,18 +156,6 @@ namespace Starcounter {
         public String SessionIdString
         {
             get { return InternalSession.ToAsciiString(); }
-        }
-
-        /// <summary>
-        /// Get complete resource locator.
-        /// </summary>
-        /// <returns></returns>
-        internal string GetDataLocation()
-        {
-            if (_Data == null)
-                return null;
-
-            return ScSessionClass.DataLocationUriPrefix + SessionIdString;
         }
 
         /// <summary>
@@ -268,21 +227,21 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public bool IsBeingUsed() {
-            return isInUse;
+            return _IsInUse;
         }
 
         /// <summary>
-        /// 
+        /// Start using specific session.
         /// </summary>
         public void StartUsing() {
-            isInUse = true;
+            _IsInUse = true;
         }
 
         /// <summary>
-        /// 
+        /// Stop using specific session.
         /// </summary>
         public void StopUsing() {
-            isInUse = false;
+            _IsInUse = false;
         }
 
         /// <summary>
@@ -298,9 +257,9 @@ namespace Starcounter {
         /// Set user destroy callback.  
         /// </summary>
         /// <param name="destroy_user_delegate"></param>
-        public void SetDestroyCallback(Action<Session> destroy_user_delegate)
+        public void SetSessionDestroyCallback(Action<Session> userDestroyMethod)
         {
-            destroy_user_delegate_ = destroy_user_delegate;
+            _SessionDestroyUserDelegate_ = userDestroyMethod;
         }
 
         /// <summary>
@@ -309,7 +268,7 @@ namespace Starcounter {
         /// <returns></returns>
         public Action<Session> GetDestroyCallback()
         {
-            return destroy_user_delegate_;
+            return _SessionDestroyUserDelegate_;
         }
 
         /// <summary>
@@ -323,13 +282,12 @@ namespace Starcounter {
             _Data = null;
 
             // Checking if destroy callback is supplied.
-            if (null != destroy_user_delegate_)
+            if (null != _SessionDestroyUserDelegate_)
             {
-                destroy_user_delegate_(this);
-                destroy_user_delegate_ = null;
+                _SessionDestroyUserDelegate_(this);
+                _SessionDestroyUserDelegate_ = null;
             }
 
-//            _ChangeLog = null;
             Session._Current = null;
         }
 
@@ -359,7 +317,6 @@ namespace Starcounter {
                     }
                 }
             }
-
         }
     }
 }

@@ -103,6 +103,23 @@ namespace HttpStructs
         // Gateway worker id.
         public Byte gw_worker_id_;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public ScSessionStruct(Boolean initDefault) {
+            random_salt_ = 0;
+            linear_index_ = UInt32.MaxValue;
+            scheduler_id_ = StarcounterEnvironment.GetCurrentSchedulerId();
+            gw_worker_id_ = Byte.MaxValue;
+        }
+
+        /// <summary>
+        /// Initializes session struct.
+        /// </summary>
+        /// <param name="scheduler_id"></param>
+        /// <param name="linear_index"></param>
+        /// <param name="random_salt"></param>
+        /// <param name="gw_worker_id"></param>
         public void Init(
             Byte scheduler_id,
             UInt32 linear_index,
@@ -316,6 +333,14 @@ namespace HttpStructs
                 session_string_ = Encoding.ASCII.GetString(session_bytes_);
 
             return session_string_;
+        }
+
+        // Converts string to session.
+        public void FromAsciiString(String sessionString)
+        {
+            session_string_ = sessionString;
+
+            session_struct_.ParseFromString(session_string_);
         }
     }
 
@@ -694,9 +719,7 @@ namespace HttpStructs
             ref ScSessionStruct ss,
             IAppsSession apps_session)
         {
-            return scheduler_sessions_[ss.scheduler_id_].CreateNewSession(
-                ref ss,
-                apps_session);
+            return scheduler_sessions_[ss.scheduler_id_].CreateNewSession(ref ss, apps_session);
         }
 
 #if DEBUG
@@ -713,9 +736,7 @@ namespace HttpStructs
             ref ScSessionStruct ss,
             IAppsSession apps_session)
         {
-            return scheduler_sessions_[ss.scheduler_id_].CreateForcedSession(
-                ref ss,
-                apps_session);
+            return scheduler_sessions_[ss.scheduler_id_].CreateForcedSession(ref ss, apps_session);
         }
 #endif
 
@@ -731,9 +752,7 @@ namespace HttpStructs
             UInt32 linear_index,
             UInt64 random_salt)
         {
-            return scheduler_sessions_[scheduler_id].DestroySession(
-                linear_index,
-                random_salt);
+            return scheduler_sessions_[scheduler_id].DestroySession(linear_index, random_salt);
         }
 
         /// <summary>
@@ -748,9 +767,7 @@ namespace HttpStructs
             UInt32 linear_index,
             UInt64 random_salt)
         {
-            return scheduler_sessions_[scheduler_id].GetSessionClass(
-                linear_index,
-                random_salt);
+            return scheduler_sessions_[scheduler_id].GetSessionClass(linear_index, random_salt);
         }
 
         /// <summary>

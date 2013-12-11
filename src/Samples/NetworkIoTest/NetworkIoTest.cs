@@ -126,17 +126,14 @@ namespace NetworkIoTestApp
             {
                 if (!r.HasSession)
                 {
-                    Session session = Session.Current;
-                    if (session == null)
-                    {
-                        session = Session.CreateNewEmptySession();
-                    }
+                    if (Session.Current == null)
+                        Session.Current = new Session();
 
-                    UInt32 err = r.GenerateNewSession(session);
+                    UInt32 err = r.GenerateNewSession(Session.Current);
                     if (err != 0)
                         throw ErrorCode.ToException(err);
 
-                    return "New session created: " + session.InternalSession.ToAsciiString();
+                    return "New session created: " + Session.Current.InternalSession.ToAsciiString();
                 }
                 else
                 {

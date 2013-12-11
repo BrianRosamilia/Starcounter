@@ -18,7 +18,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 			j.FirstName = "Joachim";
 			j.Friends = new List<Json>() { nicke };
 
-			Session.Data = j;
+            Session.Current = new Session() { Data = j };
+
 			var before = ((Json)j).DebugString;
 			//            Session.Current.CheckpointChangeLog();
 			Session.Current.CreateJsonPatch(true);
@@ -56,7 +57,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             dynamic j = new Json();
             dynamic nicke = new Json();
 
-            Session.Data = j;
+            Session.Current = new Session() { Data = j };
 
             j.FirstName = "Jack";
             nicke.FirstName = "Nicke";
@@ -97,7 +98,8 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             dynamic j = new Json() { Template = schema };
             dynamic nicke = new Json() { Template = friendSchema };
 
-            Session.Data = j;
+            Session.Current = new Session() { Data = j };
+
 			j.FirstName = "Jack";
 			nicke.FirstName = "Nicke";
 			j.Friends.Add(nicke);
@@ -141,7 +143,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
             Write("Status 1",company.DebugString);
 
-            Session.Data = company;
+            Session.Current = new Session() { Data = company };
 			Write("JSON-Patch 1", Session.Current.CreateJsonPatch(true));
 			
             Write("Before status",company.DebugString);
@@ -167,7 +169,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             dynamic company = new Json();
             company.Name = "Starcounter";
  
-            Session.Data = company;
+            Session.Current = new Session() { Data = company };
             Session.Current.CreateJsonPatch(true);
 
             dynamic person = new Json();
@@ -193,7 +195,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             dynamic j = new Json();
             dynamic nicke = new Json();
 
-            Session.Data = j;
+            Session.Current = new Session() { Data = j };
             Assert.NotNull(Session.Current);
 
             j.FirstName = "Jack";
@@ -210,7 +212,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             dynamic j = new Json();
             dynamic nicke = new Json();
 
-            Session.Data = j;
+            Session.Current = new Session() { Data = j };
             Assert.NotNull(Session.Current);
 
             j.FirstName = "Jack";

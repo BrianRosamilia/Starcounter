@@ -93,7 +93,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
                 Byte schedId = ThreadData.Current.Scheduler.Id;
                 if (!WebSocketSessions[schedId].Contains(session)) {
                     WebSocketSessions[schedId].Add(session);
-                    session.SetDestroyCallback((Session s) => {
+                    session.SetSessionDestroyCallback((Session s) => {
                         WebSocketSessions[schedId].Remove(s);
                     });
                 }

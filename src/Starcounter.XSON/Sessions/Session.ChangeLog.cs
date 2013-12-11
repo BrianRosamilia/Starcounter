@@ -1,10 +1,12 @@
 ﻿
+using HttpStructs;
 using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Starcounter.Internal;
 namespace Starcounter {
     partial class Session : IEnumerable<Change> {
 
@@ -18,20 +20,48 @@ namespace Starcounter {
         /// <summary>
         /// Initializes a new instance of the <see cref="Session" /> class.
         /// </summary>
-        internal Session() {
+        public Session()
+        {
             _Changes = new List<Change>();
+
+            UInt32 errCode = 0;
+
+            if (_Request != null)
+            {
+#if DEBUG
+                // Checking if we have a predefined session.
+                if (_Request.IsSessionPredefined())
+                {
+                    errCode = _Request.GenerateForcedSession(this);
+                }
+                else
+                {
+                    errCode = _Request.GenerateNewSession(this);
+                }
+#else
+                errCode = _Request.GenerateNewSession(this);
+#endif
+            }
+            else
+            {
+                // Simply generating new session.
+                ScSessionStruct sss = new ScSessionStruct(true);
+
+                errCode = GlobalSessions.AllGlobalSessions.CreateNewSession(ref sss, this);
+            }
+
+            if (errCode != 0)
+                throw ErrorCode.ToException(errCode);
         }
 
         /// <summary>
-        /// Adds an valueupdate change.
+        /// Adds an value update change.
         /// </summary>
         /// <param name="obj">The Obj.</param>
         /// <param name="property">The property.</param>
         internal void UpdateValue(Json obj, TValue property) {
                 _Changes.Add(Change.Update(obj, property));
         }
-
-
 
         /// <summary>
         /// Clears all changes.

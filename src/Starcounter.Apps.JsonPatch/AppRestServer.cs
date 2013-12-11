@@ -188,7 +188,11 @@ namespace Starcounter.Internal.Web {
 
                         // In case of returned JSON object within current session we need to save it
                         // for later reuse.
-                        Json rootJsonObj = Session.Data;
+                        
+                        Json rootJsonObj = null;
+                        if (null != Session.Current)
+                            rootJsonObj = Session.Current.Data;
+
                         Json curJsonObj = null;
                         if (null != response) {
 
@@ -263,11 +267,17 @@ namespace Starcounter.Internal.Web {
                 {
                     try
                     {
+                        // Setting the original request.
+                        Session.InitialRequest = request;
+
                         // Checking if we are in session already.
                         if (!cameWithSession)
                         {
+                            // Creating new current session.
+                            Session.Current = new Session();
+
                             // Creating session on Request as well.
-                            errCode = request.GenerateNewSession(Session.CreateNewEmptySession());
+                            errCode = request.GenerateNewSession(Session.Current);
                             if (errCode != 0)
                                 throw ErrorCode.ToException(errCode);
                         }

@@ -13,15 +13,15 @@ namespace QueryProcessingTest {
             sqlexceptions = 0;
             RunErrorQuery("DELETE FROM Account");
             RunErrorQuery("select from fro fro");
-            Trace.Assert(ignored == 1);
-            Trace.Assert(sqlexceptions == 1);
+            Trace.Assert(ignored == 0);
+            Trace.Assert(sqlexceptions == 2);
             TestSomeExceptions();
             HelpMethods.LogEvent("Finished test of error messages");
         }
 
         internal static void RunErrorQuery(string query) {
             try {
-                Trace.Assert(Starcounter.Query.QueryPreparation.PrepareOrExecuteQuery<Object>(query, true) == null);
+                Trace.Assert(Starcounter.Query.QueryPreparation.PrepareOrExecuteQuery<Object>(query, false) == null);
                 ignored++;
             } catch (Exception ex) {
                 if (ex is SqlException) {

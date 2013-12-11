@@ -24,11 +24,15 @@ IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 :: Creating image files.
 sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
-:: Starting IPC monitor first.
-START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
-
 :: Weaving the test.
 scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
+IF %ERRORLEVEL% NEQ 0 (
+ECHO Error: The index query regression test failed!
+EXIT /b 1
+) 
+
+:: Starting IPC monitor first.
+START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 
 :: Path to signed assembly.
 SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
@@ -50,3 +54,11 @@ ping -n 3 127.0.0.1 > nul
 
 :: Starting database with some delay.
 sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
+
+IF %ERRORLEVEL% NEQ 0 (
+ECHO Error: The index query regression test failed!
+EXIT /b 1
+) else (
+ECHO The index query  regression test succeeded.
+EXIT /b 0
+)

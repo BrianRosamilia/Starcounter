@@ -15,6 +15,7 @@ using System.IO;
 using Starcounter.Advanced;
 using Starcounter.XSON.Tests;
 using TJson = Starcounter.Templates.TObject;
+using HttpStructs;
 
 namespace Starcounter.Internal.JsonPatch.Test
 {
@@ -31,6 +32,9 @@ namespace Starcounter.Internal.JsonPatch.Test
         public static void Setup()
         {
             StarcounterBase._DB = new FakeDbImpl();
+
+            // Initializing global sessions.
+            GlobalSessions.InitGlobalSessions(1);
         }
 
         /// <summary>

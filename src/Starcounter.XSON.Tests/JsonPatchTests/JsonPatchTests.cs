@@ -1,4 +1,5 @@
 ﻿
+using HttpStructs;
 using NUnit.Framework;
 using Starcounter.Internal.XSON.Tests;
 using Starcounter.Templates;
@@ -11,6 +12,16 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
 
     [TestFixture]
     class JsonPatchTests {
+        /// <summary>
+        /// Sets up the test.
+        /// </summary>
+        [TestFixtureSetUp]
+        public static void Setup()
+        {
+            // Initializing global sessions.
+            GlobalSessions.InitGlobalSessions(1);
+        }
+
 		[TearDown]
 		public static void AfterTest() {
 			// Making sure that we are ending the session even if the test failed.
@@ -30,7 +41,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             j.Age = 43;
             j.Length = 184.7;
 
-            Session.Data = j;
+            Session.Current = new Session() { Data = j };
 
             j.FirstName = "Douglas";
 
@@ -76,7 +87,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             j.Length = 184.7;
             j.Friends = new List<Json>() { nicke };
 
-            Session.Data = j;
+            Session.Current = new Session() { Data = j };
 
             j.Friends.Add(henrik);
 
@@ -135,7 +146,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             jockeJson.Length = 184.7;
             jockeJson.Friends = new List<Json>() { nickeJson };
 
-            Session.Data = jockeJson;
+            Session.Current = new Session() { Data = jockeJson };
 
             jockeJson.Friends.Add(henrikJson);
 
@@ -186,7 +197,7 @@ namespace Starcounter.Internal.XSON.JsonPatch.Tests {
             j.Length = 184.7;
             j.Friends = new List<Json>() { nicke };
 
-            Session.Data = j;
+            Session.Current = new Session() { Data = j };
 
             var before = ((Json)j).DebugString;
 //            Session.Current.CheckpointChangeLog();
@@ -245,7 +256,8 @@ Assert.AreEqual(facit, result );
             dynamic j = new Json();
             var json = (Json)j;
 
-            Session.Data = j;
+            Session.Current = new Session() { Data = j };
+            
             var start = ((Json)j).DebugString;
 
             Assert.AreEqual("{}", json.ToJson()); // The data is not bound so the JSON should still be an empty object
@@ -295,7 +307,7 @@ Assert.AreEqual(facit, result );
             dynamic j = new Json();
             dynamic nicke = new Json();
 
-            Session.Data = j;
+            Session.Current = new Session() { Data = j };
 
             Assert.NotNull(Session.Current);
 
