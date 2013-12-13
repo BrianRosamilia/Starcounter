@@ -1,7 +1,9 @@
 ﻿
+using Starcounter.Internal;
 using Starcounter.Server;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 
 namespace scservice {
@@ -26,14 +28,17 @@ namespace scservice {
                 var arg = args[i];
                 if (arg.Equals("--logsteps", ignoreCase)) {
                     logSteps = true;
-                } else if (arg.Equals("?") || arg.Equals("-h") || arg.Equals("--help")) {
+                }
+                else if (arg.Equals("?") || arg.Equals("-h") || arg.Equals("--help")) {
                     if (!startedAsService) {
                         Usage();
                     }
                     return;
-                }else if (arg.Equals("--sc-debug", ignoreCase)) {
+                }
+                else if (arg.Equals("--sc-debug", ignoreCase)) {
                     debug = true;
-                } else {
+                }
+                else {
                     Console.WriteLine("Ignoring parameter \"{0}\"", arg);
                 }
             }
@@ -48,6 +53,10 @@ namespace scservice {
                         break;
                     }
                 }
+            }
+
+            if (!startedAsService) {
+                StartTrayIcon();
             }
 
             var serviceProcess = new ServerServiceProcess(serverName) {
@@ -71,6 +80,26 @@ namespace scservice {
             Console.WriteLine("to read server-related settings.");
             Console.WriteLine("scservice will then start and monitor all required");
             Console.WriteLine("Starcounter components, like scnetworkgateway, scipcmonitor, etc.");
+        }
+
+        /// <summary>
+        /// Start the TrayIcon program
+        /// </summary>
+        /// <remarks>
+        /// The TrayIcon program is a Singelton so we dont need to check for a existing running one
+        /// </remarks>
+        static void StartTrayIcon() {
+            try {
+                string scBin = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
+
+                var startInfo = new ProcessStartInfo(StarcounterConstants.ProgramNames.ScTrayIcon+".exe");
+                startInfo.WorkingDirectory = scBin;
+
+                Process.Start(startInfo);
+            }
+            catch (Exception e) {
+                Console.WriteLine("Failed to start the TrayIcon program \"{0}\"", e.ToString());
+            }
         }
     }
 }

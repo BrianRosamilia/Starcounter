@@ -432,6 +432,7 @@ namespace Starcounter.InstallerEngine
             StarcounterConstants.ProgramNames.ScNetworkGateway,
             StarcounterConstants.ProgramNames.ScWeaver,
             StarcounterConstants.ProgramNames.ScSqlParser,
+            StarcounterConstants.ProgramNames.ScTrayIcon,
             "ServerLogTail"
         };
 

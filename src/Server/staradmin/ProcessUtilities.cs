@@ -20,6 +20,7 @@ namespace staradmin {
             "scnetworkgatewayloopedtest",
             StarcounterConstants.ProgramNames.ScWeaver,
             StarcounterConstants.ProgramNames.ScSqlParser,
+            StarcounterConstants.ProgramNames.ScTrayIcon,
             "ServerLogTail"
         };
 

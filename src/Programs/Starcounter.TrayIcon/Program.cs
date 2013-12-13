@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Starcounter.Tools {
@@ -35,18 +36,36 @@ namespace Starcounter.Tools {
 
         private StarcounterService service;
 
+        // True if this program was started from the StartUp Folder
+        private bool AutoStarted;
+
+        static Mutex mutex = new Mutex(true, "b2d2e3ea-94c9-4252-b721-1de76234b700");
+
         #endregion
 
+
         /// <summary>
-        /// 
+        /// The parameter '-autostarted' is set on the shortcut that will auto start
+        /// this program from the windows StartUp folder. This is done so we can 
+        /// detect if it was auto started or started in another way (from scservice,manually)
         /// </summary>
         [STAThread]
         public static void Main(string[] args) {
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            TrayIconApp oContext = new TrayIconApp();
-            Application.Run(oContext);
+            if (mutex.WaitOne(TimeSpan.Zero, true)) {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+
+                TrayIconApp oContext = new TrayIconApp();
+                oContext.AutoStarted = (args.Length > 0 && args[0] == "-autostarted");
+                oContext.Setup();
+
+                Application.Run(oContext);
+                mutex.ReleaseMutex();
+            }
+            else {
+                // An instance of scTrayIcon is already running.
+            }
         }
 
 
@@ -61,6 +80,12 @@ namespace Starcounter.Tools {
             //Instantiate the component Module to hold everything    
             this.applicationContainer = new System.ComponentModel.Container();
 
+        }
+
+        /// <summary>
+        /// Setup 
+        /// </summary>
+        public void Setup() {
 
             // Setup icons
             this.SetupIcons();
@@ -71,15 +96,12 @@ namespace Starcounter.Tools {
             // Setup endpoint (read starcounter configuration files)
             this.SetupEndPoint();
 
-
             // Setup and start polling service
             this.service = new StarcounterService();
             this.service.StatusChanged += service_StatusChanged;
             this.service.Error += service_Error;
             this.service.Start(this.IPAddress, this.Port);
-
         }
-
 
 
         /// <summary>
@@ -123,6 +145,14 @@ namespace Starcounter.Tools {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void service_StatusChanged(object sender, StatusEventArgs e) {
+
+            // Exit program if it was auto started (from StartUp folder) and if
+            // scservice is not running
+            if (this.AutoStarted && e.Connected == false) {
+                ExitThreadCore();
+                return;
+            }
+
             this.SetStatus(e);
         }
 

@@ -66,6 +66,9 @@ public class CPersonalServer : CComponentBase
     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
                  ConstantsBank.SCProductName + " " + StarcounterEnvironment.ServerNames.PersonalServer + " Administrator.lnk");
 
+    // TrayIcon Shortcut, Placed in the Startup folder for all users (requires admin rights)
+    readonly String TrayIconShortcutPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup), "Starcounter TrayIcon.lnk");
+
     // Start Menu shortcut.
     readonly String PersonalServerStartMenuPath =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
@@ -127,6 +130,28 @@ public class CPersonalServer : CComponentBase
 
         // Updating progress.
         InstallerMain.ProgressIncrement();
+    }
+
+    /// <summary>
+    /// Create TrayIcon shortcut in Windows StartUp folder
+    /// </summary>
+    void CreateAutoStartTrayIconShortcut() {
+
+        // Logging event.
+        Utilities.ReportSetupEvent("Creating TrayIcon shortcut");
+
+        // Shortcut to installation directory.
+        String installPath = InstallerMain.InstallationBaseComponent.ComponentPath;
+
+        // Create shortcut for the TrayIcon
+        Utilities.CreateShortcut(
+            Path.Combine(installPath, Starcounter.Internal.StarcounterConstants.ProgramNames.ScTrayIcon + ".exe"), // Target file
+            TrayIconShortcutPath, // Shortcut lnk file
+            "-autostarted", // CommandArgs ('-autostarted' Indicating that it will be auto started when user logs in)
+            installPath, // Workingdir
+            "Starcounter TrayIcon", // Description
+            Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCAdminIconFilename) // Icon
+            );
     }
 
     /// <summary>
@@ -373,6 +398,9 @@ public class CPersonalServer : CComponentBase
         // Creating shortcuts.
         CreatePersonalServerShortcuts();
 
+        // Create TrayIcon auto start Shortcut
+        CreateAutoStartTrayIconShortcut();
+
         // Creating Administrator database.
         // TODO: Recover if in need of a database for Administrator.
         /*
@@ -491,6 +519,10 @@ public class CPersonalServer : CComponentBase
         // Removing Start Menu shortcut.
         if (File.Exists(PersonalServerStartMenuPath))
             File.Delete(PersonalServerStartMenuPath);
+
+        // Removing TrayIcon shortcut.
+        if (File.Exists(TrayIconShortcutPath))
+            File.Delete(TrayIconShortcutPath);
 
         // Updating progress.
         InstallerMain.ProgressIncrement();

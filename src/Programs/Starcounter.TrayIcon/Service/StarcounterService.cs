@@ -13,7 +13,7 @@ namespace Starcounter.Tools.Service {
 
 
     /// <summary>
-    /// 
+    /// STarcounter Service API handler
     /// </summary>
     public class StarcounterService {
 
@@ -69,7 +69,7 @@ namespace Starcounter.Tools.Service {
         #endregion
 
         /// <summary>
-        /// 
+        /// Start worker thread that polls the status
         /// </summary>
         public void Start(string ipAddress, ushort port) {
 
@@ -90,7 +90,7 @@ namespace Starcounter.Tools.Service {
         }
 
         /// <summary>
-        /// 
+        /// Stop worker thread that polls the status
         /// </summary>
         public void Stop() {
 
@@ -103,7 +103,7 @@ namespace Starcounter.Tools.Service {
         #region Status
 
         /// <summary>
-        /// 
+        /// Retrive the Starcounter Service Status
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -164,7 +164,7 @@ namespace Starcounter.Tools.Service {
         #region Shutdown
 
         /// <summary>
-        /// 
+        /// Shutdown Starcounter Service
         /// </summary>
         public void Shutdown() {
 

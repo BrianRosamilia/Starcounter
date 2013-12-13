@@ -52,6 +52,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Server\Starcounter.Server.csproj">
       <Project>{28e1d438-7dc4-4bf7-a486-0598c78dbbe9}</Project>
       <Name>Starcounter.Server</Name>

@@ -69,7 +69,7 @@ typedef int8_t worker_id_type;
 //#define GW_SOCKET_DIAG
 //#define GW_HTTP_DIAG
 //#define GW_WEBSOCKET_DIAG
-#define GW_ERRORS_DIAG
+//#define GW_ERRORS_DIAG
 //#define GW_WARNINGS_DIAG
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG

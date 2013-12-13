@@ -91,6 +91,12 @@ namespace Starcounter.Internal
             /// Starcounter admin server.
             /// </summary>
             public const string ScAdminServer = "scadminserver";
+
+            /// <summary>
+            /// ScTrayIcon
+            /// </summary>
+            public const string ScTrayIcon = "sctrayicon";
+
         }
 
         /// <summary>

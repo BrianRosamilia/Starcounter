@@ -59,7 +59,10 @@ class WorkerDbInterface
         int32_t num_acquired_chunks = static_cast<int32_t> (shared_int_.acquire_from_shared_to_private(
             private_chunk_pool_, num_chunks, &shared_int_.client_interface(), 1000));
 
-        GW_ASSERT(num_acquired_chunks == num_chunks);
+        //GW_ASSERT(num_acquired_chunks == num_chunks);
+
+        // Changing number of database chunks.
+        ChangeNumUsedChunks(num_acquired_chunks);
 
         // Checking that number of acquired chunks is correct.
         if (num_acquired_chunks != num_chunks)
@@ -68,11 +71,9 @@ class WorkerDbInterface
 #ifdef GW_ERRORS_DIAG
             GW_COUT << "Problem acquiring chunks from shared chunk pool." << GW_ENDL;
 #endif
-            return SCERRACQUIRELINKEDCHUNKS;
+            Sleep(1);
+            //return SCERRACQUIRELINKEDCHUNKS;
         }
-
-        // Changing number of database chunks.
-        ChangeNumUsedChunks(num_chunks);
 
         return 0;
     }
