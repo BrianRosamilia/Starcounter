@@ -192,6 +192,7 @@ namespace Starcounter.Metadata {
             internal static TypeBinding typeBinding;
             internal static int columnHandle_name;
             internal static int columnHandle_vm_name;
+            internal static int columnHandle_materialized_type;
             internal static int columnHandle_write_loss;
             internal static int columnHandle_read_loss;
         }
@@ -217,12 +218,14 @@ namespace Starcounter.Metadata {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("vm_name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("materialized_type", sccoredb.STAR_TYPE_REFERENCE, true, false),
                     new ColumnDef("write_loss", sccoredb.STAR_TYPE_ULONG, false, false),
                     new ColumnDef("read_loss", sccoredb.STAR_TYPE_ULONG, false, false)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("VMName", DbTypeCode.String),
+                    new PropertyDef("MaterializedType", DbTypeCode.Object, "Starcounter.Metadata.MaterializedType"),
                     new PropertyDef("WriteLoss", DbTypeCode.Boolean),
                     new PropertyDef("ReadLoss",  DbTypeCode.Boolean)
                 });
@@ -236,6 +239,17 @@ namespace Starcounter.Metadata {
         internal MappedType()
             : this(null) {
             DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        }
+
+        public MaterializedType MaterializedType {
+            get {
+                return (MaterializedType)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_materialized_type);
+            }
+            internal set {
+                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_materialized_type, value);
+            }
         }
 
         public Boolean WriteLoss {
