@@ -126,6 +126,7 @@
     <Compile Include="Metadata\MaterializedIndex.cs" />
     <Compile Include="Metadata\MaterializedTable.cs" />
     <Compile Include="Metadata\BaseType.cs" />
+    <Compile Include="Metadata\RuntimeView.cs" />
     <Compile Include="Mock\Db.cs" />
     <Compile Include="Mock\DbHelper.cs" />
     <Compile Include="Mock\Enumerator.cs" />
