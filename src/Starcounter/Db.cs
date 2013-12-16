@@ -98,7 +98,7 @@ namespace Starcounter
                     name = (char*)Marshal.StringToCoTaskMemUni(tableDef.Name);
                     fixed (sccoredb.SC_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
                     {
-                        uint e = sccoredb.sccoredb_create_table(name, inheritedTableId, fixed_column_definitions);
+                        uint e = sccoredb.star_create_table(0, name, inheritedTableId, fixed_column_definitions, 0);
                         if (e != 0) throw ErrorCode.ToException(e);
                     }
                 }
@@ -121,7 +121,7 @@ namespace Starcounter
         /// <param name="newName">The new name.</param>
         public static void RenameTable(ushort tableId, string newName)
         {
-            uint e = sccoredb.sccoredb_rename_table(tableId, newName);
+            uint e = sccoredb.star_rename_table(0, tableId, newName);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
         }
@@ -132,7 +132,7 @@ namespace Starcounter
         /// <param name="name">The name.</param>
         public static void DropTable(string name)
         {
-            uint e = sccoredb.sccoredb_drop_table(name);
+            uint e = sccoredb.star_drop_table(0, name);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
         }

@@ -1318,6 +1318,9 @@
     <code hex="0090" severity="Error" name="ScErrBadGatewayWorkersNumberConfig">
         <message>Gateway workers number is missing in configuration file or has invalid value.</message>
     </code>
+    <code hex="0091" severity="Error" name="ScErrBadSessionsDefaultTimeout">
+        <message>Sessions default timeout is missing in configuration file or has invalid value.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->

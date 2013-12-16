@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter.Templates {
 
@@ -13,7 +14,15 @@ namespace Starcounter.Templates {
     /// </summary>
     public class TString : PrimitiveProperty<string> {
         public override void ProcessInput(Json obj, byte[] rawValue) {
-            obj.ProcessInput<string>(this, System.Text.Encoding.UTF8.GetString(rawValue));
+			string value = null;
+			if (rawValue.Length > 0) {
+				unsafe {
+					fixed (byte* p = rawValue) {
+						value = JsonHelper.DecodeString(p, rawValue.Length, rawValue.Length);
+					}
+				}
+			}
+            obj.ProcessInput<string>(this, value);
         }
         public override Type MetadataType {
             get { return typeof(StringMetadata<Json>); }
@@ -74,8 +83,15 @@ namespace Starcounter.Templates {
 
 		internal override string ValueToJsonString(Json parent) {
 			string value = Getter(parent);
-			if (value != null)
-				return '"' + value + '"';
+			if (value != null) {
+				byte[] buffer = new byte[value.Length * 4];
+				unsafe {
+					fixed (byte* p = buffer) {
+						int size = JsonHelper.WriteString((IntPtr)p, buffer.Length, value);
+						return System.Text.Encoding.UTF8.GetString(buffer, 0, size);
+					}
+				}
+			}
 			return "\"\"";
 		}
     }

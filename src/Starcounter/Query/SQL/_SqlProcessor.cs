@@ -246,7 +246,7 @@ internal static class SqlProcessor
             var tableId = typeBind.TableId;
             fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
             {
-                errorCode = sccoredb.sccoredb_create_index(tableId, indexName, sortMask, attributeIndexesPointer, flags);
+                errorCode = sccoredb.star_create_index(0, tableId, indexName, sortMask, attributeIndexesPointer, flags);
             }
         }
         if (errorCode != 0)
@@ -369,7 +369,7 @@ internal static class SqlProcessor
         UInt32 errorCode;
         unsafe
         {
-            errorCode = sccoredb.sccoredb_drop_index(typeBind.Name, indexName);
+            errorCode = sccoredb.star_drop_index(0, typeBind.Name, indexName);
         }
         if (errorCode != 0) {
             Exception ex = ErrorCode.ToException(errorCode);
@@ -403,7 +403,7 @@ internal static class SqlProcessor
         UInt32 errorCode;
         unsafe
         {
-            errorCode = sccoredb.sccoredb_drop_table(typePath);
+            errorCode = sccoredb.star_drop_table(0, typePath);
         }
         if (errorCode != 0) {
             Exception ex = ErrorCode.ToException(errorCode);

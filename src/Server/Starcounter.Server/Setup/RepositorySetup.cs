@@ -130,6 +130,7 @@ namespace Starcounter.Server.Setup {
                 SQLProcessPort = (UInt16)(StarcounterConstants.NetworkPorts.DefaultPersonalPrologSqlProcessPort + serverPortRange),
                 DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort,
                 ChunksNumber = MixedCodeConstants.SHM_CHUNKS_DEFAULT_NUMBER,
+                DefaultSessionTimeoutMinutes = StarcounterConstants.NetworkPorts.DefaultSessionTimeoutMinutes
             };
 
             databaseConfiguration = new DatabaseConfiguration() {

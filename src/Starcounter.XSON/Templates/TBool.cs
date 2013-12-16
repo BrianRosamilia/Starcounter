@@ -64,5 +64,10 @@ namespace Starcounter.Templates {
             get { return typeof(bool); }
         }
 
+		internal override string ValueToJsonString(Json parent) {
+			bool b = Getter(parent);
+			if (b) return "true";
+			return "false";
+		}
     }
 }

@@ -71,8 +71,8 @@ class WorkerDbInterface
 #ifdef GW_ERRORS_DIAG
             GW_COUT << "Problem acquiring chunks from shared chunk pool." << GW_ENDL;
 #endif
-            Sleep(1);
-            //return SCERRACQUIRELINKEDCHUNKS;
+            //Sleep(1);
+            return SCERRACQUIRELINKEDCHUNKS;
         }
 
         return 0;

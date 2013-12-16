@@ -1,0 +1,48 @@
+﻿<div ng-hide="isBusy">
+
+    <table class="table table-striped table-bordered" ng-hide="executables.length == 0">
+        <thead>
+            <tr>
+                <th>Executable</th>
+                <th>Database</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr ng-repeat="executable in executables  | orderBy: 'databaseName'">
+                <td>{{executable.applicationFilePath}} 
+                    <div class="muted" ng-repeat="argument in executable.arguments">
+                        <small>Argument{{$index+1}}: {{argument.dummy}}</small>
+                    </div>
+                </td>
+                <td><a href="#/databases/{{executable.databaseName}}">{{executable.databaseName}}</a></td>
+                <td><span class="Running">Running</span></td>
+
+                <td>
+                    <div class="btn-group pull-right">
+                        <button class="btn btn-small btn-primary" ng-click="btnRestartExecutable(executable)">Restart</button>
+                        <button class="btn btn-small btn-danger" ng-click="btnStopExecutable(executable)">Stop</button>
+                    </div>
+                </td>
+
+            </tr>
+
+        </tbody>
+    </table>
+
+    <div ng-show="executables.length == 0">
+        <p>There are no executables running.</p>
+    </div>
+
+    <a class="btn btn-primary" href="#/executableStart">Start Executable</a>
+
+  <!--  <span ng-repeat="database in databases | filter:isFalsey(database.running)">
+        <span ng-repeat="executable in executables" ng-show="database.name==executable.databaseName">
+            <button ng-click="btnStopAllExecutable(database)" class="btn btn-danger">Stop all executables running in {{database.name}}</button>
+        </span>
+    </span>-->
+
+
+</div>

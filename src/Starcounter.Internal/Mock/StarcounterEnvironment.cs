@@ -102,6 +102,11 @@ namespace Starcounter.Internal
             /// Aggregation port.
             /// </summary>
             public static UInt16 AggregationPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAggregationPort;
+
+            /// <summary>
+            /// Default sessions timeout.
+            /// </summary>
+            public static UInt32 SessionTimeoutMinutes = StarcounterConstants.NetworkPorts.DefaultSessionTimeoutMinutes;
         }
 
         /// <summary>

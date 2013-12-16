@@ -1,0 +1,55 @@
+﻿
+/* Modal window */
+
+.modal {
+    display: block;
+}
+
+a {
+    cursor: pointer;
+}
+
+/* Navbar color fixes*/
+
+.navbar-inner {
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+}
+
+.navbar {
+    margin-bottom: 0px;
+}
+
+.toplinks, navbar-inner {
+    padding-top: 5px;
+    padding-right: 20px;
+    padding-left: 20px;
+    margin-top: 0px;
+    margin-bottom: 10px;
+    border-left: 1px solid #d4d4d4;
+    border-right: 1px solid #d4d4d4;
+    border-bottom: 1px solid #d4d4d4;
+    background-image: -moz-linear-gradient(top, #ffffff, #f2f2f2);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f2f2f2), to(#f2f2f2));
+    background-image: -webkit-linear-gradient(top, #f2f2f2, #f2f2f2);
+    background-image: -o-linear-gradient(top, #f2f2f2, #f2f2f2);
+    background-image: linear-gradient(to bottom, #fefefe, #fefefe);
+    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.065);
+    -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.065);
+    box-shadow: 0px 4px 2px rgba(0, 0, 0, 0.05);
+}
+
+.toplinks .nav-pills {
+    margin-bottom: 5px;
+}
+
+/* APP/DATABASE STATUS */
+
+.Running {
+    color: #46a546;
+}
+
+.Stopped {
+    color: #9d261d;
+}

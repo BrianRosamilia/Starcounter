@@ -260,7 +260,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="srcSize"></param>
         /// <param name="valueSize"></param>
         /// <returns></returns>
-        private static unsafe string DecodeString(byte* pfrag, int srcSize, int valueSize) {
+        internal static unsafe string DecodeString(byte* pfrag, int srcSize, int valueSize) {
             byte current;
             int bufferOffset = 0;
             byte[] buffer = new byte[valueSize];

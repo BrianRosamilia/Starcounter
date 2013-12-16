@@ -416,7 +416,7 @@ namespace Starcounter.Binding
                     {
                         fixed (Int16* paii = &(attrIndexArr[0])) 
                         {
-                            ec = sccoredb.sccoredb_create_index(newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
+                            ec = sccoredb.star_create_index(0, newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
                         }
 
                         if (ec != 0) 

@@ -43,11 +43,13 @@ namespace Starcounter.Internal {
             Byte numSchedulers,
             UInt16 defaultUserHttpPort,
             UInt16 defaultSystemHttpPort,
+            UInt32 sessionTimeoutMinutes,
             String dbName)
         {
             // Setting some configuration settings.
             StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
             StarcounterEnvironment.Default.SystemHttpPort = defaultSystemHttpPort;
+            StarcounterEnvironment.Default.SessionTimeoutMinutes = sessionTimeoutMinutes;
 
             StarcounterEnvironment.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
 
@@ -76,7 +78,7 @@ namespace Starcounter.Internal {
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
             DbSession dbSession = new DbSession();
-            int interval = 1000 * 60 * SchedulerSessions.DefaultSessionTimeoutMinutes;
+            int interval = 1000 * 60;
             sessionCleanupTimer = new Timer((state) => {
                     // Schedule a job to check once for inactive sessions on each scheduler.
                     for (Byte i = 0; i < numSchedulers; i++)

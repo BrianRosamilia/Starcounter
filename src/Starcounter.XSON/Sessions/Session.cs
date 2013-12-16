@@ -151,6 +151,53 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Setting or getting user object.
+        /// </summary>
+        public Object UserObject
+        {
+            get {
+                return InternalSession.UserObject;
+            }
+
+            set {
+                InternalSession.UserObject = value;
+            }
+        }
+
+        /// <summary>
+        /// Getting session creation time. 
+        /// </summary>
+        public DateTime Created
+        {
+            get {
+                return InternalSession.Created;
+            }
+        }
+
+        /// <summary>
+        /// Getting last active session time. 
+        /// </summary>
+        public DateTime LastActive
+        {
+            get {
+                return InternalSession.LastActive;
+            }
+        }
+
+        /// <summary>
+        /// Session timeout.
+        /// </summary>
+        public UInt64 TimeoutMinutes
+        {
+            get {
+                return InternalSession.TimeoutMinutes;
+            }
+            set {
+                InternalSession.TimeoutMinutes = value;
+            }
+        }
+
+        /// <summary>
         /// Internal session string.
         /// </summary>
         public String SessionIdString
@@ -173,6 +220,9 @@ namespace Starcounter {
         /// <param name="data"></param>
         public void Push(Byte[] data, Boolean isText = false, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
         {
+            // Updating last active date.
+            InternalSession.UpdateLastActive();
+
             Request req = bmx.GenerateNewRequest(InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS, isText);
 
             req.SendResponse(data, 0, data.Length, connFlags);
@@ -278,8 +328,13 @@ namespace Starcounter {
         {
             if (_Data != null) {
                 DisposeJsonRecursively(_Data);
+                _Data = null;
             }
-            _Data = null;
+
+            if (InternalSession != null) {
+                InternalSession.Destroy();
+                InternalSession = null;
+            }
 
             // Checking if destroy callback is supplied.
             if (null != _SessionDestroyUserDelegate_)

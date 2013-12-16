@@ -170,6 +170,7 @@ namespace StarcounterInternal.Bootstrap
                 (Byte)configuration.SchedulerCount,
                 configuration.DefaultUserHttpPort,
                 configuration.DefaultSystemHttpPort,
+                configuration.DefaultSessionTimeoutMinutes,
                 configuration.Name);
 
             OnAppsBoostraperInitialized();

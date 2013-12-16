@@ -158,7 +158,7 @@ namespace Starcounter.Internal.JsonPatch {
             bool quotation;
             int start;
             int length;
-
+		
             quotation = false;
             if (contentArr[offset] == '"') {
                 offset++;
@@ -168,11 +168,12 @@ namespace Starcounter.Internal.JsonPatch {
             start = offset;
             if (quotation) {
                 while (offset < contentArr.Length) {
-                    if (contentArr[offset] == '"')
+					if (contentArr[offset] == '\\') {
+						offset++;
+					} else if (contentArr[offset] == '"')
                         break;
                     offset++;
                 }
-
             }
             else {
                 while (offset < contentArr.Length) {

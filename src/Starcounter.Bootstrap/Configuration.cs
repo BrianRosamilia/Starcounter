@@ -183,6 +183,26 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
+        /// Default session timeout.
+        /// </summary>
+        public UInt32 DefaultSessionTimeoutMinutes
+        {
+            get
+            {
+                UInt32 defaultSessionsTimeout = StarcounterConstants.NetworkPorts.DefaultSessionTimeoutMinutes;
+                String s;
+                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.DefaultSessionTimeoutMinutes, out s))
+                {
+                    defaultSessionsTimeout = UInt32.Parse(s);
+                    if (defaultSessionsTimeout <= 0)
+                        throw ErrorCode.ToException(Starcounter.Error.SCERRBADSESSIONSDEFAULTTIMEOUT);
+                }
+
+                return defaultSessionsTimeout;
+            }
+        }
+
+        /// <summary>
         /// Gets the chunks number.
         /// </summary>
         /// <value>The chunks number.</value>

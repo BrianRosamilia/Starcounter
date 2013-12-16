@@ -110,6 +110,24 @@ namespace Starcounter.Advanced.Configuration {
         private UInt16 _DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
 
         /// <summary>
+        /// Gets the default session timeout.
+        /// </summary>
+        /// <value>The default session timeout.</value>
+        public UInt32 DefaultSessionTimeoutMinutes
+        {
+            get
+            {
+                return _DefaultSessionTimeoutMinutes;
+            }
+            set
+            {
+                _DefaultSessionTimeoutMinutes = value;
+                OnPropertyChanged(StarcounterConstants.BootstrapOptionNames.DefaultSessionTimeoutMinutes);
+            }
+        }
+        private UInt32 _DefaultSessionTimeoutMinutes = StarcounterConstants.NetworkPorts.DefaultSessionTimeoutMinutes;
+
+        /// <summary>
         /// Support of aggregations in SQL queries, for which current implementation is very slow.
         /// </summary>
         [DefaultValue(false)]

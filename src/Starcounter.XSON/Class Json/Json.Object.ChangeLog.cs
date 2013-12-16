@@ -193,7 +193,8 @@ namespace Starcounter {
 
 						if (t is TContainer) {
 							var childJson = ((TContainer)t).GetValue(this);
-							childJson.SetBoundValuesInTuple();
+							if (childJson != null)
+								childJson.SetBoundValuesInTuple();
 						} else {
 							var vt = t as TValue;
 							if (vt != null)

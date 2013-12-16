@@ -247,28 +247,78 @@ namespace HttpStructs
     /// </summary>
     public class ScSessionClass
     {
-        // Internal session structure.
+        /// <summary>
+        /// Internal session structure.
+        /// </summary>
         public ScSessionStruct session_struct_;
 
-        // Socket number.
+        /// <summary>
+        /// Socket number.
+        /// </summary>
         public UInt32 socket_index_num_;
 
-        // Unique socket id for the gateway.
+        /// <summary>
+        /// Unique socket id for the gateway.
+        /// </summary>
         public UInt64 socket_unique_id_;
 
-        // Last active time tick.
-        public UInt64 LastActiveTimeTick { get; set; }
-
-        // Apps session object reference.
+        /// <summary>
+        /// Apps session object reference.
+        /// </summary>
         public IAppsSession apps_session_int_;
 
-        // Linear index node.
+        /// <summary>
+        /// Linear index node.
+        /// </summary>
         public LinkedListNode<UInt32> linear_index_node_;
 
         /// <summary>
         /// Using session cookie.
         /// </summary>
         public Boolean use_session_cookie_;
+
+        /// <summary>
+        /// Custom user object attached to a session.
+        /// </summary>
+        public Object UserObject { get; set; }
+
+        /// <summary>
+        /// Time when session was created.
+        /// </summary>
+        public DateTime Created { get; internal set; }
+
+        /// <summary>
+        /// Last time the session was active.
+        /// </summary>
+        public DateTime LastActive { get; internal set; }
+
+        /// <summary>
+        /// Last active time tick.
+        /// </summary>
+        public UInt64 LastActiveTimeTick { get; set; }
+
+        /// <summary>
+        /// Timeout minutes.
+        /// </summary>
+        public UInt64 TimeoutMinutes { get; set; }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public ScSessionClass()
+        {
+            TimeoutMinutes = StarcounterEnvironment.Default.SessionTimeoutMinutes;
+        }
+
+        /// <summary>
+        /// Updating last active session time tick.
+        /// </summary>
+        public void UpdateLastActive()
+        {
+            // Setting last active time.
+            LastActiveTimeTick = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(session_struct_.scheduler_id_).CurrentTimeTick;
+            LastActive = DateTime.UtcNow;
+        }
 
         /// <summary>
         /// Prefix to data location URI.
@@ -318,6 +368,8 @@ namespace HttpStructs
 
             // Removing linear index node.
             linear_index_node_ = null;
+
+            UserObject = null;
         }
 
         // Session stored in ASCII bytes.
@@ -364,6 +416,9 @@ namespace HttpStructs
         // Random generator for sessions.
         RNGCryptoServiceProvider rand_gen_ = new RNGCryptoServiceProvider();
         Byte[] rand_gen_buf_ = new Byte[8];
+
+        // Current per-scheduler time tick.
+        public UInt64 CurrentTimeTick = 0;
 
         /// <summary>
         /// Generates random salt based on RNGCryptoServiceProvider.
@@ -475,7 +530,8 @@ namespace HttpStructs
                 apps_session_int.InternalSession = apps_sessions_[ss.linear_index_];
 
             // Setting last active time.
-            s.LastActiveTimeTick = CurrentTimeTick;
+            s.UpdateLastActive();
+            s.Created = DateTime.UtcNow;
 
             // Attaching the interface.
             s.apps_session_int_ = apps_session_int;
@@ -544,7 +600,7 @@ namespace HttpStructs
             if (random_salt == s.session_struct_.random_salt_)
             {
                 // Setting last active time.
-                s.LastActiveTimeTick = CurrentTimeTick;
+                s.UpdateLastActive();
 
                 // Returning the interface.
                 return s.apps_session_int_;
@@ -576,12 +632,6 @@ namespace HttpStructs
             return null;
         }
 
-        // Current per-scheduler time tick.
-        public UInt64 CurrentTimeTick = 0;
-
-        // Default session timeout interval in minutes.
-        public const Int32 DefaultSessionTimeoutMinutes = 10;
-
         /// <summary>
         /// Looks up for inactive sessions and kills them. A Timer will schedule this method 
         /// as a job for each scheduler.
@@ -605,7 +655,7 @@ namespace HttpStructs
                     ScSessionClass s = apps_sessions_[used_session_index_node.Value];
 
                     // Checking if session is created at all.
-                    if (s != null) 
+                    if (s != null)
                     {
                         // Checking that session is active at all.
                         if (s.session_struct_.IsAlive()) 
@@ -617,7 +667,7 @@ namespace HttpStructs
                                 if (!s.apps_session_int_.IsBeingUsed()) 
                                 {
                                     // Checking if session is outdated.
-                                    if ((CurrentTimeTick - s.LastActiveTimeTick) > 2) 
+                                    if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes + 1) 
                                     {
                                         // Destroying old session.
                                         DestroySession(s.session_struct_);
