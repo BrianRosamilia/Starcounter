@@ -147,7 +147,8 @@ namespace StarcounterInternal.Hosting
                 new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
                     BaseType.CreateTypeDef(), MaterializedType.CreateTypeDef(), RuntimeType.CreateTypeDef(),
                     MappedType.CreateTypeDef(), ReferenceType.CreateTypeDef(),
-                    RuntimeView.CreateTypeDef(), VirtualTable.CreateTypeDef(), RawView.CreateTypeDef()
+                    RuntimeView.CreateTypeDef(), VirtualTable.CreateTypeDef(), RawView.CreateTypeDef(),
+                    VMView.CreateTypeDef()
                 },
                 null,
                 stopwatch_,
@@ -197,6 +198,7 @@ namespace StarcounterInternal.Hosting
             HostManager.InitTypeSpecification(typeof(RuntimeView.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(VirtualTable.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(RawView.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
 
             stopwatch_ = null;
         }

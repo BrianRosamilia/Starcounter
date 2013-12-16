@@ -184,4 +184,42 @@ namespace Starcounter.Metadata {
         }
     }
 
+    public abstract class VMView : VirtualTable {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+#pragma warning disable 0649, 0169
+        internal new class __starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding typeBinding;
+            internal static int columnHandle_name;
+            internal static int columnHandle_full_name;
+            internal static int columnHandle_updatable;
+            internal static int columnHandle_table;
+            internal static int columnHandle_base_virtual_table;
+        }
+#pragma warning disable 0628, 0169
+        #endregion
+
+        static new internal TypeDef CreateTypeDef() {
+            return TypeDef.CreateTypeTableDef(
+                "Starcounter.Metadata.VMView", "Starcounter.Metadata.VirtualTable",
+                "vm_view", "virtual_table",
+                new ColumnDef[] {
+                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
+                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("full_name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("updatable", sccoredb.STAR_TYPE_ULONG, false, true),
+                    new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("base_virtual_table", sccoredb.STAR_TYPE_REFERENCE, true, true)
+                },
+                new PropertyDef[] {
+                    new PropertyDef("Name", DbTypeCode.String),
+                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("Updatable", DbTypeCode.Boolean),
+                    new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
+                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualView")
+                });
+        }
+
+        public VMView(Uninitialized u) : base(u) { }
+    }
 }
