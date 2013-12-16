@@ -332,6 +332,10 @@ namespace Starcounter {
             }
 
             if (InternalSession != null) {
+                
+                // NOTE: Preventing recursive destroy call.
+                InternalSession.apps_session_int_ = null;
+
                 InternalSession.Destroy();
                 InternalSession = null;
             }

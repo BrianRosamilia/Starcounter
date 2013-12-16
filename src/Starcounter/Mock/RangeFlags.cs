@@ -16,21 +16,10 @@ namespace Starcounter
     [Flags]
     public enum RangeFlags : uint
     {
-
-        /// <summary>
-        /// The valid lesser key
-        /// </summary>
-        ValidLesserKey = sccoredb.SC_ITERATOR_RANGE_VALID_LSKEY,
-
         /// <summary>
         /// The include lesser key
         /// </summary>
         IncludeLesserKey = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY,
-
-        /// <summary>
-        /// The valid greater key
-        /// </summary>
-        ValidGreaterKey = sccoredb.SC_ITERATOR_RANGE_VALID_GRKEY,
 
         /// <summary>
         /// The include greater key

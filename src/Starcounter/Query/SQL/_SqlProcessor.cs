@@ -93,10 +93,7 @@ internal static class SqlProcessor
                 return true;
             case 'D':
             case 'd':
-                if (SqlProcessor.ProcessDQuery(slowSql, query, values))
-                    return true;
-                else
-                    return false;
+                return SqlProcessor.ProcessDQuery(slowSql, query, values);
             case ' ':
             case '\t':
                 query = query.TrimStart(' ', '\t');
@@ -109,10 +106,7 @@ internal static class SqlProcessor
                         return true;
                     case 'D':
                     case 'd':
-                        if (SqlProcessor.ProcessDQuery(slowSql, query, values))
-                            return true;
-                        else
-                            return false;
+                        return SqlProcessor.ProcessDQuery(slowSql, query, values);
                     default:
                         return false;
                 }

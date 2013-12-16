@@ -1071,19 +1071,9 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
-        /// The S c_ ITERATO r_ RANG e_ VALI d_ LSKEY
-        /// </summary>
-        public const UInt32 SC_ITERATOR_RANGE_VALID_LSKEY = 0x00000001;
-
-        /// <summary>
         /// The S c_ ITERATO r_ RANG e_ INCLUD e_ LSKEY
         /// </summary>
         public const UInt32 SC_ITERATOR_RANGE_INCLUDE_LSKEY = 0x00000010;
-
-        /// <summary>
-        /// The S c_ ITERATO r_ RANG e_ VALI d_ GRKEY
-        /// </summary>
-        public const UInt32 SC_ITERATOR_RANGE_VALID_GRKEY = 0x00000002;
 
         /// <summary>
         /// The S c_ ITERATO r_ RANG e_ INCLUD e_ GRKEY
