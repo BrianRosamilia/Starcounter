@@ -115,7 +115,7 @@ namespace Starcounter.Binding
                 typeCodes[i + 1] = propDefs[i].Type;
             }
             // Finally create TableDef and TypeDef
-            var systemTableDef = new TableDef(tableName, baseTableName, columnDefs);
+            var systemTableDef = new TableDef(tableName, baseTableName, columnDefs, true);
             var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, propDefs,
                 new TypeLoader(new AssemblyName("Starcounter"), typeName),
                 systemTableDef, typeCodes);

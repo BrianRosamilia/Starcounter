@@ -77,11 +77,16 @@ namespace Starcounter.Binding
         public ushort TableId;
 
         /// <summary>
+        /// Indicates if the table is system table and requires system privilege to update.
+        /// </summary>
+        internal bool SystemTable = false;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TableDef" /> class.
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="columnsDefs">The columns defs.</param>
-        public TableDef(string name, ColumnDef[] columnsDefs) : this(name, null, columnsDefs, 0xFFFF) { }
+        public TableDef(string name, ColumnDef[] columnsDefs) : this(name, null, columnsDefs, 0xFFFF, false) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TableDef" /> class.
@@ -89,7 +94,10 @@ namespace Starcounter.Binding
         /// <param name="name">The name.</param>
         /// <param name="baseName">Name of the base.</param>
         /// <param name="columnsDefs">The columns defs.</param>
-        public TableDef(string name, string baseName, ColumnDef[] columnsDefs) : this(name, baseName, columnsDefs, 0xFFFF) { }
+        public TableDef(string name, string baseName, ColumnDef[] columnsDefs) : this(name, baseName, columnsDefs, 0xFFFF, false) { }
+
+        public TableDef(string name, string baseName, ColumnDef[] columnsDefs, bool sysTable) : this(name, baseName, columnsDefs, 0xFFFF, sysTable) { }
+        public TableDef(string name, string baseName, ColumnDef[] columnsDefs, ushort tableId) : this(name, baseName, columnsDefs, tableId, false) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TableDef" /> class.
@@ -98,13 +106,15 @@ namespace Starcounter.Binding
         /// <param name="baseName">Name of the base.</param>
         /// <param name="columnsDefs">The columns defs.</param>
         /// <param name="tableId">The table id.</param>
-        public TableDef(string name, string baseName, ColumnDef[] columnsDefs, ushort tableId)
+        public TableDef(string name, string baseName, ColumnDef[] columnsDefs, ushort tableId, bool sysTable)
         {
             Name = name;
             BaseName = baseName;
             ColumnDefs = columnsDefs;
 
             TableId = tableId;
+
+            SystemTable = sysTable;
         }
 
         /// <summary>
