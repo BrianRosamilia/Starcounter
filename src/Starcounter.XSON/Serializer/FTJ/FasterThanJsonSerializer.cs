@@ -50,7 +50,7 @@ namespace Starcounter.Advanced.XSON {
 			int valueCount = exposedProperties.Count;
 			int offset = 0;
 
-			obj.ResumeTransaction(false);
+			obj.ResumeTransaction(true);
 
 			unsafe {
 restart:
