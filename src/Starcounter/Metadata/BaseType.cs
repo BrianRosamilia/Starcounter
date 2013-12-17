@@ -52,10 +52,10 @@ namespace Starcounter.Metadata {
             : base(u) {
         }
 
-        internal BaseType()
-            : this(null) {
-            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
-        }
+        //internal BaseType()
+        //    : this(null) {
+        //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        //}
 
         /// <summary>
         /// Name of the type
@@ -170,10 +170,10 @@ namespace Starcounter.Metadata {
             : base(u) {
         }
 
-        internal RuntimeType()
-            : this(null) {
-            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
-        }
+        //internal RuntimeType()
+        //    : this(null) {
+        //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        //}
 
         public string VMName {
             get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_vm_name); }

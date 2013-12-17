@@ -49,7 +49,7 @@ namespace Starcounter.Metadata {
             : base(u) {
         }
 
-        //public RuntimeView() : this(null) {
+        //internal RuntimeView() : this(null) {
         //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
 
@@ -116,7 +116,7 @@ namespace Starcounter.Metadata {
 
         public VirtualTable(Uninitialized u) : base(u) { }
 
-        //public VirtualTable()
+        //internal VirtualTable()
         //    : this(null) {
         //        DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
@@ -179,7 +179,7 @@ namespace Starcounter.Metadata {
         }
 
         public RawView(Uninitialized u) : base(u) { }
-        public RawView() : this(null) {
+        internal RawView() : this(null) {
             DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
     }
@@ -221,5 +221,90 @@ namespace Starcounter.Metadata {
         }
 
         public VMView(Uninitialized u) : base(u) { }
+    }
+
+    public sealed class ClrView : VMView {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+#pragma warning disable 0649, 0169
+        internal new class __starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding typeBinding;
+            internal static int columnHandle_name;
+            internal static int columnHandle_full_name;
+            internal static int columnHandle_updatable;
+            internal static int columnHandle_table;
+            internal static int columnHandle_base_virtual_table;
+            internal static int columnHandle_assembly_name;
+            internal static int columnHandle_appdomain_name;
+            internal static int columnHandle_full_class_name;
+        }
+#pragma warning disable 0628, 0169
+        #endregion
+
+        static new internal TypeDef CreateTypeDef() {
+            return TypeDef.CreateTypeTableDef(
+                "Starcounter.Metadata.ClrView", "Starcounter.Metadata.VMView",
+                "clr_view", "vm_view",
+                new ColumnDef[] {
+                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
+                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("full_name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("updatable", sccoredb.STAR_TYPE_ULONG, false, true),
+                    new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("base_virtual_table", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("assembly_name", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("appdomain_name", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("full_class_name", sccoredb.STAR_TYPE_STRING, true, false)
+                },
+                new PropertyDef[] {
+                    new PropertyDef("Name", DbTypeCode.String),
+                    new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("Updatable", DbTypeCode.Boolean),
+                    new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
+                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualView"),
+                    new PropertyDef("AssmeblyName", DbTypeCode.String),
+                    new PropertyDef("AppdomainName", DbTypeCode.String),
+                    new PropertyDef("FullClassName", DbTypeCode.String)
+                });
+        }
+
+        public ClrView(Uninitialized u) : base(u) { }
+        internal ClrView()
+            : this(null) {
+            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        }
+
+        public String AssemblyName {
+            get {
+                return DbState.ReadString(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_assembly_name);
+            }
+            internal set {
+                DbState.WriteString(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_assembly_name, value);
+            }
+        }
+
+        public String AppdomainName {
+            get {
+                return DbState.ReadString(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_appdomain_name);
+            }
+            internal set {
+                DbState.WriteString(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_appdomain_name, value);
+            }
+        }
+
+        public String FullClassName {
+            get {
+                return DbState.ReadString(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_full_class_name);
+            }
+            internal set {
+                DbState.WriteString(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_full_class_name, value);
+            }
+        }
     }
 }
