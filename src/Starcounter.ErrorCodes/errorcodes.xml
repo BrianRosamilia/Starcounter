@@ -3142,6 +3142,9 @@
         Transaction size limit reached.
       </message>
     </code>
+    <code hex="010C" severity="Error" name="ScErrSystemIndexOnNonSystemTable">
+      <message>System index can't be added to a regular table.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

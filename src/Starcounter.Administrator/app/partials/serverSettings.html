@@ -1,0 +1,23 @@
+﻿<form name="myForm" class="form-horizontal  well well-small" ng-hide='model.settings == null'>
+
+    <legend>Server Settings</legend>
+
+    <div class="control-group" ng-class="{error: myForm.httpPort.$invalid}">
+        <label class="control-label" for="httpPort">Http Port</label>
+        <div class="controls">
+            <input ng-disabled="isBusy == true" type="number" min="0" max="65535" integer name="httpPort" id="httpPort" placeholder="Http port" ng-model="model.settings.httpPort" required>
+            <span ng-show="myForm.httpPort.$error.validationError" class="help-inline">Invalid format</span>
+            <span ng-show="myForm.httpPort.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" ng-disabled="myForm.$invalid || isBusy == true || myForm.$dirty == false" class="btn btn-success" ng-click="btnSaveSettings(model.settings)">Save</button>
+        <button ng-disabled="myForm.$pristine  == true || isBusy == true" class="btn" ng-click="btnResetSettings()">Reset</button>
+    </div>
+
+</form>
+
+<p class="muted pull-right">
+    v{{model.settings.version}}
+</p>

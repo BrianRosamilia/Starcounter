@@ -1,9 +1,9 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * scadmin module
+ * Starcounter Administrator module
  * ----------------------------------------------------------------------------
  */
-var adminModule = angular.module('scadmin', ['ui.bootstrap','ui.select2'], function ($routeProvider) {
+var adminModule = angular.module('scadmin', ['ui.bootstrap', 'ui.select2', 'uiHandsontable'], function ($routeProvider) {
 
     $routeProvider.when('/databases', {
         templateUrl: '/app/partials/databases.html',
@@ -25,7 +25,31 @@ var adminModule = angular.module('scadmin', ['ui.bootstrap','ui.select2'], funct
         controller: 'DatabaseCreateCtrl'
     });
 
+    $routeProvider.when('/log', {
+        templateUrl: '/app/partials/log.html',
+        controller: 'LogCtrl',
+        resolve: {
+            redirect: function ($route, $location) {
+                if (jQuery.isEmptyObject($location.search())) {
+                    // Set default search filter
+                    $location.search({ "debug": false, "notice": false, "warning": true, "error": true, "source": "" });
+                }
+            }
+        }
+    });
 
+    $routeProvider.when('/gateway', {
+        templateUrl: '/app/partials/gatewayStatistics.html',
+        controller: 'GatewayCtrl'
+    });
+
+
+    $routeProvider.when('/serverSettings', {
+        templateUrl: '/app/partials/ServerSettings.html',
+        controller: 'ServerSettingsCtrl'
+    });
+
+    
     $routeProvider.otherwise({ redirectTo: '/databases' });
 
 });

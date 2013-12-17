@@ -1,0 +1,74 @@
+﻿<div class="btn-toolbar">
+
+    <div class="btn-group" data-toggle="buttons-checkbox">
+        <button type="button" ng-disabled="isBusy == true" class="btn" ng-model="model.filter.debug" btn-checkbox>Debug</button>
+        <button type="button" ng-disabled="isBusy == true" class="btn" ng-model="model.filter.notice" btn-checkbox>Notice</button>
+        <button type="button" ng-disabled="isBusy == true" class="btn btn-warning" ng-model="model.filter.warning" btn-checkbox>Warning</button>
+        <button type="button" ng-disabled="isBusy == true" class="btn btn-danger" ng-model="model.filter.error" btn-checkbox>Error</button>
+    </div>
+    <button ng-hide="model.isWebsocketSupport == true" class="btn pull-right" ng-disabled="isBusy == true" ng-click="btnRefresh()"><i class="icon-repeat"></i></button>
+
+</div>
+
+{{model.isWebsocketSupport}}
+
+<div class="row-fluid">
+    <input type="text" class="span12" ui-select2="select2Options" ng-model="list_of_string" class="input-large" placeholder="Source filter">
+</div>
+
+
+<!--<table class="table table-condensed">
+
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Host</th>
+            <th>Source</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr ng-class="entry.TypeStr" ng-repeat="entry in log.LogEntries">
+            <td class="log_datetime">{{entry.DateTimeStr}}</td>
+            <td>{{entry.TypeStr}}</td>
+            <td>{{entry.HostName}}</td>
+            <td>{{entry.Source}}</td>
+            <td>{{entry.Message}}</td>
+        </tr>
+    </tbody>
+
+</table>-->
+
+<!--<div ng-show='isBusy == true' class="progress progress-striped active">
+    <div class="bar" style="width: 100%;"></div>
+</div>-->
+
+<div ng-hide='isBusy == true'>
+
+    <ui-handsontable
+        id="handsontable"
+        height="calcHeight"
+        stretchh="'last'"
+        outsideclickdeselects="false"
+        selectedindex="currentSelection"
+        minsparerows="0"
+        startrows="0"
+        datarows="row in model.LogEntries"
+        currentrowclassname="'currentRow'"
+        manualcolumnmove="false"
+        manualcolumnresize="true"
+        columnsorting="true"
+        fragmentselection="true"
+        scrollbarmodelv="'native'">
+
+      <datacolumn readOnly="true" value="row.DateTimeStr" title="'Date'"></datacolumn>
+      <datacolumn readOnly="true" value="row.TypeStr" title="'Type'"></datacolumn>
+      <datacolumn readOnly="true" value="row.HostName" title="'Host'"></datacolumn>
+      <datacolumn readOnly="true" value="row.Source" title="'Source'"></datacolumn>
+      <datacolumn width="100" readOnly="true" value="row.Message" title="'Message'"></datacolumn>
+
+    </ui-handsontable>
+</div>
+

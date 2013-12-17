@@ -67,6 +67,9 @@
 
     <script src="/app/services/DatabaseService.js"></script>
     <script src="/app/services/ExecutableService.js"></script>
+    <script src="/app/services/LogService.js"></script>
+    <script src="/app/services/GatewayService.js"></script>
+    <script src="/app/services/ServerService.js"></script>
 
     <script src="/app/factories/Utils.js"></script>
     <script src="/app/factories/UserMessageFactory.js"></script>
@@ -78,6 +81,9 @@
     <script src="/app/controllers/DatabaseCreateCtrl.js"></script>
     <script src="/app/controllers/ExecutablesCtrl.js"></script>
     <script src="/app/controllers/ExecutableStartCtrl.js"></script>
+    <script src="/app/controllers/LogCtrl.js"></script>
+    <script src="/app/controllers/GatewayCtrl.js"></script>
+    <script src="/app/controllers/ServerSettingsCtrl.js"></script>
 
     <script src="/app/directives/Notices.js"></script>
     <script src="/app/directives/Jobs.js"></script>
@@ -116,7 +122,7 @@
             <li data-ng-class="{active: getClass('/sql')}"><a href="#/sql">SQL</a></li>
             <li data-ng-class="{active: getClass('/log')}"><a href="#/log">Log</a></li>
             <li data-ng-class="{active: getClass('/gateway') }"><a href="#/gateway">Gateway</a></li>
-            <li data-ng-class="{active: getClass('/server_edit') }"><a href="#/server_edit">Settings</a></li>
+            <li data-ng-class="{active: getClass('/serverSettings') }"><a href="#/serverSettings">Settings</a></li>
         </ul>
     </div>
 

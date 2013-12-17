@@ -16,6 +16,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
 
     var self = this;
 
+
     /**
      * Get all databases
      * @param {successCallback} successCallback function
@@ -343,7 +344,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
 
             if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("validationErrors") == true) {
 
-                $log.info("Default Databases settings successfully retrived");
+                $log.info("Default Databases settings successfully verified");
                 if (typeof (successCallback) == "function") {
                     successCallback(response.data.validationErrors);
                 }
