@@ -66,48 +66,6 @@ namespace Starcounter.Internal.JsonPatch {
 
 			return buffer.Count - startIndex;
 		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="change"></param>
-		/// <returns></returns>
-		private static object GetValueFromChange(Change change) {
-			object ret = null;
-			Template property = change.Property;
-
-			// TODO:
-			// Need a faster way than checking type and casting to get the value.
-
-			if (property is TString) {
-				ret = ((TString)property).Getter(change.Obj);
-			} else if (property is TObjArr) {
-				var arr = (Json)((TObjArr)property).Getter(change.Obj);
-				if (change.Index != -1) {
-					ret = arr._GetAt(change.Index);
-				} else {
-#if DEBUG
-					if (change.ChangeType == Change.REMOVE) {
-						throw new Exception("Cannot get value from remove");
-					}
-#endif
-					ret = arr;
-				}
-
-			} else if (property is TLong) {
-
-				ret = ((TLong)property).Getter(change.Obj);
-			} else if (property is TBool) {
-				ret = ((TBool)property).Getter(change.Obj);
-			} else if (property is TDouble) {
-				ret = ((TDouble)property).Getter(change.Obj);
-			} else if (property is TDecimal) {
-				ret = ((TDecimal)property).Getter(change.Obj);
-			} else if (property is TObject) {
-				ret = ((TObject)property).Getter(change.Obj);
-			}
-			return ret;
-		}
 	}
 }
 
