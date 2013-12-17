@@ -135,4 +135,57 @@ namespace Starcounter.Metadata {
             }
         }
     }
+
+    public sealed class CodeProperty : RuntimeMember {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+#pragma warning disable 0649, 0169
+        internal new class __starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding typeBinding;
+            internal static int columnHandle_runtime_view;
+            internal static int columnHandle_name;
+            internal static int columnHandle_type;
+            internal static int columnHandle_polymorphic;
+        }
+#pragma warning disable 0628, 0169
+        #endregion
+
+        static internal new TypeDef CreateTypeDef() {
+            return TypeDef.CreateTypeTableDef(
+                "Starcounter.Metadata.CodeProperty", "Starcounter.Metadata.RuntimeMember",
+                "code_property", "runtime_member",
+                new ColumnDef[] {
+                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
+                    new ColumnDef("runtime_view", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("type", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("polymorphic", sccoredb.STAR_TYPE_ULONG, false, false)
+                },
+                new PropertyDef[] {
+                    new PropertyDef("RuntimeView", DbTypeCode.Object, "Starcounter.Metadata.RuntimeView"),
+                    new PropertyDef("Name", DbTypeCode.String),
+                    new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.BaseType"),
+                    new PropertyDef("Polymorphic", DbTypeCode.Byte)
+                });
+        }
+
+        public CodeProperty(Uninitialized u) : base(u) { }
+
+        internal CodeProperty()
+            : this(null) {
+                DbState.Insert(__starcounterTypeSpecification.tableHandle, 
+                    ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        }
+
+        public Byte Polymorphic {
+            get {
+                return DbState.ReadByte(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_polymorphic);
+            }
+            internal set {
+                DbState.WriteByte(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_polymorphic, value);
+            }
+        }
+    }
 }
