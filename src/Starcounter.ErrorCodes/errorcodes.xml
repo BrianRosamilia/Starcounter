@@ -3145,6 +3145,12 @@
     <code hex="010C" severity="Error" name="ScErrSystemIndexOnNonSystemTable">
       <message>System index can't be added to a regular table.</message>
     </code>
+    <code hex="010D" severity="Error" name="ScErrNotASystemTransaction">
+      <message>Operation is only allowed within the context of a system transaction.</message>
+    </code>
+    <code hex="010E" severity="Error" name="ScErrNotANonSystemTransaction">
+      <message>Operation is not allowed within the context of a system transaction.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3742,6 +3748,13 @@
         suggested that the transaction should be considered invalid.
       </message>
     </code>
+    <code hex="0023" severity="Error" name="ScErrNotASystemTransactionAbort">
+      <message>
+        Transaction was aborted because of an attempt by a non-system
+        transaction to update a system table.
+      </message>
+    </code>
+
   </facility>
 
 <!--
