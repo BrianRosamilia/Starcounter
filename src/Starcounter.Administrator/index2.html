@@ -5,6 +5,7 @@
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" value="notranslate">
 
     <link rel="shortcut icon" href="/img/favicon.ico">
 
@@ -28,6 +29,8 @@
 
     <!-- jQuery, Used by: angular-ui, ui-bootstrap  -->
     <script src="/sys/jquery-1.9.1.min.js"></script>
+
+    <script src="sys/very-native-scrollbar.js"></script>
 
     <script src="sys/select2.js"></script>
 
@@ -65,28 +68,39 @@
 
     <script src="/app/app.js"></script>
 
+    <!-- Services -->
     <script src="/app/services/DatabaseService.js"></script>
+    <script src="/app/services/DatabaseConsoleService.js"></script>
     <script src="/app/services/ExecutableService.js"></script>
+    <script src="/app/services/SqlService.js"></script>
     <script src="/app/services/LogService.js"></script>
     <script src="/app/services/GatewayService.js"></script>
     <script src="/app/services/ServerService.js"></script>
+    <script src="/app/services/VersionCheckService.js"></script>
 
+    <!-- Factories -->
     <script src="/app/factories/Utils.js"></script>
     <script src="/app/factories/UserMessageFactory.js"></script>
     <script src="/app/factories/NoticeFactory.js"></script>
     <script src="/app/factories/JobFactory.js"></script>
 
+    <!-- Controllers -->
     <script src="/app/controllers/UserErrorMessageCtrl.js"></script>
     <script src="/app/controllers/DatabasesCtrl.js"></script>
+    <script src="/app/controllers/DatabaseCtrl.js"></script>
     <script src="/app/controllers/DatabaseCreateCtrl.js"></script>
+    <script src="/app/controllers/DatabaseSettingsCtrl.js"></script>
     <script src="/app/controllers/ExecutablesCtrl.js"></script>
     <script src="/app/controllers/ExecutableStartCtrl.js"></script>
+    <script src="/app/controllers/SqlCtrl.js"></script>
     <script src="/app/controllers/LogCtrl.js"></script>
     <script src="/app/controllers/GatewayCtrl.js"></script>
     <script src="/app/controllers/ServerSettingsCtrl.js"></script>
 
+    <!-- Directives -->
     <script src="/app/directives/Notices.js"></script>
     <script src="/app/directives/Jobs.js"></script>
+    <script src="/app/directives/VersionCheck.js"></script>
 
 
     <link rel="stylesheet" href="/app/css/Styles.css">
@@ -126,12 +140,15 @@
         </ul>
     </div>
 
-    <div class="alert alert-info" data-ng-show="newVersion!=null">
+
+    <version-check></version-check>
+
+<!--    <div class="alert alert-info" data-ng-show="newVersion!=null">
         <button type="button" class="close" data-ng-click="closeVersionNotice()" data-dismiss="alert">&times;</button>
         <strong>New Version!</strong>
         <p>A newer version of Starcounter is available.</p>
         <a href="{{newVersion.downloadUri}}" target="_blank">Download ({{newVersion.version}})</a>
-    </div>
+    </div>-->
 
     <div class="progress progress-striped active" data-ng-repeat="job in jobs">
         <div class="bar" style="width: 100%;">{{job.message}}</div>

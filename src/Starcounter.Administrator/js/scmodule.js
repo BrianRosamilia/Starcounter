@@ -104,34 +104,7 @@ sqlQueryModule.controller('SqlQueryCtrl', ['$scope', 'SqlQuery', '$rootScope', f
     }
 
     // Init
-    // Handsontable (fixed the height)
-    var $window = $(window);
-    var winHeight = $window.height();
-    var winWidth = $window.width();
-
-    $window.resize(function () {
-        winHeight = $window.height();
-        winWidth = $window.width();
-    });
-
-    $scope.calcHeight = function () {
-        var border = 12;
-
-        var ht = $("#handsontable");
-        var offset = ht.offset();
-        if (!offset) {
-            return;
-        }
-        var topOffset = offset.top;
-        //var topOffset = $("#handsontable").offset().top;
-
-        var height = winHeight - topOffset - 2 * border;
-        if (height < 50) {
-            return 50;
-        }
-        return height;
-    };
-
+ 
     if ($scope.queryState.selectedDatabaseName == "") {
 
         $scope._RefreshDatabases(function () {
@@ -2704,45 +2677,10 @@ adminModule.controller('LogCtrl', ['$scope', '$http', '$location', function ($sc
         $scope.listenToLogEvents();
     }
 
+    // Init 
     $scope.getLog();
 
-    // Init 
-    // Handsontable (fixed the height)
-    var $window = $(window);
-    var winHeight = $window.height();
-    var winWidth = $window.width();
-    $window.resize(function () {
-        winHeight = $window.height();
-        winWidth = $window.width();
-    });
-
-    $scope.calcHeight = function () {
-        var border = 12;
-        //var topOffset = $("#handsontable").offset().top;
-        var ht = $("#console");
-        var offset = ht.offset();
-        if (!offset) {
-            return;
-        }
-        var topOffset = offset.top;
-
-        var height = winHeight - topOffset - 2 * border;
-        if (height < 50) {
-            return 50;
-        }
-        return height;
-    };
-
-    $scope.calcWidth = function () {
-        var border = 12;
-        var leftOffset = $("#handsontable").offset().left;
-        var width = winWidth - leftOffset - 2 * border;
-        if (width < 50) {
-            return 50;
-        }
-        return width;
-    };
-
+  
 }]);
 
 

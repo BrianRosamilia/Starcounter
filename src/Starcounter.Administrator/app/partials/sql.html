@@ -1,0 +1,102 @@
+﻿<form class="form-inline">
+
+    <!--    <select class="input-large" name="database" id="database" ui-select2 ng-model="selectedDatabaseName">
+        <option value="">-- select a database --</option>
+        <option value="{{database.name}}" ng-repeat="database in databases | filter: {running:true}">{{database.name}}</option>
+    </select>-->
+
+    <select class="input-large" name="database" id="database" ui-select2 ng-model="queryState.selectedDatabaseName" required>
+        <option value="">-- select a database --</option>
+        <option value="{{database.name}}" ng-repeat="database in databases | filter: {running:true} | orderBy: 'name'">{{database.name}}</option>
+    </select>
+
+    <button type="submit" class="btn btn-success input-medium" ng-disabled="queryState.selectedDatabaseName == ''||queryState.selectedDatabaseName == null||isBusy == true||!queryState.sqlQuery" ng-click="btnExecute(queryState.sqlQuery,queryState.selectedDatabaseName)">{{executeButtonTitle(isBusy)}}</button>
+
+</form>
+
+<textarea id="sqlinput" ui-codemirror="{theme:'monokai'}" ng-model="queryState.sqlQuery"></textarea>
+
+<br />
+
+
+<div ng-show='isBusy == true' class="progress progress-striped active">
+    <div class="bar" style="width: 100%;">Executing sql query</div>
+</div>
+
+<div ng-hide='isBusy == true'>
+
+    <tabs>
+        <pane heading="Result">
+          <div id="handsontableContainer" style="overflow-x: auto; overflow-y: visible">
+            <ui-handsontable
+                id="handsontable"
+                height="calcHeight"
+                stretchh="'last'"
+                selectedindex="SelectedIndex"
+                outsideclickdeselects="false"
+                selectedindex="currentSelection"
+                columns="queryState.columns"
+                minsparerows="0"
+                startrows="0"
+                datarows="row in queryState.rows"
+                currentrowclassname="'currentRow'"
+                manualcolumnmove="false"
+                manualcolumnresize="false"
+                columnsorting="false"
+                nativescrollbars="true"
+                fragmentselection="true">
+            </ui-handsontable>
+          </div>
+          <script>
+              function scrollRefresh() {
+                  var wt = $('#handsontable').data('uiDatagrid').$container.handsontable('getInstance').view.wt;
+                  var box = wt.wtScrollbars.horizontal.scrollHandler.getBoundingClientRect();
+                  if (wt.wtScrollbars.horizontal) {
+                      if (box.bottom > document.documentElement.clientHeight && wt.wtScrollbars.horizontal.scrollHandler.scrollLeft !== void 0) {
+                          virtualScroller.DIV.style.display = 'block';
+                          virtualScroller.DIV.style.top = '';
+                          virtualScroller.DIV.style.bottom = 0;
+                          virtualScroller.DIV.style.left = parseInt(box.left, 10) + 1 + 'px';
+                          virtualScroller.setPositionPx(wt.wtScrollbars.horizontal.windowScrollPosition);
+                          virtualScroller.setWidth(Handsontable.Dom.outerWidth(wt.wtScrollbars.instance.wtTable.holder.parentNode));
+                          virtualScroller.setScrolledWidth(wt.wtScrollbars.instance.wtViewport.getWorkspaceActualWidth());
+                      }
+                      else {
+                          virtualScroller.DIV.style.display = 'none';
+                      }
+                  }
+              }
+
+              var hotHolder = document.getElementById('handsontableContainer');
+              var virtualScroller = new VeryNativeScrollbar();
+              virtualScroller.setScrollCallback(function () {
+                  hotHolder.scrollLeft = virtualScroller.getPositionPx();
+                  //$(window).triggerHandler('scroll');
+              });
+
+              $(window).on('scroll', scrollRefresh);
+
+              // select the target node
+              var target = document.querySelector('#handsontable');
+
+              // create an observer instance
+              var observer = new MutationObserver(function (mutations) {
+                  scrollRefresh();
+              });
+
+              // configuration of the observer:
+              var config = { childList: true };
+
+              // pass in the target node, as well as the observer options
+              observer.observe(target, config);
+
+              // later, you can stop observing
+              //observer.disconnect();
+          </script>
+        </pane>
+        <pane heading="Queryplan">
+            <div ng-bind-html-unsafe="queryState.queryPlan" />
+       </pane>
+    </tabs>
+
+</div>

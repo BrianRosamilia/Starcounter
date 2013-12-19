@@ -67,7 +67,11 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);
@@ -79,6 +83,24 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
 
         });
 
+
+    }
+
+
+    /**
+     * Get database
+     * @param {databaseName} Database name
+     * @param {successCallback} successCallback function
+     * @param {errorCallback} errorCallback function
+     */
+    this.getDatabase = function (databaseName, successCallback, errorCallback) {
+
+
+        for (var i = 0 ; i < self.databases.length ; i++) {
+            if (self.databases[i].name == databaseName) {
+                return self.databases[i];
+            }
+        }
 
     }
 
@@ -172,7 +194,11 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);
@@ -242,7 +268,183 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
+            }
+
+            $log.error(errorHeader, response);
+
+            if (typeof (errorCallback) == "function") {
+                errorCallback(messageObject);
+            }
+
+        });
+
+    }
+
+
+    /**
+     * Get Database settings
+     * @param {Database} database
+     * @param {successCallback} successCallback function
+     * @param {errorCallback} errorCallback function
+     */
+    this.getDatabaseSettings = function (database, successCallback, errorCallback) {
+
+        $log.info("Retriving database settings");
+
+        var errorHeader = "Failed to retrive database settings";
+
+        var job = { message: "Retriving database settings" };
+        JobFactory.AddJob(job);
+        var uri = "/api/admin/databases/" + database.name + "/settings";
+
+        $http.get(uri).then(function (response) {
+            // success handler
+            JobFactory.RemoveJob(job);
+
+            if (response.hasOwnProperty("data") == true && response.data.hasOwnProperty("settings") == true) {
+                $log.info("Databases settings successfully retrived");
+                if (typeof (successCallback) == "function") {
+                    successCallback(response.data.settings);
+                }
+            }
+            else {
+                // Error
+                $log.error(errorHeader, response);
+
+                if (typeof (errorCallback) == "function") {
+                    var messageObject = UtilsFactory.createErrorMessage(errorHeader, "Invalid response content", null, null);
+                    errorCallback(messageObject);
+                }
+            }
+
+        }, function (response) {
+
+            JobFactory.RemoveJob(job);
+            // Error
+            var messageObject;
+
+            if (response instanceof SyntaxError) {
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+            }
+            else if (response.status == 500) {
+                // 500 Server Error
+                errorHeader = "Internal Server Error";
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
+            }
+            else {
+                // Unhandle Error
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
+            }
+
+            $log.error(errorHeader, response);
+
+            if (typeof (errorCallback) == "function") {
+                errorCallback(messageObject);
+            }
+
+
+        });
+    }
+
+
+    /**
+     * Save database settings
+     * @param {database} Database
+     * @param {settings} settings
+     * @param {successCallback} successCallback function
+     * @param {errorCallback} errorCallback function
+     */
+    this.saveDatabaseSettings = function (database, settings, successCallback, errorCallback) {
+
+        $log.info("Saving database settings");
+
+        var errorHeader = "Failed to save database settings";
+
+        var job = { message: "Saving database settings" };
+        JobFactory.AddJob(job);
+        var uri = "/api/admin/databases/" + database.name + "/settings";
+
+        $http.put(uri, settings).then(function (response) {
+            // success handler
+            JobFactory.RemoveJob(job);
+
+            if (response.data.hasOwnProperty("errors") == true) {
+                var messageObjectList = [];
+
+                for (var i = 0; i < response.data.errors.length; i++) {
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.errors[i].message, response.data.errors[i].helplink);
+                    messageObjectList.push(messageObject);
+                }
+
+                if (errorCallback != null) {
+                    errorCallback(messageObjectList);
+                }
+
+            }
+            else {
+
+                var messageObject = null;
+                if (response.data.hasOwnProperty("message") == true) {
+
+                    messageObject = UtilsFactory.createMessage("success", response.data.message, null);
+
+                    //$scope.alerts.push({ type: 'success', msg: response.data.message });
+                }
+
+
+                if (successCallback != null) {
+                    // TODO: Return the new settings
+                    successCallback(messageObject);
+                }
+
+            }
+
+        }, function (response) {
+
+            // Error
+            JobFactory.RemoveJob(job);
+            var messageObject;
+
+            if (response instanceof SyntaxError) {
+                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+            }
+            else if (response.status == 403) {
+                // 403 forbidden
+                messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+            }
+            else if (response.status == 500) {
+                // 500 Server Error
+                errorHeader = "Internal Server Error";
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                }
+                else if (response.data.hasOwnProperty("exception") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.exception.message, response.data.exception.helpLink, response.data.exception.stackTrace);
+                }
+                else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
+            }
+            else {
+                // Unhandle Error
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);
@@ -310,7 +512,11 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);
@@ -382,7 +588,11 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);
@@ -467,7 +677,11 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);

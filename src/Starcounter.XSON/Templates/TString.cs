@@ -83,7 +83,7 @@ namespace Starcounter.Templates {
 
 		internal override string ValueToJsonString(Json parent) {
 			string value = Getter(parent);
-			if (value != null) {
+			if (!string.IsNullOrEmpty(value)) {
 				byte[] buffer = new byte[value.Length * 4];
 				unsafe {
 					fixed (byte* p = buffer) {

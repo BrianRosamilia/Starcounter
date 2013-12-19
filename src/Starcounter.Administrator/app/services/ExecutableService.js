@@ -82,7 +82,11 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);
@@ -242,8 +246,12 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
 
                 }
                 else {
-                    // Unhandle error
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    // Unhandle Error
+                    if (response.data.hasOwnProperty("Text") == true) {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                    } else {
+                        messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                    }
                 }
 
                 $log.error(errorHeader, response);
@@ -317,7 +325,11 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);
@@ -423,8 +435,12 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
                 }
             }
             else {
-                // Unhandle error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                // Unhandle Error
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);

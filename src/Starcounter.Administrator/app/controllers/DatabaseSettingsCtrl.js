@@ -1,23 +1,27 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * Server Settings page Controller
+ * Databases Settings page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'NoticeFactory', 'ServerService', 'UserMessageFactory', function ($scope, $log, $location, NoticeFactory, ServerService, UserMessageFactory) {
+adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '$routeParams', '$anchorScroll', 'NoticeFactory', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, $location, $routeParams, $anchorScroll, NoticeFactory, DatabaseService, UserMessageFactory) {
 
-    // Database Default settings
-    $scope.model = ServerService.model;
+
+    // Model
+    $scope.model = {
+        database: null,
+        settings: null
+    }
 
 
     /**
-     * Verify server settings
+     * Verify database settings
      * @param {settings} settings
      * @param {successCallback} successCallback function
      * @param {errorCallback} errorCallback function
      */
     $scope.verifySettings = function (settings, successCallback, errorCallback) {
 
-        ServerService.verifyServerSettings(settings, function (validationErrors) {
+        DatabaseService.verifyDatabaseSettings(settings, function (validationErrors) {
             // Success
             if (typeof (successCallback) == "function") {
                 successCallback(validationErrors);
@@ -36,13 +40,14 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
 
     /**
      * Save settings
+     * @param {database} database
      * @param {settings} settings
      * @param {successCallback} successCallback function
      * @param {errorCallback} errorCallback function
      */
-    $scope.saveSettings = function (settings, successCallback, errorCallback) {
+    $scope.saveSettings = function (database, settings, successCallback, errorCallback) {
 
-        ServerService.saveSettings(settings, function (messageObject) {
+        DatabaseService.saveDatabaseSettings(database, settings, function (messageObject) {
             // Success
 
             // TODO: Return the newly created database
@@ -61,23 +66,16 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
 
 
     /**
-     * Reset server settings
-     */
-    $scope.btnResetSettings = function () {
-        $scope.refreshServerSettings();
-    }
-
-
-    /**
-     * Refresh server settings
+     * Refresh database settings
      * @param {successCallback} successCallback function
      * @param {errorCallback} errorCallback function
      */
-    $scope.refreshServerSettings = function () {
+    $scope.refreshSettings = function () {
 
-        ServerService.refreshServerSettings(function () {
+        DatabaseService.getDatabaseSettings($scope.model.database, function (settings) {
             // Success
 
+            $scope.model.settings = settings;
             $scope.myForm.$setPristine(); // This dosent work, the <select> breaks the pristine state :-(
 
         },
@@ -95,7 +93,10 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
     }
 
 
-    $scope.btnSaveSettings = function (settings) {
+    /**
+     * Save settings
+     */
+    $scope.btnSaveSettings = function (database, settings) {
 
         $scope.verifySettings(settings, function (validationErrors) {
             // Success
@@ -103,7 +104,7 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
             if (validationErrors.length == 0) {
                 // No validation errors, goahead creating database
 
-                $scope.saveSettings(settings, function (messageObject) {
+                $scope.saveSettings(database, settings, function (messageObject) {
                     // Success
                     //$location.hash("");
 
@@ -115,13 +116,12 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
                         NoticeFactory.ShowNotice({ type: messageObject.header, msg: messageObject.message, helpLink: messageObject.helpLink });
                     }
 
-                    $scope.myForm.$setPristine();
+                    $scope.myForm.$setPristine(); 
 
-                    // Navigate to database list if user has not navigated to another page
-                    if ($location.path() == "/serverSettings") {
-                        $location.path("/");
+                    // Navigate to Executable list if user has not navigated to another page
+                    if ($location.path() == "/databases/" + database.name + "/settings") {
+                        $location.path("/databases");
                     }
-
 
 
                 }, function (messageObjectList) {
@@ -165,11 +165,26 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
 
     }
 
+
+    /**
+     * Reset server settings
+     */
     $scope.btnResetSettings = function () {
-        $scope.refreshServerSettings();
+        $scope.refreshSettings();
     }
 
     // Init
-    $scope.refreshServerSettings();
+    // Refresh databases list
+    DatabaseService.refreshDatabases(
+        function () {
+            // Success
+            $scope.model.database = DatabaseService.getDatabase($routeParams.name);
+            $scope.refreshSettings();
+        },
+        function (messageObject) {
+            // Error
+            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+        });
+
 
 }]);

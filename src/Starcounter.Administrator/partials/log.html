@@ -45,28 +45,76 @@
 
 <div ng-hide='isBusy == true'>
 
+  <div id="handsontableContainer" style="overflow-x: hidden; overflow-y: visible">
     <ui-handsontable
-        id="handsontable"
-        height="calcHeight"
-        stretchh="'last'"
-        outsideclickdeselects="false"
-        selectedindex="currentSelection"
-        minsparerows="0"
-        startrows="0"
-        datarows="row in log.LogEntries"
-        currentrowclassname="'currentRow'"
-        manualcolumnmove="false"
-        manualcolumnresize="true"
-        columnsorting="true"
-        fragmentselection="true"
-        scrollbarmodelv="'native'">
+      id="handsontable"
+      stretchh="'last'"
+      selectedindex="SelectedIndex"
+      outsideclickdeselects="false"
+      selectedindex="currentSelection"
+      minsparerows="0"
+      startrows="0"
+      datarows="row in log.LogEntries"
+      currentrowclassname="'currentRow'"
+      manualcolumnmove="false"
+      manualcolumnresize="false"
+      columnsorting="false"
+      nativescrollbars="true"
+      fragmentselection="true">
 
       <datacolumn readOnly="true" value="row.DateTimeStr" title="'Date'"></datacolumn>
       <datacolumn readOnly="true" value="row.TypeStr" title="'Type'"></datacolumn>
       <datacolumn readOnly="true" value="row.HostName" title="'Host'"></datacolumn>
       <datacolumn readOnly="true" value="row.Source" title="'Source'"></datacolumn>
-      <datacolumn width="100" readOnly="true" value="row.Message" title="'Message'"></datacolumn>
+      <datacolumn readOnly="true" value="row.Message" title="'Message'"></datacolumn>
 
     </ui-handsontable>
+  </div>
+  <script>
+    function scrollRefresh() {
+      var wt = $('#handsontable').data('uiDatagrid').$container.handsontable('getInstance').view.wt;
+      var box = wt.wtScrollbars.horizontal.scrollHandler.getBoundingClientRect();
+      if (wt.wtScrollbars.horizontal) {
+        if (box.bottom > document.documentElement.clientHeight && wt.wtScrollbars.horizontal.scrollHandler.scrollLeft !== void 0) {
+          virtualScroller.DIV.style.display = 'block';
+          virtualScroller.DIV.style.top = '';
+          virtualScroller.DIV.style.bottom = 0;
+          virtualScroller.DIV.style.left = parseInt(box.left, 10) + 1 + 'px';
+          virtualScroller.setPositionPx(wt.wtScrollbars.horizontal.windowScrollPosition);
+          virtualScroller.setWidth(Handsontable.Dom.outerWidth(wt.wtScrollbars.instance.wtTable.holder.parentNode));
+          virtualScroller.setScrolledWidth(wt.wtScrollbars.instance.wtViewport.getWorkspaceActualWidth());
+        }
+        else {
+          virtualScroller.DIV.style.display = 'none';
+        }
+      }
+    }
+
+    var hotHolder = document.getElementById('handsontableContainer');
+    var virtualScroller = new VeryNativeScrollbar();
+    virtualScroller.setScrollCallback(function () {
+      hotHolder.scrollLeft = virtualScroller.getPositionPx();
+      //$(window).triggerHandler('scroll');
+    });
+
+    $(window).on('scroll', scrollRefresh);
+
+    // select the target node
+    var target = document.querySelector('#handsontable');
+
+    // create an observer instance
+    var observer = new MutationObserver(function (mutations) {
+      scrollRefresh();
+    });
+
+    // configuration of the observer:
+    var config = { childList: true };
+
+    // pass in the target node, as well as the observer options
+    observer.observe(target, config);
+
+    // later, you can stop observing
+    //observer.disconnect();
+  </script>
 </div>
 

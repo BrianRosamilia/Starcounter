@@ -3,11 +3,21 @@
  * Starcounter Administrator module
  * ----------------------------------------------------------------------------
  */
-var adminModule = angular.module('scadmin', ['ui.bootstrap', 'ui.select2', 'uiHandsontable'], function ($routeProvider) {
+var adminModule = angular.module('scadmin', ['ui.bootstrap', 'ui.select2', 'uiHandsontable', 'ui', 'ui.config'], function ($routeProvider) {
 
     $routeProvider.when('/databases', {
         templateUrl: '/app/partials/databases.html',
         controller: 'DatabasesCtrl'
+    });
+
+    $routeProvider.when('/databases/:name', {
+        templateUrl: '/app/partials/database.html',
+        controller: 'DatabaseCtrl'
+    });
+
+    $routeProvider.when('/databases/:name/settings', {
+        templateUrl: '/app/partials/databaseSettings.html',
+        controller: 'DatabaseSettingsCtrl'
     });
 
     $routeProvider.when('/executables', {
@@ -23,6 +33,11 @@ var adminModule = angular.module('scadmin', ['ui.bootstrap', 'ui.select2', 'uiHa
     $routeProvider.when('/databaseCreate', {
         templateUrl: '/app/partials/databaseCreate.html',
         controller: 'DatabaseCreateCtrl'
+    });
+
+    $routeProvider.when('/sql', {
+        templateUrl: '/app/partials/sql.html',
+        controller: 'SqlCtrl'
     });
 
     $routeProvider.when('/log', {
@@ -48,10 +63,18 @@ var adminModule = angular.module('scadmin', ['ui.bootstrap', 'ui.select2', 'uiHa
         templateUrl: '/app/partials/ServerSettings.html',
         controller: 'ServerSettingsCtrl'
     });
-
     
     $routeProvider.otherwise({ redirectTo: '/databases' });
 
+ 
+
+
+}).value('ui.config', {
+    codemirror: {
+        mode: 'text/x-mysql',
+        lineNumbers: true,
+        matchBrackets: true
+    }
 });
 
 
@@ -60,7 +83,18 @@ var adminModule = angular.module('scadmin', ['ui.bootstrap', 'ui.select2', 'uiHa
  * Navbar Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('NavbarController', ['$scope', '$location', function ($scope, $location) {
+adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', 'NoticeFactory', function ($scope, $rootScope, $location, NoticeFactory) {
+
+
+    $scope.newVersion = null;
+
+    // TODO: Keep querystate
+    $rootScope.queryState = {
+        selectedDatabaseName: null,
+        sqlQuery: "",
+        columns: [],
+        rows: []
+    }
 
     // Make selected nav pile to be selected 'active'
     $scope.getClass = function (path) {
@@ -70,6 +104,15 @@ adminModule.controller('NavbarController', ['$scope', '$location', function ($sc
             return false;
         }
     }
+
+    $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
+        // Show Network down..
+        NoticeFactory.ShowNotice({ type: 'error', msg: "The server is not responding or is not reachable.", helpLink: null });
+    });
+
+
+   
+
 }]);
 
 

@@ -51,7 +51,11 @@ adminModule.service('GatewayService', ['$http', '$log', 'UtilsFactory', function
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);

@@ -7,7 +7,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Dat
 
     // List of databases
     $scope.databases = DatabaseService.databases;
-
+    $scope.console = "";
 
     /**
      * Start database
