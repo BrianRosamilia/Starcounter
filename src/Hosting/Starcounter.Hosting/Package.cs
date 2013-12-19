@@ -209,6 +209,11 @@ namespace Starcounter.Hosting {
         private void UpdateDatabaseSchemaAndRegisterTypes() {
             var typeDefs = unregisteredTypeDefs_;
 
+            if (typeDefs[0].Name == "Starcounter.Metadata.MaterializedTable") {
+                Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
+                OnRuntimeMetadataPopulated();
+            }
+
             if (typeDefs.Length != 0)
             {
                 for (int i = 0; i < typeDefs.Length; i++)
@@ -236,13 +241,6 @@ namespace Starcounter.Hosting {
                 QueryModule.UpdateSchemaInfo(typeDefs);
 
                 OnQueryModuleSchemaInfoUpdated();
-
-                if (typeDefs[0].Name == "Starcounter.Metadata.MaterializedTable")
-                    Db.Transaction(delegate {
-                        Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
-                    });
-
-                OnRuntimeMetadataPopulated();
             }
         }
 
@@ -317,7 +315,7 @@ namespace Starcounter.Hosting {
         private void OnQueryModuleSchemaInfoUpdated() { Trace("Query module schema information updated."); }
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }
         private void OnProcessingCompleted() { Trace("Processing completed."); }
-        private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were populated with initial data."); }
+        private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
 
         [Conditional("TRACE")]
         private void Trace(string message)
