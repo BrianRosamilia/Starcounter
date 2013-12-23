@@ -3,7 +3,7 @@
  * Gateway Service
  * ----------------------------------------------------------------------------
  */
-adminModule.service('GatewayService', ['$http', '$log', 'UtilsFactory', function ($http, $log, UtilsFactory) {
+adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', function ($http, $sce,$log, UtilsFactory) {
 
     // Gateway model
     // {
@@ -81,7 +81,7 @@ adminModule.service('GatewayService', ['$http', '$log', 'UtilsFactory', function
         this.getGatewayStatistics(function (statistics) {
             // Success
       
-            self.model.statistics = statistics;
+            self.model.statistics = $sce.trustAsHtml(statistics);
 
             if (typeof (successCallback) == "function") {
                 successCallback();

@@ -3,7 +3,7 @@
  * Database page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'NoticeFactory', 'DatabaseService', 'DatabaseConsoleService', 'UserMessageFactory', function ($scope, $log, $routeParams, NoticeFactory, DatabaseService, DatabaseConsoleService, UserMessageFactory) {
+adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$sce', '$routeParams', 'NoticeFactory', 'DatabaseService', 'DatabaseConsoleService', 'UserMessageFactory', function ($scope, $log, $sce, $routeParams, NoticeFactory, DatabaseService, DatabaseConsoleService, UserMessageFactory) {
 
     $scope.model = {
         database: null,
@@ -14,8 +14,17 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'Notic
     // Socket log event listener
     var socketEventListener = {
         databaseName: $routeParams.name, // TODO
-        onEvent: function () {
-            $scope.getConsole($routeParams.name); // TODO
+        onEvent: function (text) {
+
+            $scope.model.console = $sce.trustAsHtml($scope.model.console + text);
+
+            // Limit the buffer
+            if ($scope.model.console.length > 8000) {
+                $scope.model.console = $sce.trustAsHtml($scope.model.console.substr($scope.model.console.length - 8000));
+            }
+
+            $("#console").scrollTop($("#console")[0].scrollHeight); 
+
         },
         onError: function (messageObject) {
 
@@ -49,14 +58,9 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'Notic
         // Get console output
         DatabaseConsoleService.getConsoleOutput(databaseName, function (text) {
 
-            if (text == null) {
-                $scope.model.console = "";;
-            }
-            else {
-                $scope.model.console = text.replace(/\r\n/g, "<br>");
-            }
+            $scope.model.console = $sce.trustAsHtml(text);
 
-            $("#console").scrollTop($("#console")[0].scrollHeight); // TODO: Do this in the next cycle?
+            $("#console").scrollTop($("#console")[0].scrollHeight); 
 
             // Success
         }, function (messageObject) {
@@ -72,16 +76,13 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$routeParams', 'Notic
 
         });
 
-
-
-
     }
 
     // Init
 
     // Register log listener
     DatabaseConsoleService.registerEventListener(socketEventListener);
-
+    
     // Refresh databases list
     DatabaseService.refreshDatabases(
         function () {

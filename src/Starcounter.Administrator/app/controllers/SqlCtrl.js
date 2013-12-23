@@ -94,6 +94,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', 'NoticeFactory', 'SqlServic
         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
     });
 
+    $scope.afterRender = scrollRefresh;
 
 
 }]);

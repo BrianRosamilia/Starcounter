@@ -83,8 +83,10 @@ namespace Starcounter.Administrator.FrontEndAPI {
             //{
             //  "Executables":[
             //      {
-            //          "Path":"C:\\path\to\\the\\exe\\foo.exe",
-            //          "Uri":"http://example.com/api/engines/foo/executables/foo.exe-123456789"
+            //          "path":"C:\\path\to\\the\\exe\\foo.exe",
+            //          "uri":"http://example.com/api/engines/foo/executables/foo.exe-123456789",
+            //          "applicationFilePath":"",
+            //          "databaseName":"default"
             //      }
             //  ]
             //}

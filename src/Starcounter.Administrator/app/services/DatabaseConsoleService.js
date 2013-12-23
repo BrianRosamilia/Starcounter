@@ -39,7 +39,12 @@ adminModule.service('DatabaseConsoleService', ['$http', '$log', '$rootScope', 'U
             if (response.data.hasOwnProperty("console") == true) {
                 $log.info("Database console output successfully retrived");
                 if (typeof (successCallback) == "function") {
-                    successCallback(response.data.console);
+
+                    var htmlText = "";
+                    if (response.data.console) {
+                        htmlText = response.data.console.replace(/\r\n/g, "<br>");
+                    }
+                    successCallback(htmlText);
                 }
             }
             else {
@@ -188,9 +193,14 @@ adminModule.service('DatabaseConsoleService', ['$http', '$log', '$rootScope', 'U
 
                 $log.warn("Sending event message to " + self.listeners.length + " listeners");
 
+                var htmlText = "";
+                if (evt.data) {
+                    htmlText = evt.data.replace(/\r\n/g, "<br>");
+                }
+
                 $rootScope.$apply(function () {
                     for (var i = 0; i < self.listeners.length ; i++) {
-                        self.listeners[i].onEvent(evt.data);
+                        self.listeners[i].onEvent(htmlText);
                     }
                 });
 

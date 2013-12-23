@@ -29,18 +29,18 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
         var errorHeader = "Failed to retrive a list of executables";
         var uri = "/api/admin/executables";
 
-
         // Example JSON response 
         //-----------------------
         //{
-        //  "Executables":[
-        //      {
-        //          "path":"c:\path\to\executable\foo.exe",
-        //          "uri":"http://example.com/foo.exe-12345",
-        //          "databaseName":"default",
-        //          "applicationFilePath":""
-        //      }
-        //  ]
+        //    "Executables":[{
+        //        "path":"c:\\StarcounterApplication.exe",
+        //        "applicationFilePath":"c:\\StarcounterApplication.exe",
+        //        "uri":"http://headsutv19:8181/api/engines/default/executables/304809CC71D77ACA274FBFAE6CEA17DD25A75ED0",
+        //        "databaseName":"default",
+        //        "arguments":[{
+        //            "dummy":"c:\\StarcounterApplication.exe"
+        //        }]
+        //    }]
         //}
         $http.get(uri).then(function (response) {
             // Success
@@ -49,6 +49,12 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
             if (response.data.hasOwnProperty("Executables") == true) {
                 $log.info("Executables (" + response.data.Executables.length + ") successfully retrived");
                 if (typeof (successCallback) == "function") {
+
+                    // Add a Nice FileName
+                    for (var i = 0; i < response.data.Executables.length; i++) {
+                        response.data.Executables[i].fileName = response.data.Executables[i].path.replace(/^.*[\\\/]/, '')
+                    }
+
                     successCallback(response.data.Executables);
                 }
             }
@@ -173,7 +179,14 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
 
         this.startEngine(databaseName, function () {
             // Success
-            var bodyData = { Path: file, StartedBy: "startedBy" };
+            var bodyData = {
+                "Path": file,
+                "ApplicationFilePath": file,
+                "StartedBy" : "Starcounter Administrator",
+                "Arguments" : [{
+                    "dummy" : file
+                }]
+            };
 
             // Add job
             var job = { message: "Starting executable " + file + " in " + databaseName };
@@ -282,7 +295,7 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
 
         $log.info("Stopping executable");
 
-        var job = { message: "Stopping executable " + executable.path };
+        var job = { message: "Stopping executable " + executable.fileName };
         JobFactory.AddJob(job);
 
         var uri = UtilsFactory.toRelativePath(executable.uri);
@@ -291,7 +304,7 @@ adminModule.service('ExecutableService', ['$http', '$log', 'UtilsFactory', 'JobF
             // Success, 204 No Content 
             JobFactory.RemoveJob(job);
 
-            $log.info("Executable " + executable.path + " was successfully stopped");
+            $log.info("Executable " + executable.fileName + " was successfully stopped");
 
             // Refresh databases
             self.refreshExecutables(successCallback, errorCallback);

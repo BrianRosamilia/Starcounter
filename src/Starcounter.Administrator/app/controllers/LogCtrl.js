@@ -129,4 +129,6 @@ adminModule.controller('LogCtrl', ['$scope', '$location', '$log', 'LogService', 
     // Init
     $scope.getLog();
 
+    $scope.afterRender = scrollRefresh;
+
 }]);

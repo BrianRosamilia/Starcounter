@@ -18,15 +18,15 @@ adminModule.factory('UtilsFactory', function () {
     /**
      * Create a Message object
      */
-    factory.createMessage = function ( header, message, helpLink) {
-        return { isError: false, header: header, message: message, helpLink: helpLink, stackTrace: null };
+    factory.createMessage = function (header, message, helpLink) {
+        return { isError: false, header: header, message: message, helpLink: (helpLink) ? helpLink : null, stackTrace: null };
     }
 
     /**
      * Create a Error Message object
      */
     factory.createErrorMessage = function (header, message, helpLink, stackTrace) {
-        return { isError: true, header: header, message: message, helpLink: helpLink, stackTrace: stackTrace };
+        return { isError: true, header: header, message: message, helpLink: (helpLink) ? helpLink : null, stackTrace: (stackTrace) ? stackTrace : null };
     }
     return factory;
 

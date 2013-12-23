@@ -64,7 +64,7 @@ adminModule.service('SqlService', ['$http', '$log', 'UtilsFactory', 'JobFactory'
             }
 
             // Validate response
-            if (response.data.hasOwnProperty("rows") == true && response.data.hasOwnProperty("columns") == true ) {
+            if (response.data.hasOwnProperty("rows") == true && response.data.hasOwnProperty("columns") == true) {
                 $log.info("rows (" + response.data.rows.rows.length + ") successfully retrived");
                 $log.info("columns (" + response.data.columns.length + ") successfully retrived");
                 if (typeof (successCallback) == "function") {
@@ -87,6 +87,12 @@ adminModule.service('SqlService', ['$http', '$log', 'UtilsFactory', 'JobFactory'
 
             if (response instanceof SyntaxError) {
                 messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+            }
+            else if (response.status == 404) {
+                // 404	Not Found
+                var message = "Failed to execute the query on " + databaseName + " database, Caused by a not started database or executable.";
+                messageObject = UtilsFactory.createMessage('error', message, null);
+
             }
             else if (response.status == 500) {
                 // 500 Server Error

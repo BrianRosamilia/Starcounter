@@ -15,7 +15,7 @@
             <button ng-show="model.manualMode == true" ng-disabled="model.database.running == false" class="btn pull-right" ng-click="btnRefreshConsole(model.database.name)"><i class="icon-repeat"></i></button>
         </legend>
 
-        <div class="console" ng-style="style()" id="console" style="overflow: scroll" ng-bind-html-unsafe="model.console" />
+        <div class="console" ng-style="style()" id="console" style="overflow: scroll" ng-bind-html="model.console" />
 
 
     </div>
