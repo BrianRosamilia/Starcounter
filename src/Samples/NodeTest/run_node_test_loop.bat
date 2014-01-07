@@ -1,31 +1,32 @@
-﻿@echo off
+@echo off
 setlocal enabledelayedexpansion
 
+:: Checking if test should be run.
+IF "%SC_RUN_STAR_LOOP_TEST%"=="False" GOTO :EOF
+
 :: Checking if number of cycles parameter is supplied.
-set LOOP_TIMES=%1
-IF "%LOOP_TIMES%"=="" SET LOOP_TIMES=100
+SET LOOP_TIMES=1000
 ECHO Test is going to loop %LOOP_TIMES% times:
 
 for /l %%x in (1, 1, %LOOP_TIMES%) do (
 
    :: Printing iteration number.
-   ECHO %%x
+   echo %%x
    
-   :: Running one node proxy test.
-   run_node_proxy_test.bat
+   :: Starting NetworkIOTest
+   NodeTest.exe -ServerPort=8181 %*
    
    :: Checking exit code.
    IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 )
 
 :: Success message.
-ECHO Node loop proxy tests finished successfully!
+ECHO Star.exe loop tests finished successfully!
 
-staradmin -killall
+::staradmin -killall
 GOTO :EOF
 
 :: If we are here than some test has failed.
 :TESTFAILED
-ECHO Error occurred during the loop proxy test! 1>&2
-staradmin -killall
+ECHO Error occurred during the test! 1>&2
 EXIT 1

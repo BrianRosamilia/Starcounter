@@ -7,9 +7,16 @@ namespace Starcounter.Templates {
 	public abstract class TValue : Template {
 		private BindingStrategy strategy = BindingStrategy.UseParent;
 		private string bind;
-		private bool hasBackingField;
 		internal Type dataTypeForBinding;
 		internal bool isVerifiedUnbound;
+		internal bool hasCustomAccessors;
+
+#if DEBUG
+		internal string DebugBoundSetter;
+		internal string DebugBoundGetter;
+		internal string DebugUnboundSetter;
+		internal string DebugUnboundGetter;
+#endif
 
 		/// <summary>
 		/// Gets a value indicating whether this instance has instance value on client.
@@ -19,14 +26,6 @@ namespace Starcounter.Templates {
 		/// </value>
 		public override bool HasInstanceValueOnClient {
 			get { return true; }
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		public bool HasBackingField {
-			get { return hasBackingField; }
-			set { hasBackingField = value; }
 		}
 
 		/// <summary>
@@ -41,10 +40,6 @@ namespace Starcounter.Templates {
 				return bind;
 			}
 			set {
-				if (hasBackingField) {
-					throw new Exception("TODO! Not allowed when backing field is used.");
-				}
-
 				bind = value;
 				var b = !string.IsNullOrEmpty(bind);
 				if (b) {
@@ -75,11 +70,7 @@ namespace Starcounter.Templates {
 
 				return strategy;
 			}
-			set {
-				if (hasBackingField) {
-					throw new Exception("TODO! Not allowed when backing field is used.");
-				}
-
+			set {				
 				strategy = value;
 
 				// After we set the value we retrieve it again just to get the correct
@@ -123,6 +114,13 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <returns></returns>
+		internal abstract object GetUnboundValueAsObject(Json parent);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
 		internal abstract object GetValueAsObject(Json parent);
 
 		/// <summary>
@@ -131,6 +129,18 @@ namespace Starcounter.Templates {
 		/// <param name="parent"></param>
 		/// <param name="value"></param>
 		internal abstract void SetValueAsObject(Json parent, object value);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		internal abstract void SetDefaultValue(Json parent);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="from"></param>
+		internal abstract void CopyValueDelegates(Template toTemplate);
 
 		/// <summary>
 		/// 
@@ -166,6 +176,7 @@ namespace Starcounter.Templates {
 		/// <param name="toTemplate"></param>
 		public override void CopyTo(Template toTemplate) {
 			base.CopyTo(toTemplate);
+			CopyValueDelegates(toTemplate);
 			((TValue)toTemplate).Bind = Bind;
 		}
 

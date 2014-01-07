@@ -76,7 +76,7 @@ namespace BuildHelpers
                     using (FileStream fs = File.OpenRead(pathToFile))
                     {
                         Int32 readBytes;
-                        Byte[] buf = new Byte[1024 * 1024];
+                        Byte[] buf = new Byte[64 * 1024];
 
                         while ((readBytes = fs.Read(buf, 0, buf.Length)) > 0)
                         {

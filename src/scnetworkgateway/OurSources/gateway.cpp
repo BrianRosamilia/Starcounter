@@ -593,14 +593,6 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 void ActiveDatabase::PrintInfo(std::stringstream& stats_stream)
 {
     stats_stream << "Database \"" << db_name_ << "\" (index " << db_index_ << ") info: " << "<br>";
-    stats_stream << "Used chunks: " << g_gateway.NumberUsedChunksPerDatabase(db_index_) << " ( ";
-
-    for (int32_t w = 0; w < g_gateway.setting_num_workers(); w++)
-    {
-        stats_stream << g_gateway.get_worker(w)->NumberUsedChunksPerDatabasePerWorker(db_index_) << " ";
-    }
-    stats_stream << ")<br>";
-
     stats_stream << "Overflow chunks: " << g_gateway.NumberOverflowChunksPerDatabase(db_index_) << "<br><br>";
 }
 
@@ -984,6 +976,8 @@ uint32_t Gateway::AssertCorrectState()
 
     GW_ASSERT(0 == (sizeof(ScSocketInfoStruct) % MEMORY_ALLOCATION_ALIGNMENT));
 
+    GW_ASSERT(GatewayChunkSizes[NumGatewayChunkSizes - 1] > (MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS + 1) * MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
+
     return 0;
 
 FAILED:
@@ -1073,7 +1067,7 @@ uint32_t Gateway::CreateNewConnectionsAllWorkers(int32_t how_many, uint16_t port
     // Creating new connections for each worker.
     for (int32_t i = 0; i < setting_num_workers_; i++)
     {
-        uint32_t err_code = gw_workers_[i].CreateNewConnections(how_many, port_index, db_index);
+        uint32_t err_code = gw_workers_[i].CreateNewConnections(how_many, port_index);
         if (err_code)
             return err_code;
     }
@@ -1104,7 +1098,6 @@ bool Gateway::ApplySocketInfoToSocketData(SocketDataChunkRef sd, session_index_t
 // Gets free socket index.
 session_index_type Gateway::ObtainFreeSocketIndex(
     GatewayWorker* gw,
-    db_index_type db_index,
     SOCKET s,
     int32_t port_index,
     bool proxy_connect_socket)
@@ -1129,7 +1122,7 @@ session_index_type Gateway::ObtainFreeSocketIndex(
     CreateNewSocketInfo(si->read_only_index_, port_index, gw->get_worker_id());
 
     // Creating unique ids.
-    GenerateUniqueSocketInfoIds(si->read_only_index_, gw->GenerateSchedulerId(db_index));
+    GenerateUniqueSocketInfoIds(si->read_only_index_, gw->GenerateSchedulerId());
 
     return si->read_only_index_;
 }
@@ -1601,7 +1594,6 @@ void ActiveDatabase::Init(
     db_name_ = db_name;
     unique_num_unsafe_ = unique_num;
     db_index_ = db_index;
-    were_sockets_closed_ = false;
 
     is_empty_ = false;
     is_ready_for_cleanup_ = false;
@@ -1641,7 +1633,6 @@ void ActiveDatabase::Reset(bool hard_reset)
 
     if (hard_reset)
     {
-        were_sockets_closed_ = true;
         is_empty_ = true;
     }
 }
@@ -1672,7 +1663,7 @@ bool ActiveDatabase::IsReadyForCleanup()
     // Checking if all chunks for this database were released.
     is_ready_for_cleanup_ =
         (INVALID_UNIQUE_DB_NUMBER == unique_num_unsafe_) &&
-        (0 == g_gateway.NumberUsedChunksPerDatabase(db_index_));
+        (0 == g_gateway.NumberOverflowChunksPerDatabase(db_index_));
 
     LeaveCriticalSection(&cs_db_checks_);
 
@@ -1686,54 +1677,8 @@ void ActiveDatabase::StartDeletion()
     uint err_code = g_gateway.EraseDatabaseFromPorts(db_index_);
     GW_ASSERT(0 == err_code);
 
-    // Closing all database sockets data.
-    CloseSocketData();
-
     // Resetting slot.
     Reset(false);
-}
-
-// Closes all tracked sockets.
-void ActiveDatabase::CloseSocketData()
-{
-    // Checking if sockets were already closed.
-    if (were_sockets_closed_)
-        return;
-
-    // Marking closure.
-    were_sockets_closed_ = true;
-
-    // Checking if just marking for deletion.
-    for (session_index_type socket_index = 0;
-        socket_index < g_gateway.setting_max_connections();
-        socket_index++)
-    {
-        bool needs_deletion = false;
-
-        // Checking if socket was active in any workers.
-        for (int32_t w = 0; w < g_gateway.setting_num_workers(); w++)
-        {
-            WorkerDbInterface* worker_db = g_gateway.get_worker(w)->GetWorkerDb(db_index_);
-
-            if (worker_db->IsActiveSocket(socket_index))
-            {
-                // NOTE: Only first database has attached sockets.
-                GW_ASSERT(0 == db_index_);
-
-                needs_deletion = true;
-                worker_db->UntrackSocket(socket_index);
-            }
-        }
-
-        // Checking if socket is active.
-        if (needs_deletion)
-        {
-            // NOTE: Can't kill the session here, because it can be used by other databases.
-
-            // Closing socket which will results in stop of all pending operations on that socket.
-            g_gateway.get_worker(0)->AddSocketToDisconnectListUnsafe(socket_index);
-        }
-    }
 }
 
 // Initializes WinSock, all core data structures, binds server sockets.
@@ -2123,13 +2068,13 @@ void Gateway::CleanUpEmptyPorts()
     }
 }
 
-// Getting the number of used sockets.
-int64_t Gateway::NumberUsedSocketsAllWorkersAndDatabases()
+// Getting the number of created sockets.
+int64_t Gateway::NumberCreatedSocketsAllWorkers()
 {
     int64_t num_used_sockets = 0;
 
-    for (int32_t d = 0; d < num_dbs_slots_; d++)
-        num_used_sockets += NumberUsedSocketsPerDatabase(d);
+    for (int32_t w = 0; w < setting_num_workers_; w++)
+        num_used_sockets += gw_workers_[w].get_worker_stats_num_bound_sockets();
 
     return num_used_sockets;
 }
@@ -2143,50 +2088,6 @@ int64_t Gateway::NumberOfReusableConnectSockets()
         num_reusable_connect_sockets += gw_workers_[w].NumberOfReusableConnectSockets();
 
     return num_reusable_connect_sockets;
-}
-
-// Getting the number of used sockets per database.
-int64_t Gateway::NumberUsedSocketsPerDatabase(db_index_type db_index)
-{
-    int64_t num_used_sockets = 0;
-
-    for (int32_t w = 0; w < setting_num_workers_; w++)
-        num_used_sockets += gw_workers_[w].NumberUsedSocketPerDatabase(db_index);
-
-    return num_used_sockets;
-}
-
-// Getting the number of used sockets per worker.
-int64_t Gateway::NumberUsedSocketsPerWorker(int32_t worker_id)
-{
-    int64_t num_used_sockets = 0;
-
-    for (int32_t d = 0; d < num_dbs_slots_; d++)
-        num_used_sockets += gw_workers_[worker_id].NumberUsedSocketPerDatabase(d);
-
-    return num_used_sockets;
-}
-
-// Getting the total number of used chunks for all databases.
-int64_t Gateway::NumberUsedChunksAllWorkersAndDatabases()
-{
-    int64_t total_used_chunks = 0;
-
-    for (int32_t d = 0; d < num_dbs_slots_; d++)
-        total_used_chunks += NumberUsedChunksPerDatabase(d);
-
-    return total_used_chunks;
-}
-
-// Getting the number of used chunks per database.
-int64_t Gateway::NumberUsedChunksPerDatabase(db_index_type db_index)
-{
-    int64_t num_used_chunks = 0;
-
-    for (int32_t w = 0; w < setting_num_workers_; w++)
-        num_used_chunks += gw_workers_[w].NumberUsedChunksPerDatabasePerWorker(db_index);
-
-    return num_used_chunks;
 }
 
 // Getting the total number of overflow chunks for all databases.
@@ -2209,17 +2110,6 @@ int64_t Gateway::NumberOverflowChunksPerDatabase(db_index_type db_index)
         num_overflow_chunks += gw_workers_[w].NumberOverflowChunksPerDatabasePerWorker(db_index);
 
     return num_overflow_chunks;
-}
-
-// Getting the number of used chunks per worker.
-int64_t Gateway::NumberUsedChunksPerWorker(int32_t worker_id)
-{
-    int64_t num_used_chunks = 0;
-
-    for (int32_t d = 0; d < num_dbs_slots_; d++)
-        num_used_chunks += gw_workers_[worker_id].NumberUsedChunksPerDatabasePerWorker(d);
-
-    return num_used_chunks;
 }
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
@@ -2829,6 +2719,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
                 ", recv_times " << gw_workers_[worker_id_].get_worker_stats_recv_num() <<
                 ", sent_bytes " << gw_workers_[worker_id_].get_worker_stats_bytes_sent() <<
                 ", sent_times " << gw_workers_[worker_id_].get_worker_stats_sent_num() <<
+                ", bound_sockets " << gw_workers_[worker_id_].get_worker_stats_num_bound_sockets() <<
                 "<br>" << GW_ENDL;
         }
 
@@ -2836,10 +2727,9 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         // NOTE: The following statistics can be dangerous since its not protected by global lock!
         // That's why we enable it only for tests.
 
-        global_statistics_stream_ << "Active chunks " << g_gateway.NumberUsedChunksAllWorkersAndDatabases() <<
-            ", overflow chunks " << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() <<
+        global_statistics_stream_ << "Overflow chunks " << g_gateway.NumberOverflowChunksAllWorkersAndDatabases() <<
             ", active sockets " << g_gateway.get_num_active_sockets() <<
-            ", used sockets " << g_gateway.NumberUsedSocketsAllWorkersAndDatabases() <<
+            ", created sockets " << g_gateway.NumberCreatedSocketsAllWorkers() <<
             ", reusable conn-socks " << g_gateway.NumberOfReusableConnectSockets() <<
             "<br>" << GW_ENDL;
 

@@ -10,8 +10,8 @@ namespace Starcounter.Templates {
 	public class TArray<OT> : TObjArr
 		where OT : Json, new() {
 
-		public new readonly Action<Json, Arr<OT>> Setter;
-		public new readonly Func<Json, Arr<OT>> Getter;
+		public new Action<Json, Arr<OT>> Setter;
+		public new Func<Json, Arr<OT>> Getter;
 		internal new Action<Json, Arr<OT>> UnboundSetter;
 		internal new Func<Json, Arr<OT>> UnboundGetter;
 
@@ -24,9 +24,64 @@ namespace Starcounter.Templates {
 			get { return typeof(ArrMetadata<OT, Json>); }
 		}
 
+		/// <summary>
+		/// Sets the getter and setter delegates for unbound values to the submitted delegates.
+		/// </summary>
+		/// <param name="getter"></param>
+		/// <param name="setter"></param>
+		/// <param name="overwriteExisting">
+		/// If false the new delegates are only set if the current delegates are null.
+		/// </param>
+		public void SetCustomAccessors(Func<Json, Arr<OT>> getter, 
+									   Action<Json, Arr<OT>> setter, 
+									   bool overwriteExisting = true) {
+			bool overwrite = (overwriteExisting || !hasCustomAccessors);
+
+			if (BindingStrategy == BindingStrategy.Unbound) {
+				if (overwrite || Getter == null)
+					Getter = getter;
+				if (overwrite || Setter == null)
+					Setter = setter;
+			}
+
+			if (overwrite || UnboundGetter == null)
+				UnboundGetter = getter;
+			if (overwrite || UnboundSetter == null)
+				UnboundSetter = setter;	
+
+			base.SetCustomAccessors(
+				(parent) => { return (Json)getter(parent); }, 
+				(parent, value) => { setter(parent, (Arr<OT>)value); },
+				overwriteExisting
+			);
+
+			hasCustomAccessors = true;
+		}
+
+		internal override void CopyValueDelegates(Template toTemplate) {
+			var p = toTemplate as TArray<OT>;
+			if (p != null) {
+				p.UnboundGetter = UnboundGetter;
+				p.UnboundSetter = UnboundSetter;
+				p.hasCustomAccessors = hasCustomAccessors;
+				base.CopyValueDelegates(toTemplate);
+
+#if DEBUG
+				p.DebugUnboundGetter = DebugUnboundGetter;
+				p.DebugUnboundSetter = DebugUnboundSetter;
+#endif
+			}
+		}
+
+		internal override void SetDefaultValue(Json parent) {
+			UnboundSetter(parent, new Arr<OT>(parent, this));
+		}
+
 		internal override void GenerateUnboundGetterAndSetter() {
-			TemplateDelegateGenerator.GenerateUnboundDelegates<OT>(this, false);
-			base.GenerateUnboundGetterAndSetter();
+			if (UnboundGetter == null) {
+				TemplateDelegateGenerator.GenerateUnboundDelegates<OT>(this, false);
+				base.GenerateUnboundGetterAndSetter();
+			}
 		}
 
 		private Arr<OT> BoundOrUnboundGet(Json parent) {
@@ -68,6 +123,10 @@ namespace Starcounter.Templates {
 				arr.CheckBoundArray(BoundGetter(parent));
 			}
 
+			return UnboundGetter(parent);
+		}
+
+		internal override object GetUnboundValueAsObject(Json parent) {
 			return UnboundGetter(parent);
 		}
 

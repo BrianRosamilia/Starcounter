@@ -59,6 +59,7 @@ typedef int16_t uri_index_type;
 typedef int16_t port_index_type;
 typedef int8_t db_index_type;
 typedef int8_t worker_id_type;
+typedef int8_t chunk_store_type;
 
 // Statistics macros.
 #define GW_COLLECT_SOCKET_STATISTICS
@@ -107,57 +108,63 @@ typedef int8_t worker_id_type;
 #endif
 
 // TODO: Move error codes to errors XML!
-#define SCERRGWFAILEDWSARECV 12346
-#define SCERRGWSOCKETCLOSEDBYPEER 12347
-#define SCERRGWFAILEDACCEPTEX 12348
-#define SCERRGWFAILEDWSASEND 12349
-#define SCERRGWDISCONNECTAFTERSENDFLAG 12350
-#define SCERRGWDISCONNECTFLAG 12351
-#define SCERRGWWEBSOCKETUNKNOWNOPCODE 12352
-#define SCERRGWWEBSOCKETNOMASK 12354
-#define SCERRGWMAXPORTHANDLERS 12355
-#define SCERRGWWRONGHANDLERTYPE 12357
-#define SCERRGWHANDLERNOTFOUND 12358
-#define SCERRGWPORTNOTHANDLED 12359
-#define SCERRGWNONHTTPPROTOCOL 12362
-#define SCERRGWHTTPNONWEBSOCKETSUPGRADE 12370
-#define SCERRGWHTTPWRONGWEBSOCKETSVERSION 12371
-#define SCERRGWHTTPINCORRECTDATA 12372
-#define SCERRGWHTTPPROCESSFAILED 12373
-#define SCERRGWWRONGBMXCHUNKTYPE 12374
-#define SCERRGWWRONGARGS 12375
-#define SCERRGWCANTCREATELOGDIR 12376
-#define SCERRGWCANTLOADXMLSETTINGS 12377
-#define SCERRGWFAILEDASSERTCORRECTSTATE 12378
-#define SCERRGWPATHTOIPCMONITORDIR 12379
-#define SCERRGWACTIVEDBLISTENPROBLEM 12380
-#define SCERRGWHTTPSPROCESSFAILED 12381
-#define SCERRGWWORKERISDEAD 12382
-#define SCERRGWDATABASEMONITORISDEAD 12383
-#define SCERRGWCONNECTEXFAILED 12387
-#define SCERRGWACCEPTEXFAILED 12388
-#define SCERRGWWORKERROUTINEFAILED 12390
-#define SCERRGWMAXHANDLERSREACHED 12391
-#define SCERRGWPORTPROCESSFAILED 12393
-#define SCERRGWCANTRELEASETOSHAREDPOOL 12394
-#define SCERRGWFAILEDFINDNEXTCHANGENOTIFICATION 12395
-#define SCERRGWWRONGMAXIDLESESSIONLIFETIME 12396
-#define SCERRGWWRONGDATABASEINDEX 12397
-#define SCERRGWCHANNELSEVENTSTHREADISDEAD 12399
-#define SCERRGWSESSIONSCLEANUPTHREADISDEAD 12400
-#define SCERRGWGATEWAYLOGGINGTHREADISDEAD 12401
-#define SCERRGWSOMETHREADDIED 12402
-#define SCERRGWOPERATIONONWRONGSOCKET 12403
-#define SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING 12407
-#define SCERRGWTESTTIMEOUT 12404
-#define SCERRGWTESTFAILED 12405
-#define SCERRGWTESTFINISHED 12406
-#define SCERRGWFAILEDTOBINDPORT 12409
-#define SCERRGWFAILEDTOATTACHSOCKETTOIOCP 12410
-#define SCERRGWFAILEDTOLISTENONSOCKET 12411
-#define SCERRGWIPISNOTONWHITELIST 12413
-#define SCERRGWWRONGDBINDEX 12414
-#define SCERRGWMAXHTTPHEADERSSIZEREACHED 12415
+enum GatewayErrorCodes
+{
+    SCERRGWFAILEDWSARECV = 12346,
+    SCERRGWSOCKETCLOSEDBYPEER,
+    SCERRGWFAILEDACCEPTEX,
+    SCERRGWFAILEDWSASEND,
+    SCERRGWDISCONNECTAFTERSENDFLAG,
+    SCERRGWDISCONNECTFLAG,
+    SCERRGWWEBSOCKETUNKNOWNOPCODE,
+    SCERRGWWEBSOCKETNOMASK,
+    SCERRGWMAXPORTHANDLERS,
+    SCERRGWWRONGHANDLERTYPE,
+    SCERRGWHANDLERNOTFOUND,
+    SCERRGWPORTNOTHANDLED,
+    SCERRGWNONHTTPPROTOCOL,
+    SCERRGWHTTPNONWEBSOCKETSUPGRADE,
+    SCERRGWHTTPWRONGWEBSOCKETSVERSION,
+    SCERRGWHTTPINCORRECTDATA,
+    SCERRGWHTTPPROCESSFAILED,
+    SCERRGWWRONGBMXCHUNKTYPE,
+    SCERRGWWRONGARGS,
+    SCERRGWCANTCREATELOGDIR,
+    SCERRGWCANTLOADXMLSETTINGS,
+    SCERRGWFAILEDASSERTCORRECTSTATE,
+    SCERRGWPATHTOIPCMONITORDIR,
+    SCERRGWACTIVEDBLISTENPROBLEM,
+    SCERRGWHTTPSPROCESSFAILED,
+    SCERRGWWORKERISDEAD,
+    SCERRGWDATABASEMONITORISDEAD,
+    SCERRGWCONNECTEXFAILED,
+    SCERRGWACCEPTEXFAILED,
+    SCERRGWWORKERROUTINEFAILED,
+    SCERRGWMAXHANDLERSREACHED,
+    SCERRGWPORTPROCESSFAILED,
+    SCERRGWCANTRELEASETOSHAREDPOOL,
+    SCERRGWFAILEDFINDNEXTCHANGENOTIFICATION,
+    SCERRGWWRONGMAXIDLESESSIONLIFETIME,
+    SCERRGWWRONGDATABASEINDEX,
+    SCERRGWCHANNELSEVENTSTHREADISDEAD,
+    SCERRGWSESSIONSCLEANUPTHREADISDEAD,
+    SCERRGWGATEWAYLOGGINGTHREADISDEAD,
+    SCERRGWSOMETHREADDIED,
+    SCERRGWOPERATIONONWRONGSOCKET,
+    SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING,
+    SCERRGWTESTTIMEOUT,
+    SCERRGWTESTFAILED,
+    SCERRGWTESTFINISHED,
+    SCERRGWFAILEDTOBINDPORT,
+    SCERRGWFAILEDTOATTACHSOCKETTOIOCP,
+    SCERRGWFAILEDTOLISTENONSOCKET,
+    SCERRGWIPISNOTONWHITELIST,
+    SCERRGWWRONGDBINDEX,
+    SCERRGWMAXHTTPHEADERSSIZEREACHED,
+    SCERRGWMAXCHUNKSIZEREACHED,
+    SCERRGWMAXDATASIZEREACHED
+};
+
 
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
@@ -177,14 +184,8 @@ const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 8192;
 // Maximum number of gateway chunks.
 const int32_t MAX_GATEWAY_CHUNKS = 1024 * 1024;
 
-// Maximum number of gateway chunks.
-const int32_t GATEWAY_CHUNK_SIZE_BYTES = MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
-
 // Maximum number of fetched OVLs at once.
 const int32_t MAX_FETCHED_OVLS = 10;
-
-// Maximum size of HTTP content requiring accumulation on host.
-const int32_t CONTENT_SIZE_HOST_ACCUMULATION = 1024 * 64;
 
 // Aggregation buffer size.
 const int32_t AGGREGATION_BUFFER_SIZE = 1024 * 1024 * 16;
@@ -200,9 +201,6 @@ const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Offset of data blob in socket data.
 const int32_t SOCKET_DATA_OFFSET_BLOB = MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
-
-// Length of blob data in bytes.
-const int32_t SOCKET_DATA_BLOB_SIZE_BYTES = MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES;
 
 // Size of OVERLAPPED structure.
 const int32_t OVERLAPPED_SIZE = sizeof(OVERLAPPED);
@@ -311,6 +309,43 @@ enum GatewayTestingMode
 
     MODE_GATEWAY_UNKNOWN = 6
 };
+
+const int32_t NumGatewayChunkSizes = 5;
+const int32_t DefaultGatewayChunkSizeType = 1;
+
+const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
+    512,
+    2 * 1024, // Default chunk size.
+    8 * 1024,
+    32 * 1024,
+    128 * 1024
+};
+
+const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
+    100000,
+    500000, // Default chunk size.
+    100000,
+    50000,
+    50000
+};
+
+const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
+    GatewayChunkSizes[0] - SOCKET_DATA_OFFSET_BLOB,
+    GatewayChunkSizes[1] - SOCKET_DATA_OFFSET_BLOB,
+    GatewayChunkSizes[2] - SOCKET_DATA_OFFSET_BLOB,
+    GatewayChunkSizes[3] - SOCKET_DATA_OFFSET_BLOB,
+    GatewayChunkSizes[4] - SOCKET_DATA_OFFSET_BLOB
+};
+
+inline chunk_store_type ObtainGatewayChunkType(int32_t data_size)
+{
+    for (int32_t i = 0; i < NumGatewayChunkSizes; i++)
+        if (data_size <= GatewayChunkDataSizes[i])
+            return i;
+
+    GW_ASSERT(false);
+    return INVALID_INDEX;
+}
 
 struct AggregationStruct
 {
@@ -684,7 +719,8 @@ public:
         elems_[push_index_] = new_elem;
         push_index_++;
         stripe_length_++;
-        GW_ASSERT(stripe_length_ <= MaxElems);
+        if (stripe_length_ > MaxElems)
+            std::cout << "";
 
         if (push_index_ == MaxElems)
             push_index_ = 0;
@@ -734,9 +770,6 @@ class AccumBuffer
     // Initial data pointer in chunk.
     uint8_t* chunk_orig_buf_ptr_;
 
-    // First chunk data pointer.
-    uint8_t* first_chunk_orig_buf_ptr_;
-
     // Original chunk total length.
     uint32_t chunk_orig_buf_len_bytes_;
 
@@ -747,6 +780,23 @@ class AccumBuffer
     uint32_t desired_accum_bytes_;
 
 public:
+
+    uint32_t* get_desired_accum_bytes_addr()
+    {
+        return &desired_accum_bytes_;
+    }
+
+    uint32_t* get_chunk_num_available_bytes_addr()
+    {
+        return &chunk_num_available_bytes_;
+    }
+
+    // Makes accumulative buffer non-usable.
+    void Invalidate()
+    {
+        chunk_cur_buf_ptr_ = NULL;
+        chunk_orig_buf_ptr_ = NULL;
+    }
 
     // Moves data in accumulative buffer to top.
     uint8_t* MoveDataToTopAndContinueReceive(uint8_t* cur_data_ptr, int32_t num_copy_bytes)
@@ -765,17 +815,6 @@ public:
         return chunk_orig_buf_ptr_;
     }
 
-    // Cloning existing accumulative buffer.
-    void CloneBasedOnNewBaseAddress(uint8_t* new_orig_buf_ptr, AccumBuffer* accum_buffer)
-    {
-        // Pure data copy from another accumulative buffer.
-        *this = *accum_buffer;
-
-        // Adjusting pointers.
-        chunk_orig_buf_ptr_ = new_orig_buf_ptr;
-        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_ + (accum_buffer->chunk_cur_buf_ptr_ - accum_buffer->chunk_orig_buf_ptr_);
-    }
-
     // Initializes accumulative buffer.
     void Init(
         uint32_t buf_total_len_bytes,
@@ -792,7 +831,6 @@ public:
         {
             desired_accum_bytes_ = 0;
             accumulated_len_bytes_ = 0;
-            first_chunk_orig_buf_ptr_ = NULL;
         }
         else
         {
@@ -828,10 +866,14 @@ public:
         accumulated_len_bytes_ = buf_total_len_bytes;
     }
 
-    // Get buffer length.
     uint32_t get_chunk_num_available_bytes()
     {
         return chunk_num_available_bytes_;
+    }
+
+    void set_chunk_num_available_bytes(uint32_t num_bytes)
+    {
+        chunk_num_available_bytes_ = num_bytes;
     }
 
     void RevertBeforeSend()
@@ -850,45 +892,20 @@ public:
         chunk_num_available_bytes_ -= data_len;
     }
 
-    // First chunk origin data.
-    void SaveFirstChunkOrigBufPtr()
-    {
-        first_chunk_orig_buf_ptr_ = chunk_orig_buf_ptr_;
-    }
-
-    // First chunk origin data.
-    void set_first_chunk_orig_buf_ptr(uint8_t* first_chunk_orig_buf_ptr)
-    {
-        first_chunk_orig_buf_ptr_ = first_chunk_orig_buf_ptr;
-    }
-
-    // First chunk origin data.
-    uint8_t* get_first_chunk_orig_buf_ptr()
-    {
-        return first_chunk_orig_buf_ptr_;
-    }
-
     // Get buffer length.
     uint32_t GetNumLeftBytesInChunk(uint8_t* cur_ptr)
     {
         return static_cast<uint32_t> (chunk_orig_buf_ptr_ + chunk_orig_buf_len_bytes_ - cur_ptr);
     }
 
-    // Getting desired accumulating bytes.
     uint32_t get_desired_accum_bytes()
     {
         return desired_accum_bytes_;
     }
 
-    // Setting the data pointer for the next operation.
-    void RestoreToFirstChunk()
+    void set_desired_accum_bytes(uint32_t desired_num_bytes)
     {
-        GW_ASSERT(NULL != first_chunk_orig_buf_ptr_);
-
-        chunk_orig_buf_ptr_ = first_chunk_orig_buf_ptr_;
-        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
-        chunk_orig_buf_len_bytes_ = 0;
-        chunk_num_available_bytes_ = 0;
+        desired_accum_bytes_ = desired_num_bytes;
     }
 
     // Resets to original state.
@@ -898,7 +915,6 @@ public:
         chunk_num_available_bytes_ = chunk_orig_buf_len_bytes_;
         accumulated_len_bytes_ = 0;
         desired_accum_bytes_ = 0;
-        first_chunk_orig_buf_ptr_ = NULL;
     }
 
     // Adds accumulated bytes.
@@ -910,9 +926,9 @@ public:
     }
 
     // Prepare buffer to send outside.
-    void PrepareForSend(uint8_t *data, uint32_t num_bytes_to_write)
+    void PrepareForSend(uint8_t *data, uint32_t num_bytes)
     {
-        chunk_num_available_bytes_ = num_bytes_to_write;
+        chunk_num_available_bytes_ = num_bytes;
         chunk_cur_buf_ptr_ = data;
         accumulated_len_bytes_ = 0;
     }
@@ -923,7 +939,6 @@ public:
         chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
         chunk_num_available_bytes_ = accumulated_len_bytes_;
 
-        GW_ASSERT_DEBUG(NULL == first_chunk_orig_buf_ptr_);
         GW_ASSERT_DEBUG(0 == desired_accum_bytes_);
         accumulated_len_bytes_ = 0;
     }
@@ -933,10 +948,6 @@ public:
     {
         desired_accum_bytes_ = total_desired_bytes;
         accumulated_len_bytes_ = num_already_accumulated;
-
-        uint32_t remaining = total_desired_bytes - num_already_accumulated;
-        if (chunk_num_available_bytes_ > remaining)
-            chunk_num_available_bytes_ = remaining;
     }
 
     // Returns pointer to original data buffer.
@@ -1042,6 +1053,10 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Main session structure attached to this socket.
     ScSessionStruct session_;
 
+    //////////////////////////////
+    //////// 64 bits data ////////
+    //////////////////////////////
+
     // Socket last activity timestamp.
     socket_timestamp_type socket_timestamp_;
 
@@ -1054,6 +1069,10 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Socket number.
     SOCKET socket_;
 
+    //////////////////////////////
+    //////// 32 bits data ////////
+    //////////////////////////////
+
     // Proxy socket identifier.
     session_index_type proxy_socket_info_index_;
 
@@ -1063,8 +1082,19 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Aggregation socket index.
     session_index_type aggr_socket_info_index_;
 
+    // Number of bytes left for accumulation.
+    uint32_t accum_data_bytes_left_;
+
+    //////////////////////////////
+    //////// 16 bits data ////////
+    //////////////////////////////
+
     // Port index.
     port_index_type port_index_;
+
+    //////////////////////////////
+    //////// 8 bits data /////////
+    //////////////////////////////
 
     // Index to already determined database.
     db_index_type dest_db_index_;
@@ -1145,9 +1175,6 @@ class ActiveDatabase
 
     // Unique sequence number.
     volatile uint64_t unique_num_unsafe_;
-
-    // Indicates if closure was performed.
-    bool were_sockets_closed_;
 
     // Database handlers.
     HandlersTable* user_handlers_;
@@ -1776,7 +1803,6 @@ public:
     // Gets free socket index.
     session_index_type ObtainFreeSocketIndex(
         GatewayWorker* gw,
-        db_index_type db_index,
         SOCKET s,
         int32_t port_index,
         bool proxy_connect_socket);
@@ -2006,7 +2032,6 @@ public:
         all_sockets_infos_unsafe_[socket_index].set_socket_aggregated_flag();
     }
 
-    // Getting proxy socket index.
     session_index_type GetProxySocketIndex(session_index_type socket_index)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
@@ -2014,12 +2039,32 @@ public:
         return all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_;
     }
 
-    // Getting proxy socket index.
     void SetProxySocketIndex(session_index_type socket_index, session_index_type proxy_socket_index)
     {
         GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
 
         all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_ = proxy_socket_index;
+    }
+
+    session_index_type GetAccumulatedBytesLeft(session_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        return all_sockets_infos_unsafe_[socket_index].accum_data_bytes_left_;
+    }
+
+    void SetAccumulatedBytesLeft(session_index_type socket_index, uint32_t num_bytes)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].accum_data_bytes_left_ = num_bytes;
+    }
+
+    void DecrementAccumulatedBytesLeft(session_index_type socket_index, uint32_t decr_bytes)
+    {
+        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
+
+        all_sockets_infos_unsafe_[socket_index].accum_data_bytes_left_ -= decr_bytes;
     }
 
     // Applying session parameters to socket data.
@@ -2081,16 +2126,13 @@ public:
     const char* GetGlobalStatisticsString(int32_t* out_len);
 
     // Getting the number of used sockets.
-    int64_t NumberUsedSocketsAllWorkersAndDatabases();
+    int64_t NumberCreatedSocketsAllWorkers();
 
     // Getting the number of reusable connect sockets.
     int64_t NumberOfReusableConnectSockets();
 
     // Getting the number of used sockets per worker.
     int64_t NumberUsedSocketsPerWorker(int32_t worker_id);
-
-    // Getting the number of used sockets per database.
-    int64_t NumberUsedSocketsPerDatabase(db_index_type db_index);
 
     // Last bind port number.
     uint16_t get_last_bind_port_num()
@@ -2607,20 +2649,11 @@ public:
         return setting_num_workers_;
     }
 
-    // Getting the total number of used chunks for all databases.
-    int64_t NumberUsedChunksAllWorkersAndDatabases();
-
     // Getting the total number of overflow chunks for all databases.
     int64_t NumberOverflowChunksAllWorkersAndDatabases();
 
-    // Getting the number of used chunks per database.
-    int64_t NumberUsedChunksPerDatabase(db_index_type db_index);
-
     // Getting the number of overflow chunks per database.
     int64_t NumberOverflowChunksPerDatabase(db_index_type db_index);
-
-    // Getting the number of used sockets per worker.
-    int64_t NumberUsedChunksPerWorker(int32_t worker_id);
 
     // Getting the number of active connections per port.
     int64_t NumberOfActiveConnectionsPerPort(int32_t port_index);

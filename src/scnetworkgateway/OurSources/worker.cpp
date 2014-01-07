@@ -34,6 +34,7 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     worker_stats_bytes_sent_ = 0;
     worker_stats_sent_num_ = 0;
     worker_stats_recv_num_ = 0;
+    worker_stats_num_bound_sockets_ = 0;
 
 #ifdef GW_TESTING_MODE
     num_created_conns_worker_ = 0;
@@ -159,7 +160,7 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
 
     // Getting new socket index.
     int32_t port_index = sd->GetPortIndex();
-    session_index_type proxied_socket_info_index = g_gateway.ObtainFreeSocketIndex(this, sd->get_db_index(), new_connect_socket, port_index, true);
+    session_index_type proxied_socket_info_index = g_gateway.ObtainFreeSocketIndex(this, new_connect_socket, port_index, true);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
 
@@ -187,7 +188,7 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
 #endif
 
 // Allocates a bunch of new connections.
-uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_index, db_index_type db_index)
+uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_index)
 {
     uint32_t err_code;
     int32_t curIntNum = 0;
@@ -310,10 +311,10 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
         SocketDataChunk* new_sd = NULL;
         
         // Getting new socket index.
-        session_index_type new_socket_index = g_gateway.ObtainFreeSocketIndex(this, db_index, new_socket, port_index, false);
+        session_index_type new_socket_index = g_gateway.ObtainFreeSocketIndex(this, new_socket, port_index, false);
 
         // Creating new socket data.
-        err_code = CreateSocketData(new_socket_index, db_index, new_sd);
+        err_code = CreateSocketData(new_socket_index, new_sd);
         if (err_code)
         {
             closesocket(new_socket);
@@ -349,6 +350,8 @@ uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, int32_t port_inde
             // Changing number of created sockets.
             int64_t created_sockets = g_gateway.get_server_port(port_index)->ChangeNumAllocatedAcceptSockets(how_many);
 
+            worker_stats_num_bound_sockets_ += how_many;
+
 #ifdef GW_SOCKET_DIAG
             GW_PRINT_WORKER << "New sockets amount: " << created_sockets << GW_ENDL;
 #endif
@@ -376,9 +379,6 @@ uint32_t GatewayWorker::Receive(SocketDataChunkRef sd)
         GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
     }
 
-    // Checking that only database zero chunk is for this operation.
-    GW_ASSERT(sd->get_db_index() == 0);
-
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
 
@@ -391,7 +391,7 @@ START_RECEIVING_AGAIN:
 #endif
 
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Receive: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "Receive: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
     // Checking correct unique socket.
@@ -404,15 +404,7 @@ START_RECEIVING_AGAIN:
 
     uint32_t numBytes, err_code;
 
-    // Checking if we have one or multiple chunks to receive.
-    //if (1 == sd->get_num_chunks())
-    {
-        err_code = sd->ReceiveSingleChunk(this, &numBytes);
-    }
-    /*else
-    {
-        errCode = sd->ReceiveMultipleChunks(active_dbs_[sd->get_db_index()]->get_shared_int(), &numBytes);
-    }*/
+    err_code = sd->Receive(this, &numBytes);
 
 #ifdef GW_PROFILER_ON
     profiler_.Stop(1);
@@ -431,7 +423,7 @@ START_RECEIVING_AGAIN:
         if (WSA_IO_PENDING != wsa_err_code)
         {
 #ifdef GW_WARNINGS_DIAG
-            GW_PRINT_WORKER << "Failed WSARecv: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
+            GW_PRINT_WORKER << "Failed WSARecv: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
 
             PrintLastError();
 #endif
@@ -446,8 +438,7 @@ START_RECEIVING_AGAIN:
         if (0 == numBytes)
         {
 #ifdef GW_WARNINGS_DIAG
-            GW_PRINT_WORKER << "Zero-bytes receive on socket index: " << sd->get_socket_info_index() << " " <<
-                sd->get_chunk_index() << ". Remote side closed the connection." << GW_ENDL;
+            GW_PRINT_WORKER << "Zero-bytes receive on socket index: " << sd->get_socket_info_index() << ". Remote side closed the connection." << GW_ENDL;
 #endif
 
             return SCERRGWSOCKETCLOSEDBYPEER;
@@ -480,11 +471,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     bool& called_from_receive)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "FinishReceive: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "FinishReceive: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
-
-    // Checking that only database zero chunk is for this operation.
-    GW_ASSERT(sd->get_db_index() == 0);
 
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
@@ -497,14 +485,11 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
 
-    uint32_t err_code;
-
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_received)
     {
 #ifdef GW_WARNINGS_DIAG
-        GW_PRINT_WORKER << "Zero-bytes receive on socket index: " << sd->get_socket_info_index() << " " <<
-            sd->get_chunk_index() << ". Remote side closed the connection." << GW_ENDL;
+        GW_PRINT_WORKER << "Zero-bytes receive on socket index: " << sd->get_socket_info_index() << ". Remote side closed the connection." << GW_ENDL;
 #endif
 
         return SCERRGWSOCKETCLOSEDBYPEER;
@@ -533,7 +518,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         if (!sd->GetSocketAggregatedFlag())
         {
             // Posting cloning receive since all data is accumulated.
-            err_code = sd->CloneToReceive(this);
+            uint32_t err_code = sd->CloneToReceive(this);
             if (err_code)
                 return err_code;
         }
@@ -557,20 +542,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     // Assigning last received bytes.
     if (sd->get_accumulating_flag())
     {
-        // Indicates if all data was accumulated.
-        bool is_accumulated;
-
-        // Trying to continue accumulation.
-        err_code = sd->ContinueAccumulation(this, &is_accumulated);
-        if (err_code)
-        {
-            sd->reset_accumulating_flag();
-
-            return err_code;
-        }
-
         // Checking if we have not accumulated everything yet.
-        if (!is_accumulated)
+        if (!sd->get_accum_buf()->IsAccumulationComplete())
         {
             // Checking if we are called already from Receive to avoid recursiveness.
             if (!called_from_receive)
@@ -614,10 +587,11 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
 uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Send: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "Send: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
+    // Checking that socket data is valid.
+    sd->CheckForValidity();
 
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
@@ -644,28 +618,7 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
 
     uint32_t num_sent_bytes, err_code;
 
-    // Checking if we have one or multiple chunks to send.
-    if (1 == sd->get_num_chunks())
-    {
-        err_code = sd->SendSingleChunk(this, &num_sent_bytes);
-    }
-    else
-    {
-        GW_ASSERT(!sd->get_big_accumulation_chunk_flag());
-
-        // Creating special chunk for keeping WSA buffers information there.
-        err_code = sd->CreateWSABuffers(
-            worker_dbs_[sd->get_db_index()],
-            sd->get_smc(),
-            MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + sd->get_user_data_offset_in_socket_data(),
-            MixedCodeConstants::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset_in_socket_data(),
-            sd->get_user_data_written_bytes());
-
-        if (err_code)
-            return err_code;
-
-        err_code = sd->SendMultipleChunks(this, &num_sent_bytes);
-    }
+    err_code = sd->Send(this, &num_sent_bytes);
 
 #ifdef GW_PROFILER_ON
     profiler_.Stop(2);
@@ -684,7 +637,7 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
         if (WSA_IO_PENDING != wsa_err_code)
         {
 #ifdef GW_WARNINGS_DIAG
-            GW_PRINT_WORKER << "Failed WSASend: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
+            GW_PRINT_WORKER << "Failed WSASend: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
 
             PrintLastError();
 #endif
@@ -715,14 +668,15 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
 __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t num_bytes_sent)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "FinishSend: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "FinishSend: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
+
+    // Checking that socket data is valid.
+    sd->CheckForValidity();
 
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
-
-    GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
 
     // Checking disconnect state.
     if (sd->get_disconnect_after_send_flag())
@@ -741,8 +695,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     if (0 == num_bytes_sent)
     {
 #ifdef GW_WARNINGS_DIAG
-        GW_PRINT_WORKER << "Zero-bytes sent on socket index: " << sd->get_socket_info_index() << " " <<
-            sd->get_chunk_index() << ". Remote side closed the connection." << GW_ENDL;
+        GW_PRINT_WORKER << "Zero-bytes sent on socket index: " << sd->get_socket_info_index() << ". Remote side closed the connection." << GW_ENDL;
 #endif
 
         return SCERRGWSOCKETCLOSEDBYPEER;
@@ -765,14 +718,6 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     // Checking if socket data is for receiving.
     if (sd->get_socket_representer_flag())
     {
-        // We have to return attached chunks.
-        if (1 != sd->get_num_chunks())
-        {
-            uint32_t err_code = sd->ReturnExtraLinkedChunks(this);
-            if (err_code)
-                return err_code;
-        }
-
         // Resets data buffer offset.
         sd->ResetUserDataOffset();
 
@@ -811,29 +756,19 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd)
 {
 #ifdef GW_COLLECT_SOCKET_STATISTICS
+#ifndef GW_TESTING_MODE
     GW_ASSERT(sd->get_socket_diag_active_conn_flag() == false);
+#endif
 #endif
 
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Returning chunk to pool: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "Returning chunk to pool: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
     // Returning gateway chunk if any.
     sd->ReturnGatewayChunk();
 
-#ifndef GW_MEMORY_MANAGEMENT
-
-    // Returning current chunks to pool.
-    worker_dbs_[sd->get_db_index()]->ReturnLinkedChunksToPool(sd->get_num_chunks(), sd->get_chunk_index());
-
-#else
-
     worker_chunks_.ReleaseChunk(sd);
-
-#endif
-
-    // Invalidating database index.
-    sd->InvalidateDbIndex(INVALID_DB_INDEX);
 
     // IMPORTANT: Preventing further usages of this socket data.
     sd = NULL;
@@ -866,7 +801,7 @@ uint32_t GatewayWorker::DisconnectSocket(session_index_type socket_index)
     SocketDataChunk* temp_sd;
 
     // NOTE: Fetching chunk from database 0.
-    uint32_t err_code = CreateSocketData(socket_index, 0, temp_sd);
+    uint32_t err_code = CreateSocketData(socket_index, temp_sd);
     if (err_code)
         return err_code;
 
@@ -887,7 +822,7 @@ uint32_t GatewayWorker::ReceiveOnSocket(session_index_type socket_index)
     SocketDataChunk* temp_sd;
 
     // NOTE: Fetching chunk from database 0.
-    uint32_t err_code = CreateSocketData(socket_index, 0, temp_sd);
+    uint32_t err_code = CreateSocketData(socket_index, temp_sd);
     if (err_code)
         return err_code;
 
@@ -904,35 +839,21 @@ uint32_t GatewayWorker::ReceiveOnSocket(session_index_type socket_index)
 void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Disconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "Disconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
+    // Checking that socket data is valid.
+    sd->CheckForValidity();
 
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId())
         goto RELEASE_CHUNK_TO_POOL;
-
-    // Checking if socket data belongs to different database.
-    if (sd->get_db_index() != 0)
-    {
-        DisconnectSocket(sd->get_socket_info_index());
-        goto RELEASE_CHUNK_TO_POOL;
-    }
 
     // Setting socket representer.
     sd->set_socket_representer_flag();
     sd->set_socket_diag_active_conn_flag();
 
     uint32_t err_code;
-
-    // We have to return attached chunks.
-    if (1 != sd->get_num_chunks())
-    {
-        // NOTE: Skipping checking error code on purpose
-        // since we are already in disconnect.
-        sd->ReturnExtraLinkedChunks(this);
-    }
 
 #ifdef GW_PROFILER_ON
     profiler_.Start("Disconnect()", 3);
@@ -947,7 +868,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     }
 
     // Setting unique socket id.
-    sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId(sd->get_db_index()));
+    sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
 
     // Calling DisconnectEx.
     err_code = sd->Disconnect(this);
@@ -968,7 +889,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     if (WSA_IO_PENDING != wsa_err_code)
     {
 #ifdef GW_WARNINGS_DIAG
-        GW_PRINT_WORKER << "Failed DisconnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
+        GW_PRINT_WORKER << "Failed DisconnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
         PrintLastError();
 #endif
 
@@ -978,6 +899,8 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         {
             // Closing socket resource.
             closesocket(sd->GetSocket());
+
+            worker_stats_num_bound_sockets_--;
 
             goto RELEASE_CHUNK_TO_POOL;
         }
@@ -1007,13 +930,8 @@ RELEASE_CHUNK_TO_POOL:
 __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "FinishDisconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "FinishDisconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
-
-    GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
-
-    // Checking that only database zero chunk is for this operation.
-    GW_ASSERT(sd->get_db_index() == 0);
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
@@ -1021,9 +939,6 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(true == sd->get_socket_representer_flag());
-
-    // Stop tracking this socket.
-    UntrackSocket(sd->get_db_index(), sd->get_socket_info_index());
 
     // Deleting session.
     sd->DeleteGlobalSessionOnDisconnect();
@@ -1053,7 +968,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
             reusable_connect_sockets_.PushBack(sock);
 
 #ifdef GW_SOCKET_DIAG
-            GW_COUT << "Added connect socket for reuse: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+            GW_COUT << "Added connect socket for reuse: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
         }
 
@@ -1067,18 +982,6 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     }
 
 #endif
-
-    // Checking if socket should just be reused.
-    if (g_gateway.GetDatabase(sd->get_db_index())->IsDeletionStarted())
-    {
-        // Releasing socket index and reusing socket.
-        sd->ReleaseSocketIndex(this);
-
-        // Returning chunks to pool.
-        ReturnSocketDataChunksToPool(sd);
-
-        return 0;
-    }
 
     // Resetting the socket data.
     sd->ResetOnDisconnect();
@@ -1109,7 +1012,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
 uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Connect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "Connect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
     while(TRUE)
@@ -1120,11 +1023,8 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
         profiler_.Start("Connect()", 4);
 #endif
 
-        // Start tracking this socket.
-        TrackSocket(sd->get_db_index(), sd->get_socket_info_index());
-
         // Setting unique socket id.
-        sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId(sd->get_db_index()));
+        sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
 
         // Calling ConnectEx.
         uint32_t err_code = sd->Connect(this, server_addr);
@@ -1154,7 +1054,7 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
             }
 
 #ifdef GW_WARNINGS_DIAG
-            GW_PRINT_WORKER << "Failed ConnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
+            GW_PRINT_WORKER << "Failed ConnectEx: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
 
             PrintLastError();
 #endif
@@ -1176,11 +1076,8 @@ uint32_t GatewayWorker::Connect(SocketDataChunkRef sd, sockaddr_in *server_addr)
 __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "FinishConnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "FinishConnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
-
-    // Checking that only database zero chunk is for this operation.
-    GW_ASSERT(sd->get_db_index() == 0);
 
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
@@ -1267,7 +1164,7 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
 uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "Accept: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "Accept: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
     // Start accepting on socket.
@@ -1276,17 +1173,11 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
     profiler_.Start("Accept()", 5);
 #endif
 
-    // Checking that only database zero chunk is for this operation.
-    GW_ASSERT(sd->get_db_index() == 0);
-
-    // Tracking corresponding socket.
-    TrackSocket(sd->get_db_index(), sd->get_socket_info_index());
-
     // Updating number of accepting sockets.
     ChangeNumAcceptingSockets(sd->GetPortIndex(), 1);
 
     // Setting unique socket id.
-    sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId(sd->get_db_index()));
+    sd->GenerateUniqueSocketInfoIds(GenerateSchedulerId());
 
     // Calling AcceptEx.
     uint32_t err_code = sd->Accept(this);
@@ -1308,7 +1199,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
     if (WSA_IO_PENDING != wsa_err_code)
     {
 #ifdef GW_WARNINGS_DIAG
-        GW_PRINT_WORKER << "Failed AcceptEx: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+        GW_PRINT_WORKER << "Failed AcceptEx: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 
         PrintLastError();
 #endif
@@ -1327,7 +1218,7 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
 uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 {
 #ifdef GW_SOCKET_DIAG
-    GW_PRINT_WORKER << "FinishAccept: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+    GW_PRINT_WORKER << "FinishAccept: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
     // Checking correct unique socket.
@@ -1383,7 +1274,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     if (num_created_conns_worker_ < g_gateway.setting_num_connections_to_master_per_worker())
     {
         // Creating new set of prepared connections.
-        err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex(), sd->get_db_index());
+        err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
         GW_ERR_CHECK(err_code);
     }
 
@@ -1393,7 +1284,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     if (cur_num_accept_sockets < ACCEPT_ROOF_STEP_SIZE)
     {
         // Creating new set of prepared connections.
-        err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex(), sd->get_db_index());
+        err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
         GW_ERR_CHECK(err_code);
     }
 
@@ -1417,13 +1308,11 @@ __forceinline uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clon
         SocketDataChunk* sd = sd_receive_clone_;
 
 #ifdef GW_SOCKET_DIAG
-        GW_PRINT_WORKER << "Processing clone: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+        GW_PRINT_WORKER << "Processing clone: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
         // Invalidating clone for more reuse.
         sd_receive_clone_ = NULL;
-
-        GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES) && (sd->get_chunk_index() != INVALID_CHUNK_INDEX));
 
         if (just_delete_clone)
         {
@@ -1496,16 +1385,13 @@ uint32_t GatewayWorker::WorkerRoutine()
                 SocketDataChunk* sd = (SocketDataChunk*)(fetched_ovls[i].lpOverlapped);
 
 #ifdef GW_SOCKET_DIAG
-                GW_PRINT_WORKER << "GetQueuedCompletionStatusEx: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+                GW_PRINT_WORKER << "GetQueuedCompletionStatusEx: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
                 // Checking for socket data correctness.
-                GW_ASSERT((sd->get_db_index() >= 0) && (sd->get_db_index() < MAX_ACTIVE_DATABASES));
+                sd->CheckForValidity();
                 GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
 
-#ifndef GW_MEMORY_MANAGEMENT
-                GW_ASSERT(INVALID_CHUNK_INDEX != sd->get_chunk_index());
-#endif
                 // Checking error code (lower 32-bits of Internal).
                 if (ERROR_SUCCESS != (uint32_t) fetched_ovls[i].lpOverlapped->Internal)
                 {
@@ -1653,32 +1539,22 @@ uint32_t GatewayWorker::WorkerRoutine()
     return SCERRGWWORKERROUTINEFAILED;
 }
 
-// Creating accepting sockets on all ports and for all databases.
-uint32_t GatewayWorker::CheckAcceptingSocketsOnAllActivePortsAndDatabases()
+// Creating accepting sockets on all ports.
+uint32_t GatewayWorker::CheckAcceptingSocketsOnAllActivePorts()
 {
-    for (int32_t d = 0; d < g_gateway.get_num_dbs_slots(); d++)
+    for (int32_t p = 0; p < g_gateway.get_num_server_ports_slots(); p++)
     {
-        // Checking if database is up.
-        if (g_gateway.GetDatabase(d)->IsDeletionStarted() ||
-            g_gateway.GetDatabase(d)->IsEmpty())
-        {
-            continue;
-        }
+        ServerPort* server_port = g_gateway.get_server_port(p);
 
-        for (int32_t p = 0; p < g_gateway.get_num_server_ports_slots(); p++)
+        // Checking that port is not empty.
+        if (!server_port->IsEmpty())
         {
-            ServerPort* server_port = g_gateway.get_server_port(p);
-
-            // Checking that port is not empty.
-            if (!server_port->IsEmpty())
+            // Checking if we need to extend number of accepting sockets.
+            if (server_port->get_num_accepting_sockets() < ACCEPT_ROOF_STEP_SIZE)
             {
-                // Checking if we need to extend number of accepting sockets.
-                if (server_port->get_num_accepting_sockets() < ACCEPT_ROOF_STEP_SIZE)
-                {
-                    // Creating new set of prepared connections.
-                    uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, p, d);
-                    GW_ERR_CHECK(err_code);
-                }
+                // Creating new set of prepared connections.
+                uint32_t err_code = CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, p);
+                GW_ERR_CHECK(err_code);
             }
         }
     }
@@ -1725,7 +1601,7 @@ uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
 #ifndef GW_LOOPED_TEST_MODE
 
                     // Creating accepting sockets on all ports and for all databases.
-                    err_code = CheckAcceptingSocketsOnAllActivePortsAndDatabases();
+                    err_code = CheckAcceptingSocketsOnAllActivePorts();
                     GW_ERR_CHECK(err_code);
 
 #endif
@@ -1755,45 +1631,16 @@ uint32_t GatewayWorker::ScanChannels(uint32_t& next_sleep_interval_ms)
 // Creates the socket data structure.
 uint32_t GatewayWorker::CreateSocketData(
     session_index_type socket_info_index,
-    db_index_type db_index,
     SocketDataChunkRef out_sd)
 {
-    // Getting active database.
-    WorkerDbInterface *db = worker_dbs_[db_index];
-    if (NULL == db)
-        return SCERRGWWRONGDATABASEINDEX;
-
-#ifndef GW_MEMORY_MANAGEMENT
-
-    // Pop chunk index from private chunk pool.
-    core::chunk_index chunk_index;
-    shared_memory_chunk *smc;
-    uint32_t err_code = db->GetOneChunkFromPrivatePool(&chunk_index, &smc);
-    if (err_code)
-    {
-        // New chunk can not be obtained.
-
-        return err_code;
-    }
-
-    // Allocating socket data inside chunk.
-    out_sd = (SocketDataChunk*)((uint8_t*)smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
-
-    // Initializing socket data.
-    out_sd->Init(socket_info_index, db_index, chunk_index, worker_id_);
-
-#else
-
     // Obtaining chunk from gateway private memory.
     out_sd = worker_chunks_.ObtainChunk();
 
     // Initializing socket data.
-    out_sd->Init(socket_info_index, db_index, INVALID_CHUNK_INDEX, worker_id_);
+    out_sd->Init(socket_info_index, worker_id_);
     
-#endif
-
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "Creating socket data: socket index " << out_sd->get_socket_info_index() << ":" << out_sd->get_unique_socket_id() << ":" << out_sd->get_chunk_index() << ":" << (uint64_t)out_sd << GW_ENDL;
+    GW_PRINT_WORKER << "Creating socket data: socket index " << out_sd->get_socket_info_index() << ":" << out_sd->get_unique_socket_id() << ":" << (uint64_t)out_sd << GW_ENDL;
 #endif
 
     return 0;
@@ -1821,49 +1668,8 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
     WorkerDbInterface *db = GetWorkerDb(target_db_index);
     GW_ASSERT(NULL != db);
 
-    // Checking if we need to clone.
-#ifndef GW_MEMORY_MANAGEMENT
-    if (target_db_index != 0)
-#endif
-    {
-        // Getting new chunk and copy contents from old one.
-        SocketDataChunk* new_sd = NULL;
-        uint32_t err_code = CloneChunkForAnotherDatabase(sd, target_db_index, &new_sd);
-        if (err_code)
-            return err_code;
-
-        // Setting new chunk reference.
-        sd = new_sd;
-    }
-
     // Pushing chunk to that database.
     return db->PushSocketDataToDb(this, sd, handler_id);
-}
-
-// Gets a new chunk for new database and copies the old one into it.
-uint32_t GatewayWorker::CloneChunkForAnotherDatabase(
-    SocketDataChunkRef old_sd,
-    int32_t new_db_index,
-    SocketDataChunk** new_sd)
-{
-    // Cloning current socket data for another database.
-    uint32_t err_code = old_sd->CloneToAnotherDatabase(this, new_db_index, new_sd);
-    if (err_code)
-        return err_code;
-
-#ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER << "CloneChunkForAnotherDatabase: " << old_sd->get_socket_info_index() << ":" << old_sd->GetSocket() << ":" << old_sd->get_unique_socket_id() << ":" << old_sd->get_chunk_index() << ":" << (uint64_t)old_sd << GW_ENDL;
-#endif
-
-    // Checking if its not receiving socket data.
-    // NOTE: Making sure that socket is always receiving.
-    GW_ASSERT(!old_sd->get_socket_representer_flag());
-
-    // Returning old chunk to its pool.
-    old_sd->reset_socket_diag_active_conn_flag();
-    ReturnSocketDataChunksToPool(old_sd);
-
-    return 0;
 }
 
 // Deleting inactive database.
@@ -1910,52 +1716,20 @@ uint32_t GatewayWorker::SendPredefinedMessage(
     // We don't need original chunk contents.
     sd->ResetAccumBuffer();
 
-    AccumBuffer* accum_buf = sd->get_accum_buf();
-
     // Checking if data fits inside chunk.
-    if (message_len < (int32_t)accum_buf->get_chunk_num_available_bytes())
+    if (message_len > (int32_t)sd->get_accum_buf()->get_chunk_num_available_bytes())
     {
-        // Checking if message should be copied.
-        if (message)
-            memcpy(accum_buf->get_chunk_orig_buf_ptr(), message, message_len);
-    }
-    else // Multiple chunks response.
-    {
-        GW_ASSERT(message != NULL);
-
-        WorkerDbInterface* worker_db = GetWorkerDb(sd->get_db_index());
-        starcounter::core::chunk_index src_chunk_index = sd->get_chunk_index();
-
-        int32_t first_chunk_offset = sd->GetAccumOrigBufferChunkOffset();
-
-        int32_t last_written_bytes;
-        uint32_t err_code;
-
-        int32_t total_processed_bytes = 0;
-        bool just_sending_flag = false;
-
-        // Copying user data to multiple chunks.
-        err_code = worker_db->WriteBigDataToChunks(
-            (uint8_t*)message + total_processed_bytes,
-            message_len - total_processed_bytes,
-            src_chunk_index,
-            &last_written_bytes,
-            first_chunk_offset,
-            just_sending_flag,
-            sd->get_aggregated_flag()
-            );
-
+        uint32_t err_code = SocketDataChunk::ChangeToBigger(this, sd, message_len);
         if (err_code)
             return err_code;
-
-        // Increasing total sent bytes.
-        total_processed_bytes += last_written_bytes;
     }
 
+    // Checking if message should be copied.
+    if (message)
+        memcpy(sd->get_accum_buf()->get_chunk_orig_buf_ptr(), message, message_len);
+
     // Prepare buffer to send outside.
-    accum_buf->PrepareForSend(accum_buf->get_chunk_orig_buf_ptr(), message_len);
-    sd->set_user_data_written_bytes(message_len);
-    sd->set_user_data_offset_in_socket_data(sd->GetAccumOrigBufferSocketDataOffset());
+    sd->PrepareForSend(sd->get_accum_buf()->get_chunk_orig_buf_ptr(), message_len);
 
     // Sending data.
     return Send(sd);

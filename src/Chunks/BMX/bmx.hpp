@@ -53,10 +53,6 @@ namespace bmx
 {
     typedef uint32_t BMX_SUBPORT_TYPE;
 
-    // NOTE: Excluding original chunk since its for extra linked.
-    const uint32_t MAX_EXTRA_LINKED_WSABUFS = MixedCodeConstants::CHUNK_MAX_DATA_BYTES / sizeof(WSABUF) - 1;
-    const uint32_t MAX_BYTES_EXTRA_LINKED_WSABUFS = (MAX_EXTRA_LINKED_WSABUFS - 1) * MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
-
     // Invalid BMX handler info.
     const BMX_HANDLER_TYPE BMX_INVALID_HANDLER_INFO = ~((BMX_HANDLER_TYPE) 0);
 

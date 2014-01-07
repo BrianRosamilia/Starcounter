@@ -91,6 +91,9 @@ namespace Starcounter.Templates {
             } 
         }
 
+		internal override void SetDefaultValue(Json parent) {
+		}
+
 		internal override void InvalidateBoundGetterAndSetter() {
 			base.InvalidateBoundGetterAndSetter();
 		}
@@ -105,11 +108,18 @@ namespace Starcounter.Templates {
 		internal override void CheckAndSetBoundValue(Json json, bool addToChangeLog) {
 		}
 
+		internal override object GetUnboundValueAsObject(Json parent) {
+			return null;
+		}
+
 		internal override object GetValueAsObject(Json parent) {
 			return null;
 		}
 
 		internal override void SetValueAsObject(Json parent, object value) {
+		}
+
+		internal override void CopyValueDelegates(Template toTemplate) {
 		}
     }
 }

@@ -24,11 +24,6 @@ namespace Starcounter
         Byte* raw_chunk_ = (Byte*) 0;
 
         /// <summary>
-        /// The single_chunk_
-        /// </summary>
-        Boolean single_chunk_ = true;
-
-        /// <summary>
         /// The chunk_index_
         /// </summary>
         UInt32 chunk_index_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
@@ -46,12 +41,10 @@ namespace Starcounter
         /// <param name="chunkIndex">Index of the chunk.</param>
         internal NetworkDataStream(
             Byte* raw_chunk,
-            Boolean single_chunk,
             UInt32 chunk_index,
             Byte gw_worker_id)
         {
             raw_chunk_ = raw_chunk;
-            single_chunk_ = single_chunk;
             chunk_index_ = chunk_index;
             gw_worker_id_ = gw_worker_id;
         }
@@ -89,28 +82,21 @@ namespace Starcounter
             if (length > PayloadSize)
                 throw new ArgumentException("Specified length is larger than actual size.");
 
-            if (single_chunk_)
+            unsafe
             {
-                unsafe
-                {
-                    if (PayloadSize > length)
-                        throw new ArgumentException("Not enough space to write user data.");
+                if (PayloadSize > length)
+                    throw new ArgumentException("Not enough space to write user data.");
 
-                    // Reading user data offset.
-                    UInt16* user_data_offset_in_socket_data = (UInt16*)(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
+                // Reading user data offset.
+                UInt16* user_data_offset_in_socket_data = (UInt16*)(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
 
-                    // Copying the data to user buffer.
-                    Marshal.Copy(
-                        (IntPtr)(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data),
-                        buffer,
-                        offset,
-                        PayloadSize);
-                }
-
-                return;
+                // Copying the data to user buffer.
+                Marshal.Copy(
+                    (IntPtr)(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data),
+                    buffer,
+                    offset,
+                    PayloadSize);
             }
-
-            throw new NotImplementedException();
         }
 
         /// <summary>

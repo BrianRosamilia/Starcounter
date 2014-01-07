@@ -8,6 +8,13 @@
 namespace starcounter {
 namespace network {
 
+// Test modes defines.
+/*
+#define GW_LOG_TO_CONSOLE
+#define GW_LOOPED_TEST_MODE
+#define GW_LIMITED_ECHO_TEST
+*/
+
 // If you are debugging the gateway uncomment the following.
 //#define GW_DEV_DEBUG
 

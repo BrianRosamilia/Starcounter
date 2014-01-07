@@ -44,6 +44,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
+		/// <summary>
+		/// Returns the name of a backing field if this property is a value property.
+		/// </summary>
+		public string BackingFieldName {
+			get {
+				var tv = Template as TValue;
+				if (tv != null && !(tv is TTrigger)) {
+					return "__bf__" + MemberName + "__";
+				}
+				return null;
+			}
+		}
+
         /// <summary>
         /// Gets or sets the template.
         /// </summary>

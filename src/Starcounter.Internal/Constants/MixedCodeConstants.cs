@@ -5,8 +5,6 @@
 // C++ code--removes public keyword for C++
 #define public
 
-//#define GW_MEMORY_MANAGEMENT
-
 typedef char* const String;
 typedef unsigned int uint;
 
@@ -94,25 +92,26 @@ namespace Starcounter.Internal
         /// <summary>
         /// Offsets in socket data and chunk.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_SESSION = 176;
-        public const int CHUNK_OFFSET_SESSION = 208;
-        public const int CHUNK_OFFSET_SESSION_SCHEDULER_ID = 220;
-        public const int CHUNK_OFFSET_SESSION_LINEAR_INDEX = 216;
-        public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = 208;
-        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 192;
-        public const int SOCKET_DATA_OFFSET_BLOB = 256;
-        public const int CHUNK_OFFSET_NUM_CHUNKS = 100;
-        public const int CHUNK_OFFSET_SOCKET_FLAGS = 92;
-        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 74;
+        public const int SOCKET_DATA_OFFSET_SESSION = 152;
+        public const int CHUNK_OFFSET_SESSION = 184;
+        public const int CHUNK_OFFSET_SESSION_SCHEDULER_ID = 196;
+        public const int CHUNK_OFFSET_SESSION_LINEAR_INDEX = 192;
+        public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = 184;
+        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 168;
+        public const int SOCKET_DATA_OFFSET_BLOB = 232;
+        public const int CHUNK_OFFSET_NUM_IPC_CHUNKS = 32;
+        public const int CHUNK_OFFSET_SOCKET_FLAGS = 84;
+        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 63;
         public const int SOCKET_DATA_OFFSET_CLIENT_IP = 40;
-        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 128;
-        public const int SOCKET_DATA_NUM_CLONE_BYTES = 192;
-        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 102;
-        public const int CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = 84;
+        public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 112;
+        public const int SOCKET_DATA_NUM_CLONE_BYTES = 168;
+        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 92;
+        public const int CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH = 136;
+        public const int CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = 104;
         public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 32;
         public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 48;
-        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 171;
-        public const int SOCKET_DATA_OFFSET_BOUND_WORKER_ID = 189;
+        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 151;
+        public const int SOCKET_DATA_OFFSET_BOUND_WORKER_ID = 165;
         
         /// <summary>
         /// Maximum number of URI callback parameters.
@@ -127,7 +126,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Shared memory chunk size.
         /// </summary>
-        public const int SHM_CHUNK_SIZE = 1 << 11; // 2K chunks.
+        public const int SHM_CHUNK_SIZE = 512;
 
         /// <summary>
         /// Shared memory chunks default number.
@@ -158,6 +157,16 @@ namespace Starcounter.Internal
         /// Socket data max size.
         /// </summary>
         public const int SOCKET_DATA_MAX_SIZE = CHUNK_MAX_DATA_BYTES - CHUNK_OFFSET_SOCKET_DATA;
+
+        /// <summary>
+        /// Maximum extra linked IPC chunks.
+        /// </summary>
+        public const int MAX_EXTRA_LINKED_IPC_CHUNKS = 32;
+
+        /// <summary>
+        /// Maximum linked chunks bytes.
+        /// </summary>
+        public const int MAX_BYTES_EXTRA_LINKED_IPC_CHUNKS = MAX_EXTRA_LINKED_IPC_CHUNKS * CHUNK_MAX_DATA_BYTES;
 
         /// <summary>
         /// Size of socket data blob.

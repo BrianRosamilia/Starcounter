@@ -146,7 +146,6 @@ namespace Starcounter {
 			} else {
 				template = (Template as TObject).Properties[index];
 			}
-			object value = _list[index];
 			if (template is TValue && Data != null) {
 				if (((TValue)template).Bind != null) {
 					string binding = ((TValue)template).Bind;
@@ -158,8 +157,8 @@ namespace Starcounter {
 				}
 				
 				var tv = (TValue)template;
-				if (tv.GetValueAsObject(this) != value) {
-					var dbgVal = _list[index];
+				var dbgVal = tv.GetUnboundValueAsObject(this);
+				if (tv.GetValueAsObject(this) != dbgVal) {
 					if (dbgVal == null)
 						dbgVal = "notsent";
 					sb.Append("(indirect-set old=" + dbgVal + ")");

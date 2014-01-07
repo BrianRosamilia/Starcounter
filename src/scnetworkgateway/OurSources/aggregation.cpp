@@ -151,7 +151,7 @@ WRITE_TO_AGGR_SD:
     {
         // Checking if data fits in socket data.
         AccumBuffer* aggr_accum_buf = aggr_sd->get_accum_buf();
-        uint32_t total_num_bytes = sd->get_user_data_written_bytes() + AggregationStructSizeBytes;
+        uint32_t total_num_bytes = sd->get_user_data_length_bytes() + AggregationStructSizeBytes;
 
         // NOTE: Asserting that maximum data to send fits in big aggregation chunk.
         GW_ASSERT(total_num_bytes < aggr_accum_buf->get_chunk_orig_buf_len_bytes());
@@ -162,56 +162,14 @@ WRITE_TO_AGGR_SD:
             AggregationStruct* aggr_struct = (AggregationStruct*) ((uint8_t*)sd + sd->get_user_data_offset_in_socket_data() - AggregationStructSizeBytes);
             aggr_struct->flags = sd->get_type_of_network_oper();
             aggr_struct->port_number_ = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
-            aggr_struct->size_bytes_ = sd->get_user_data_written_bytes();
+            aggr_struct->size_bytes_ = sd->get_user_data_length_bytes();
             aggr_struct->socket_info_index_ = sd->get_socket_info_index();
             aggr_struct->unique_socket_id_ = sd->get_unique_socket_id();
             aggr_struct->unique_aggr_index_ = static_cast<int32_t>(sd->get_unique_aggr_index());
 
             // Writing given buffer to send.
-            if (1 == sd->get_num_chunks())
-            {
-                aggr_accum_buf->WriteBytesToSend(aggr_struct, total_num_bytes);
-            }
-            else
-            {
-                uint32_t bytes_left = total_num_bytes;
-
-                int32_t cur_chunk_data_size = AggregationStructSizeBytes + MixedCodeConstants::SOCKET_DATA_MAX_SIZE - sd->get_user_data_offset_in_socket_data();
-
-                aggr_accum_buf->WriteBytesToSend(aggr_struct, cur_chunk_data_size);
-                bytes_left -= cur_chunk_data_size;
-                GW_ASSERT(bytes_left > 0);
-
-                if (bytes_left < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
-                    cur_chunk_data_size = bytes_left;
-                else
-                    cur_chunk_data_size = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
-
-                // Getting link to the first chunk in chain.
-                shared_memory_chunk* smc = sd->get_smc();
-                core::chunk_index cur_chunk_index = smc->get_link();
-
-                // Until we get the last chunk in chain.
-                while (cur_chunk_index != shared_memory_chunk::link_terminator)
-                {
-                    // Obtaining chunk memory.
-                    smc = GetSmcFromChunkIndex(sd->get_db_index(), cur_chunk_index);
-
-                    // Writing to aggregation buffer.
-                    aggr_accum_buf->WriteBytesToSend(smc, cur_chunk_data_size);
-
-                    // Decreasing number of bytes left to be processed.
-                    bytes_left -= cur_chunk_data_size;
-                    if (bytes_left < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
-                        cur_chunk_data_size = bytes_left;
-
-                    // Getting next chunk in chain.
-                    cur_chunk_index = smc->get_link();
-                }
-
-                GW_ASSERT(0 == bytes_left);
-            }
-
+            aggr_accum_buf->WriteBytesToSend(aggr_struct, total_num_bytes);
+            
             // Releasing the chunk.
             ReturnSocketDataChunksToPool(sd);
 
@@ -253,7 +211,7 @@ WRITE_TO_AGGR_SD:
     else
     {
         // Creating new socket data.
-        err_code = CreateSocketData(aggr_socket_info_index, 0, aggr_sd);
+        err_code = CreateSocketData(aggr_socket_info_index, aggr_sd);
         if (err_code)
             return err_code;
 

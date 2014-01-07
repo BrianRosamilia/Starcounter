@@ -202,15 +202,13 @@ namespace Starcounter.Internal
                 throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
 
             // Creating network data stream object.
-            NetworkDataStream data_stream = new NetworkDataStream(new_chunk_mem, true, new_chunk_index, session.session_struct_.gw_worker_id_);
+            NetworkDataStream data_stream = new NetworkDataStream(new_chunk_mem, new_chunk_index, session.session_struct_.gw_worker_id_);
 
             Byte* socket_data_begin = new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
             (*(ScSessionStruct*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SESSION)) = session.session_struct_;
 
             (*(UInt32*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
-
-            (*(UInt16*)(new_chunk_mem + MixedCodeConstants.CHUNK_OFFSET_NUM_CHUNKS)) = 1;
 
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte) protocol_type;           
 

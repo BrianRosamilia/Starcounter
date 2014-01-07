@@ -570,7 +570,7 @@ uint32_t OuterPortProcessData(
     bool* is_handled)
 {
     // First searching in database handlers table.
-    HandlersTable* handlers_table = g_gateway.GetDatabase(sd->get_db_index())->get_user_handlers();
+    HandlersTable* handlers_table = g_gateway.GetDatabase(hl->get_db_index())->get_user_handlers();
 
     // Getting the corresponding port number.
     uint16_t port_num = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
@@ -609,7 +609,7 @@ uint32_t AppsPortProcessData(
     if (sd->get_to_database_direction_flag())
     {
         // Resetting user data parameters.
-        sd->set_user_data_written_bytes(sd->get_accum_buf()->get_accum_len_bytes());
+        sd->get_accum_buf()->set_chunk_num_available_bytes(sd->get_accum_buf()->get_accum_len_bytes());
         sd->ResetUserDataOffset();
 
         // Setting matched URI index.
@@ -629,7 +629,7 @@ uint32_t AppsPortProcessData(
     else
     {
         // Prepare buffer to send outside.
-        sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
+        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
 
         // Sending data.
         err_code = gw->Send(sd);

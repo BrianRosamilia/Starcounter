@@ -36,34 +36,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             get { return (TContainer)(NTemplateClass.Template); }
         }
 
-       // public new NAppClass Parent {
-       //     get {
-       //         return (NAppClass)base.Parent;
-       //     }
-       //     set {
-       //         base.Parent = value;
-       //     }
-       // }
-
-        /*
-        /// <summary>
-        /// The _ inherits
-        /// </summary>
-        public string _Inherits {
-            set {
-                __inh = value;
-            }
-            get {
-                return __inh;
-            }
-        }
-
-        private string __inh;
-        */
-
-        //public AstClass InheritedClass;
-
-
         public override string Generics {
             get {
                 throw new Exception();
