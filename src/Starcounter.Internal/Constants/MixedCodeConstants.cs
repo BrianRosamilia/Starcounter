@@ -77,12 +77,12 @@ namespace Starcounter.Internal
         /// <summary>
         /// Is socket data aggregated.
         /// </summary>
-        public const int SOCKET_DATA_FLAGS_AGGREGATED = 2 << 13;
+        public const int SOCKET_DATA_FLAGS_AGGREGATED = 2 << 11;
 
         /// <summary>
         /// Is socket data in host accumulation.
         /// </summary>
-        public const int SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = 2 << 14;
+        public const int SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = 2 << 12;
 
         /// <summary>
         /// Invalid chunk index.

@@ -765,9 +765,6 @@ void GatewayWorker::ReturnSocketDataChunksToPool(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "Returning chunk to pool: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    // Returning gateway chunk if any.
-    sd->ReturnGatewayChunk();
-
     worker_chunks_.ReleaseChunk(sd);
 
     // IMPORTANT: Preventing further usages of this socket data.
@@ -1634,7 +1631,11 @@ uint32_t GatewayWorker::CreateSocketData(
     SocketDataChunkRef out_sd)
 {
     // Obtaining chunk from gateway private memory.
-    out_sd = worker_chunks_.ObtainChunk();
+    // Checking if its an aggregation socket.
+    if (g_gateway.IsAggregatingPort(socket_info_index))
+        out_sd = worker_chunks_.ObtainChunk(GatewayChunkDataSizes[NumGatewayChunkSizes - 1]);
+    else
+        out_sd = worker_chunks_.ObtainChunk();
 
     // Initializing socket data.
     out_sd->Init(socket_info_index, worker_id_);

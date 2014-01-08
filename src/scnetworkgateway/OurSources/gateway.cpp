@@ -1690,10 +1690,6 @@ uint32_t Gateway::Init()
     GW_ASSERT(free_socket_indexes_unsafe_);
     InitializeSListHead(free_socket_indexes_unsafe_);
 
-    gateway_mem_chunks_unsafe_ = (PSLIST_HEADER) _aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
-    GW_ASSERT(gateway_mem_chunks_unsafe_);
-    InitializeSListHead(gateway_mem_chunks_unsafe_);
-
     sockets_to_cleanup_unsafe_ = new session_index_type[setting_max_connections_];
     num_active_sockets_ = 0;
     num_sockets_to_cleanup_unsafe_ = 0;

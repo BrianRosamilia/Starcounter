@@ -310,7 +310,7 @@ enum GatewayTestingMode
     MODE_GATEWAY_UNKNOWN = 6
 };
 
-const int32_t NumGatewayChunkSizes = 5;
+const int32_t NumGatewayChunkSizes = 6;
 const int32_t DefaultGatewayChunkSizeType = 1;
 
 const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
@@ -318,7 +318,8 @@ const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
     2 * 1024, // Default chunk size.
     8 * 1024,
     32 * 1024,
-    128 * 1024
+    128 * 1024,
+    512 * 1024
 };
 
 const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
@@ -326,7 +327,8 @@ const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
     500000, // Default chunk size.
     100000,
     50000,
-    50000
+    50000,
+    1000
 };
 
 const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
@@ -334,7 +336,8 @@ const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
     GatewayChunkSizes[1] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[2] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[3] - SOCKET_DATA_OFFSET_BLOB,
-    GatewayChunkSizes[4] - SOCKET_DATA_OFFSET_BLOB
+    GatewayChunkSizes[4] - SOCKET_DATA_OFFSET_BLOB,
+    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB
 };
 
 inline chunk_store_type ObtainGatewayChunkType(int32_t data_size)
@@ -1026,18 +1029,6 @@ struct ScSessionStruct
     }
 };
 
-_declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct GatewayMemoryChunk
-{
-    // Entry to lock-free gateway memory chunks list.
-    SLIST_ENTRY slist_entry_;
-    
-    // Length of allocated buffer in bytes.
-    int32_t buffer_len_bytes_;
-
-    // Pointed to allocated buffer.
-    uint8_t* buf_;
-};
-
 enum SOCKET_FLAGS
 {
     SOCKET_FLAGS_AGGREGATED = 1,
@@ -1690,9 +1681,6 @@ class Gateway
     // OTHER STUFF
     ////////////////////////
 
-    // Free gateway memory chunks.
-    PSLIST_HEADER gateway_mem_chunks_unsafe_;
-
     // Unique linear socket id.
     random_salt_type unique_socket_id_;
 
@@ -1809,29 +1797,6 @@ public:
 
     // Releases used socket index.
     void ReleaseSocketIndex(GatewayWorker* gw, session_index_type index);
-
-    // Obtains a gateway memory chunk.
-    GatewayMemoryChunk* ObtainGatewayMemoryChunk()
-    {
-        PSLIST_ENTRY free_gw_chunk_entry = InterlockedPopEntrySList(gateway_mem_chunks_unsafe_);
-
-        if (NULL == free_gw_chunk_entry)
-        {
-            GatewayMemoryChunk* c =  (GatewayMemoryChunk*) _aligned_malloc(sizeof(GatewayMemoryChunk), MEMORY_ALLOCATION_ALIGNMENT);
-            c->buffer_len_bytes_ = AGGREGATION_BUFFER_SIZE;
-            c->buf_ = new uint8_t[c->buffer_len_bytes_];
-
-            free_gw_chunk_entry = (PSLIST_ENTRY) c;
-        }
-
-        return (GatewayMemoryChunk*) free_gw_chunk_entry;
-    }
-
-    // Returns gateway memory chunk back to list.
-    void ReturnGatewayMemoryChunk(GatewayMemoryChunk* gwc)
-    {
-        InterlockedPushEntrySList(gateway_mem_chunks_unsafe_, &gwc->slist_entry_);
-    }
 
     // Checks if IP is on white list.
     bool CheckIpForWhiteList(ip_info_type ip)

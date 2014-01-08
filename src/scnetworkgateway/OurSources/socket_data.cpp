@@ -26,18 +26,7 @@ void SocketDataChunk::Init(
     
     session_.Reset();
 
-    // Checking if its an aggregation socket.
-    if (g_gateway.IsAggregatingPort(socket_info_index))
-    {
-        GatewayMemoryChunk* gwc = g_gateway.ObtainGatewayMemoryChunk();
-        set_big_accumulation_chunk_flag();
-        accum_buf_.Init(gwc->buffer_len_bytes_, gwc->buf_, true);
-    }
-    else
-    {
-        // Configuring data buffer.
-        ResetAccumBuffer();
-    }
+    ResetAccumBuffer();
 
     set_to_database_direction_flag();
 
@@ -73,31 +62,8 @@ void SocketDataChunk::ResetOnDisconnect()
     get_http_proto()->Reset();
     get_ws_proto()->Reset();
 
-    // Checking if big gateway chunk is used.
-    if (get_big_accumulation_chunk_flag())
-    {
-        flags_ = 0;
-        accum_buf_.ResetToOriginalState();
-        set_big_accumulation_chunk_flag();
-    }
-    else
-    {
-        flags_ = 0;
-        ResetAccumBuffer();
-    }
-}
-
-// Returns gateway chunk to gateway if any.
-void SocketDataChunk::ReturnGatewayChunk()
-{
-    if (get_big_accumulation_chunk_flag())
-    {
-        GatewayMemoryChunk* gmc = (GatewayMemoryChunk*) accum_buf_.get_chunk_orig_buf_ptr();
-        GW_ASSERT_DEBUG(AGGREGATION_BUFFER_SIZE == gmc->buffer_len_bytes_);
-
-        g_gateway.ReturnGatewayMemoryChunk(gmc);
-        reset_big_accumulation_chunk_flag();
-    }
+    flags_ = 0;
+    ResetAccumBuffer();
 }
 
 // Clones existing socket data chunk for receiving.

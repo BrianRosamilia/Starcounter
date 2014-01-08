@@ -22,8 +22,6 @@ enum SOCKET_DATA_FLAGS
     HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 2 << 8,
     HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2 << 9,
     HTTP_WS_FLAGS_GRACEFULLY_CLOSE = MixedCodeConstants::HTTP_WS_FLAGS_GRACEFULLY_CLOSE,
-    SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK = 2 << 11,
-    SOCKET_DATA_FLAGS_AGGREGATION_SD = 2 << 12,
     SOCKET_DATA_FLAGS_AGGREGATED = MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED,
     SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = MixedCodeConstants::SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION
 };
@@ -195,9 +193,6 @@ public:
     {
         return &ws_proto_;
     }
-
-    // Returns gateway chunk to gateway if any.
-    void ReturnGatewayChunk();
 
     session_index_type get_unique_aggr_index()
     {
@@ -539,39 +534,6 @@ public:
         flags_ &= ~SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION;
     }
 
-    bool get_aggregation_sd_flag()
-    {
-        return (flags_ & SOCKET_DATA_FLAGS_AGGREGATION_SD) != 0;
-    }
-
-    void set_aggregation_sd_flag()
-    {
-        flags_ |= SOCKET_DATA_FLAGS_AGGREGATION_SD;
-    }
-
-    void reset_aggregation_sd_flag()
-    {
-        flags_ &= ~SOCKET_DATA_FLAGS_AGGREGATION_SD;
-    }
-
-    // Getting big accumulation chunk.
-    bool get_big_accumulation_chunk_flag()
-    {
-        return (flags_ & SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK) != 0;
-    }
-
-    // Setting big accumulation chunk.
-    void set_big_accumulation_chunk_flag()
-    {
-        flags_ |= SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK;
-    }
-
-    // ReSetting big accumulation chunk.
-    void reset_big_accumulation_chunk_flag()
-    {
-        flags_ &= ~SOCKET_DATA_FLAGS_BIG_ACCUMULATION_CHUNK;
-    }
-
     // Getting disconnect socket flag.
     bool get_disconnect_socket_flag()
     {
@@ -910,7 +872,6 @@ public:
     // Resets accumulating buffer to its default socket data values.
     void ResetAccumBuffer()
     {
-        GW_ASSERT_DEBUG(false == get_big_accumulation_chunk_flag());
         accum_buf_.Init(GatewayChunkDataSizes[chunk_store_index_], data_blob_, true);
     }
 

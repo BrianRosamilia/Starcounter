@@ -9,6 +9,7 @@ namespace Starcounter.Templates {
 		private string bind;
 		internal Type dataTypeForBinding;
 		internal bool isVerifiedUnbound;
+        internal bool isBoundToParent;
 		internal bool hasCustomAccessors;
 
 #if DEBUG
@@ -186,16 +187,27 @@ namespace Starcounter.Templates {
 		/// <param name="data"></param>
 		/// <returns></returns>
 		internal bool UseBinding(Json parent) {
-			BindingStrategy strategy;
 			object data;
-
-			data = parent.Data;
-			strategy = BindingStrategy;
-			if (data == null || strategy == BindingStrategy.Unbound)
+            if (BindingStrategy == BindingStrategy.Unbound)
 				return false;
 
-			if (dataTypeForBinding != null && VerifyBinding(data.GetType(), false))
-				return !isVerifiedUnbound;
+            if (isVerifiedUnbound && isBoundToParent) {
+                if (parent.Data == null)
+                    return false;
+
+                // If we have an auto binding and we have checked once but
+                // no dataobject was set (i. e the "unbound" points to the parent)
+                // we want to reset and check again if we have a dataobject now.
+                InvalidateBoundGetterAndSetter();
+            }
+
+            if (dataTypeForBinding != null) {
+                data = (isBoundToParent) ? parent : parent.Data;
+                if (data != null && VerifyBinding(data.GetType()))
+                    return !isVerifiedUnbound;
+
+                InvalidateBoundGetterAndSetter();
+            }
 
 			return GenerateBoundGetterAndSetter(parent);
 		}
@@ -205,14 +217,9 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="dataType"></param>
 		/// <returns></returns>
-		private bool VerifyBinding(Type dataType, bool throwExceptionOnFail) {
+		private bool VerifyBinding(Type dataType) {
 			if (dataType.Equals(dataTypeForBinding) || dataType.IsSubclassOf(dataTypeForBinding))
 				return true;
-
-			if (throwExceptionOnFail)
-				throw new Exception("TODO!");
-			//                throw new Exception(string.Format(warning, DataBindingFactory.GetParentClassName(this) + "." + this.TemplateName));
-			//			logSource.LogWarning(string.Format(warning, GetParentClassName(template) + "." + template.TemplateName));          
 			return false;
 		}
 	}
