@@ -6,14 +6,8 @@
 adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory', 'JobFactory', function ($http, $log, $rootScope, UtilsFactory, JobFactory) {
 
 
-    //if ($scope.socket != null) {
-    //    if ($scope.socket.readyState == 0 || $scope.socket.readyState == 2 || $scope.socket.readyState == 3) return; // (0) CONNECTING // (2) CLOSING, (3) CLOSED
-    //    $scope.socket.close();
-    //}
-
     this.socket = null,
     this.isWebsocketSupport = ("WebSocket" in window)
-
     this.listeners = [];
 
     //    this.isWebsocketSupport = ("WebSocket" in window);
@@ -73,7 +67,11 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);
@@ -95,6 +93,11 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
      */
     this.registerEventListener = function (listener) {
         this.listeners.push(listener);
+
+        if (this.socket == null) {
+            this.startListener();
+        }
+
     }
 
 
@@ -107,11 +110,19 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
         if (index > -1) {
             this.listeners.splice(index, 1);
         }
+
+        if (this.listeners.length == 0) {
+            this.stopListener();
+        }
+
     }
 
 
     // Retrive the event when the log has changed
+    // Connect socket listener
     this.startListener = function () {
+
+        if (this.isWebsocketSupport == false) return;
 
         try {
 
@@ -183,11 +194,15 @@ adminModule.service('LogService', ['$http', '$log', '$rootScope', 'UtilsFactory'
         }
     }
 
+    // Disconnect socket listener
+    this.stopListener = function () {
 
-    // Init
-    if (this.isWebsocketSupport) {
-        this.startListener();
+        if (this.socket != null) {
+            if (this.socket.readyState == 0 || this.socket.readyState == 2 || this.socket.readyState == 3) return; // (0) CONNECTING // (2) CLOSING, (3) CLOSED
+            this.socket.close();
+        }
     }
+
 
 
 }]);

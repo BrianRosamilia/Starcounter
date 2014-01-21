@@ -66,7 +66,7 @@ namespace Starcounter {
         public bool HasBeenSent {
             get {
 				if (Parent != null) {
-					return !Parent.WasReplacedAt(IndexInParent);
+					return ((IndexInParent != -1) && (!Parent.WasReplacedAt(IndexInParent)));
 				}
 				else {
                     var s = Session;
@@ -100,6 +100,7 @@ namespace Starcounter {
                     return _list;
                 }
                 else {
+                    int childIndex;
                     var template = (TObject)Template;
                     while (_list.Count < template.Properties.Count) {
                         // We allow adding new properties to dynamic templates
@@ -107,7 +108,9 @@ namespace Starcounter {
                         // For this reason, we need to allow the expansion of the 
                         // values.
                         _SetFlag.Add(false);
-                        _list.Add(((Template)template.Properties[_list.Count]).CreateInstance(this));
+                        childIndex = _list.Count;
+                        _list.Add(null);
+                        ((TValue)template.Properties[childIndex]).SetDefaultValue(this);
                     }
                     return _list;
                 }
@@ -132,8 +135,9 @@ namespace Starcounter {
                 _SetFlag = new List<bool>(vc);
                 _Dirty = false;
                 for (int t = 0; t < vc; t++) {
-                    _list.Add( ((Template)prop[t]).CreateInstance(this) );
-                    _SetFlag.Add(false);
+					_list.Add(null);
+					_SetFlag.Add(false);
+					((TValue)prop[t]).SetDefaultValue(this);
                 }
             }
         }
@@ -162,13 +166,7 @@ namespace Starcounter {
         /// <param name="index"></param>
         internal void MarkAsReplaced(int index) {
             _SetFlag[index] = true;
-            var v = list[index];
-           // if (v is Json) {
-           //     (v as Json).Dirtyfy();
-           // }
-           // else {
-                this.Dirtyfy();
-           // }
+            this.Dirtyfy();
         }
 
         /// <summary>
@@ -361,7 +359,6 @@ namespace Starcounter {
             if (i == -1)
                 return;
             this.RemoveAt(i);
-            _SetFlag.RemoveAt(i);
             return;
         }
 

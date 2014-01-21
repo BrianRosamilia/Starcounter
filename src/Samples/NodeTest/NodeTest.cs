@@ -318,7 +318,7 @@ namespace NodeTest
             ws.Open();
 
             // Waiting for all tests to finish.
-            if (!allDataReceivedEvent.WaitOne(1000))
+            if (!allDataReceivedEvent.WaitOne(3000))
             {
                 throw new Exception("Failed to get WebSocket response in time!");
             }
@@ -406,7 +406,7 @@ namespace NodeTest
             Byte[] resp_body = resp.BodyBytes;
             if (resp_body.Length != num_echo_bytes_)
             {
-                Console.WriteLine("Wrong echo size! Correct size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
+                Console.WriteLine("Wrong echo size! Correct echo size: " + num_echo_bytes_ + ", wrong: " + resp_body.Length + " [Async=" + async_ + "]");
                 Console.WriteLine("Incorrect response: " + resp.Body);
                 NodeTest.WorkersMonitor.FailTest();
                 return false;
@@ -431,7 +431,7 @@ namespace NodeTest
                             }
                         }
 
-                        Console.WriteLine("Wrong echo content! Echo size: " + num_echo_bytes_ + " [Async=" + async_ + "]");
+                        Console.WriteLine("Wrong echo contents! Correct echo size: " + num_echo_bytes_ + " [Async=" + async_ + "]");
                         NodeTest.WorkersMonitor.FailTest();
                         return false;
                     }

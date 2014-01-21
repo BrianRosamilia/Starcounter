@@ -14,19 +14,29 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'E
      */
     $scope.btnStopExecutable = function (executable) {
 
-        ExecutableService.stopExecutable(executable, function () { },
-            function (messageObject) {
-                // Error
+        var title = "Stop executable";
+        var message = "Do you want to stop the executable " + executable.fileName;
+        var buttons = [{ result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
-                if (messageObject.isError) {
-                    UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-                }
-                else {
-                    NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
-                }
+        UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
 
-            });
+            if (result == 0) {
 
+                ExecutableService.stopExecutable(executable, function () { },
+                    function (messageObject) {
+                        // Error
+
+                        if (messageObject.isError) {
+                            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                        }
+                        else {
+                            NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                        }
+
+                    });
+            }
+
+        });
     }
 
 
@@ -36,22 +46,35 @@ adminModule.controller('ExecutablesCtrl', ['$scope', '$log', 'NoticeFactory', 'E
      */
     $scope.btnRestartExecutable = function (executable) {
 
-        ExecutableService.restartExecutable(executable, function () {
-            // Success
-//            NoticeFactory.ShowNotice({ type: "info", msg: "Executable " + executable.path + " successfully started" });
+        var title = "Restart executable";
+        var message = "Do you want to restart the executable " + executable.fileName;
+        var buttons = [{ result: 0, label: 'Restart', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
-        }, function (messageObject) {
-            // Error
+        UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
 
-            if (messageObject.isError) {
-                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+            if (result == 0) {
+
+                ExecutableService.restartExecutable(executable, function () {
+                    // Success
+                    //            NoticeFactory.ShowNotice({ type: "info", msg: "Executable " + executable.path + " successfully started" });
+
+                }, function (messageObject) {
+                    // Error
+
+                    if (messageObject.isError) {
+                        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                    }
+                    else {
+                        NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
+                    }
+
+
+                });
             }
-            else {
-                NoticeFactory.ShowNotice({ type: 'error', msg: messageObject.message, helpLink: messageObject.helpLink });
-            }
-
 
         });
+
+
 
     }
 

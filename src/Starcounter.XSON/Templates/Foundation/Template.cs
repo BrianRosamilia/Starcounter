@@ -140,6 +140,7 @@ namespace Starcounter.Templates {
 		public Template()
 		{
 			Editable = false;
+            TemplateIndex = -1;
 		}
 
 //        public abstract object CreateInstance( IParent parent );

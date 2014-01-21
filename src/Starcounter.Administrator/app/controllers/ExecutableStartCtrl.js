@@ -93,7 +93,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', 'N
      */
     $scope.refreshRecentExecutables = function () {
         if (typeof (Storage) !== "undefined") {
-            if (localStorage.recentExecutables != null) {
+            if (localStorage.recentExecutables !== "undefined") {
                 $scope.recentExecutables = JSON.parse(localStorage.recentExecutables);
             }
         }

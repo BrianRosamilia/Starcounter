@@ -166,6 +166,11 @@ public class CPersonalServer : CComponentBase
         if (vsComponent.IsInstalled() || vsComponent.ShouldBeInstalled()) {
             setup.StartupType = Server.Windows.StartupType.Manual;
         }
+
+        var vsComponent13 = InstallerMain.VS2013IntegrationComponent;
+        if (vsComponent13.IsInstalled() || vsComponent13.ShouldBeInstalled()) {
+            setup.StartupType = Server.Windows.StartupType.Manual;
+        }
         
         Utilities.ReportSetupEvent("Adding Starcounter server service...");
         setup.Execute();

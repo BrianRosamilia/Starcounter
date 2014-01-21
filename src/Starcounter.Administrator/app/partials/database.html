@@ -1,0 +1,26 @@
+﻿
+<div ng-hide='model.database == null'>
+
+    <legend>Database - {{model.database.name}} <span ng-show="model.database.running" class="Running">(Running)</span></legend>
+
+    <div class="btn-toolbar">
+        <div class="btn-group">
+            <a class="btn btn-primary" href="#/databases/{{model.database.name}}/settings">Settings</a>
+        </div>
+    </div>
+
+    <div class="row-fluid">
+
+        <legend>Console output
+            <button ng-show="model.manualMode == true" ng-disabled="model.database.running == false" class="btn pull-right" ng-click="btnRefreshConsole(model.database.name)"><i class="icon-repeat"></i></button>
+        </legend>
+
+        <div class="console" ng-style="style()" id="console" style="overflow: scroll" ng-bind-html="model.console" />
+
+
+    </div>
+
+</div>
+
+
+

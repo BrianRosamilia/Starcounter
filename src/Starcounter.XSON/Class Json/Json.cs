@@ -211,7 +211,7 @@ namespace Starcounter {
 			if (property is TObjArr) {
 				TObjArr tarr = (TObjArr)property;
 				if (tarr.UseBinding(this)) {
-					var jsonArr = (Json)_list[tarr.TemplateIndex];
+					var jsonArr = tarr.UnboundGetter(this);
 					jsonArr.CheckBoundArray(tarr.BoundGetter(this));
 				}
 			} else if (property is TObject) {

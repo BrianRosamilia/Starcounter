@@ -698,6 +698,19 @@ namespace Starcounter.Internal
         public const ushort Mdb_DataValueFlag_Exceptional = 0x1030; // (Mdb_DataValueFlag_Error | Mdb_DataValueFlag_DeletedVersion | Mdb_DataValueFlag_DeletedPublic);
 
         /// <summary>
+        /// Checks if there are any pending changes on given transaction.
+        /// </summary>
+        /// <param name="hTrans">Transaction handle.</param>
+        /// <param name="verify">Transaction handle.</param>
+        /// <param name="pValue">True if there are any changes.</param>
+        /// <returns>Error code.</returns>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public unsafe extern static UInt32 Mdb_TransactionIsReadWrite(
+            UInt64 hTrans,
+            UInt64 verify,
+            Int32* pValue);
+
+        /// <summary>
         /// MDB_s the object read binary.
         /// </summary>
         /// <param name="objectOID">The object OID.</param>

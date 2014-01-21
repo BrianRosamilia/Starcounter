@@ -547,6 +547,12 @@ public:
         
     }
 
+    // Initializes the HTTP/WS structure.
+    void Init()
+    {
+        http_request_.Reset();
+    }
+
     // Resets the parser related fields.
     void ResetParser(SocketDataChunkRef sd);
 

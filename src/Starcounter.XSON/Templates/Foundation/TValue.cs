@@ -7,9 +7,17 @@ namespace Starcounter.Templates {
 	public abstract class TValue : Template {
 		private BindingStrategy strategy = BindingStrategy.UseParent;
 		private string bind;
-		private bool hasBackingField;
 		internal Type dataTypeForBinding;
 		internal bool isVerifiedUnbound;
+        internal bool isBoundToParent;
+		internal bool hasCustomAccessors;
+
+#if DEBUG
+		internal string DebugBoundSetter;
+		internal string DebugBoundGetter;
+		internal string DebugUnboundSetter;
+		internal string DebugUnboundGetter;
+#endif
 
 		/// <summary>
 		/// Gets a value indicating whether this instance has instance value on client.
@@ -19,14 +27,6 @@ namespace Starcounter.Templates {
 		/// </value>
 		public override bool HasInstanceValueOnClient {
 			get { return true; }
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		public bool HasBackingField {
-			get { return hasBackingField; }
-			set { hasBackingField = value; }
 		}
 
 		/// <summary>
@@ -41,10 +41,6 @@ namespace Starcounter.Templates {
 				return bind;
 			}
 			set {
-				if (hasBackingField) {
-					throw new Exception("TODO! Not allowed when backing field is used.");
-				}
-
 				bind = value;
 				var b = !string.IsNullOrEmpty(bind);
 				if (b) {
@@ -75,11 +71,7 @@ namespace Starcounter.Templates {
 
 				return strategy;
 			}
-			set {
-				if (hasBackingField) {
-					throw new Exception("TODO! Not allowed when backing field is used.");
-				}
-
+			set {				
 				strategy = value;
 
 				// After we set the value we retrieve it again just to get the correct
@@ -123,6 +115,13 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent"></param>
 		/// <returns></returns>
+		internal abstract object GetUnboundValueAsObject(Json parent);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
 		internal abstract object GetValueAsObject(Json parent);
 
 		/// <summary>
@@ -131,6 +130,18 @@ namespace Starcounter.Templates {
 		/// <param name="parent"></param>
 		/// <param name="value"></param>
 		internal abstract void SetValueAsObject(Json parent, object value);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="parent"></param>
+		internal abstract void SetDefaultValue(Json parent);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="from"></param>
+		internal abstract void CopyValueDelegates(Template toTemplate);
 
 		/// <summary>
 		/// 
@@ -166,6 +177,7 @@ namespace Starcounter.Templates {
 		/// <param name="toTemplate"></param>
 		public override void CopyTo(Template toTemplate) {
 			base.CopyTo(toTemplate);
+			CopyValueDelegates(toTemplate);
 			((TValue)toTemplate).Bind = Bind;
 		}
 
@@ -175,16 +187,27 @@ namespace Starcounter.Templates {
 		/// <param name="data"></param>
 		/// <returns></returns>
 		internal bool UseBinding(Json parent) {
-			BindingStrategy strategy;
 			object data;
-
-			data = parent.Data;
-			strategy = BindingStrategy;
-			if (data == null || strategy == BindingStrategy.Unbound)
+            if (BindingStrategy == BindingStrategy.Unbound)
 				return false;
 
-			if (dataTypeForBinding != null && VerifyBinding(data.GetType(), false))
-				return !isVerifiedUnbound;
+            if (isVerifiedUnbound && isBoundToParent) {
+                if (parent.Data == null)
+                    return false;
+
+                // If we have an auto binding and we have checked once but
+                // no dataobject was set (i. e the "unbound" points to the parent)
+                // we want to reset and check again if we have a dataobject now.
+                InvalidateBoundGetterAndSetter();
+            }
+
+            if (dataTypeForBinding != null) {
+                data = (isBoundToParent) ? parent : parent.Data;
+                if (data != null && VerifyBinding(data.GetType()))
+                    return !isVerifiedUnbound;
+
+                InvalidateBoundGetterAndSetter();
+            }
 
 			return GenerateBoundGetterAndSetter(parent);
 		}
@@ -194,14 +217,9 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="dataType"></param>
 		/// <returns></returns>
-		private bool VerifyBinding(Type dataType, bool throwExceptionOnFail) {
+		private bool VerifyBinding(Type dataType) {
 			if (dataType.Equals(dataTypeForBinding) || dataType.IsSubclassOf(dataTypeForBinding))
 				return true;
-
-			if (throwExceptionOnFail)
-				throw new Exception("TODO!");
-			//                throw new Exception(string.Format(warning, DataBindingFactory.GetParentClassName(this) + "." + this.TemplateName));
-			//			logSource.LogWarning(string.Format(warning, GetParentClassName(template) + "." + template.TemplateName));          
 			return false;
 		}
 	}

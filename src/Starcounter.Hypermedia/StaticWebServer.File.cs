@@ -6,35 +6,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Text;
-using BizArk.Core.Util;
-using HttpStructs;
-using Starcounter.Internal.REST;
-using Starcounter.Advanced;
 using System.Web;
+using BizArk.Core.Util;
 
 namespace Starcounter.Internal.Web {
-
     /// <summary>
     /// Class StaticWebServer
     /// </summary>
     public partial class StaticWebServer {
+        private Dictionary<string, FileSystemWatcher> watchedPaths;
 
         /// <summary>
-        /// The watched paths
+        /// Contains the directories that may contain web resources such as .html files and other assets. 
         /// </summary>
-        public Dictionary<string, FileSystemWatcher> WatchedPaths;
-
-        /// <summary>
-        /// Contains the directories that may contain web resources such as .html files and other assets. The built in web server
-        /// </summary>
-        public List<string> WorkingDirectories = new List<string>();
+        internal List<string> workingDirectories = new List<string>();
 
         /// <summary>
         /// Object used for locking.
         /// </summary>
-        String LockObject = "LockObject";
+        private object lockObject = new object();
 
         /// <summary>
         /// Reads the file system to find the resource addressed by an uri without using any cached version.
@@ -47,208 +41,138 @@ namespace Starcounter.Internal.Web {
         /// <param name="relativeUri">The uri without the server domain</param>
         /// <param name="req">The Starcounter session id</param>
         /// <returns>A cacheable resource item with at least one version (compressed or uncompressed).</returns>
-        public Response GetFileResource(Response cached, string relativeUri, Request req) {
+        private Response GetFileResource(Response cached, string relativeUri, Request req) {
+            // TODO:
+            // The sent in cached response is not used today. We should change the cache so we 
+            // have different responses for compressed and uncompressed
 
-
-            req.Debug(" (FILE ACCESS) " + relativeUri );
-
-            bool shouldBeCached = !Configuration.Current.FileServer.DisableAllCaching;
-            bool shouldCompress = req.IsGzipAccepted;
-            Response fres = cached;
-            if (fres == null)
-                fres = new Response();
-
+            bool didCompress;
+            bool shouldBeCached;
+            bool shouldCompress;
+            byte[] compressed = null;
+            byte[] payload;
+            HttpStatusCode statusCode;
+            int contentLength;
+            Response response;
+            string fileExtension = null;
+            string mimeType;
             string dir = null;
             string fileName = null;
-            string fileExtension = null;
-            int len = 0;
-            string code = "200 OK";
-            bool isText = true;
-            bool is404 = true;
-            string mimeType;
-            byte[] payload = null;
+            
+            Debug(" (FILE ACCESS) " + relativeUri);
 
-            if (WorkingDirectories.Count == 0) {
-                mimeType = "plain/text";
-                is404 = true;
+            statusCode = HttpStatusCode.OK;
+            shouldBeCached = !Configuration.Current.FileServer.DisableAllCaching;
+
+            if (workingDirectories.Count == 0) {
+                statusCode = HttpStatusCode.NotFound;
+                mimeType = MimeTypeHelper.MimeTypeAsString(MimeType.Text_Plain);
                 payload = Encoding.UTF8.GetBytes(
                     "Uri could not be resolved. No directories added for serving static files.");
-            }
-            else {
-                for (int t = 0; is404 && t < WorkingDirectories.Count; t++) {
-                    ParseFileSpecifier(this.WorkingDirectories[t], relativeUri, out dir, out fileName, out fileExtension); // TODO! Try all working directories
-
-                    try {
-                        FileStream f = FileOpenAlternative(ref dir, ref fileName, ref fileExtension);
-                        len = (int)f.Length;
-
-                        // Check for UTF-8 byte order mark (BOM) offset
-                        if (len >= 3) {
-                            int utf8Size = 3;                  // UTF 8 byte check
-                            byte[] bom = new byte[utf8Size];   // allocate place for UTF-8 check
-                            f.Read(bom, 0, utf8Size);
-                            if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) // UTF-8
-                            {
-                                len -= utf8Size;               // Adjust the payload size without the 'bom'
-                            }
-                            else {
-                                f.Position -= utf8Size;        // Reset the filestream position
-                            }
-                        }
-
-                        payload = new byte[len];
-
-                        f.Read(payload, 0, (int)len);
-
-                        f.Close();
-                        is404 = false;
-                        break;
-                    }
-                    catch (FileNotFoundException) {
-                        is404 = true;
-                    }
-                    catch (DirectoryNotFoundException) {
-                        is404 = true;
-                    }
-                    catch (DriveNotFoundException) {
-                        is404 = true;
-                    }
-                }
-                if (is404) {
+            } else {
+                if (!ReadFile(relativeUri, out dir, out fileName, out fileExtension, out payload)) {
+                    statusCode = HttpStatusCode.NotFound;
+                    mimeType = MimeTypeHelper.MimeTypeAsString(MimeType.Text_Plain);
                     payload = Encoding.UTF8.GetBytes(String.Format("Error 404: File {0} not found", relativeUri + "."));
-                    mimeType = "plain/text";
+                    Debug("Could not find " + relativeUri);
+                } else {
+                    mimeType = MimeMap.GetMimeType(fileExtension);
                 }
-                else {
-                    var ext = "." + fileExtension;
-                    //var mimeType2 = HtmlAgilityPack.HtmlWeb.GetContentTypeForExtension( ext, "text/x-" + fileExtension);
-                    mimeType = MimeMap.GetMimeType(ext);
-                    //if (mimeType2 != null && mimeType2 != mimeType) {
-                    //    throw new Exception(String.Format(
-                    //        "Uncertain mime type for file {0}. Should file extention {1} be mime type {2} or mime type {3}?",
-                    //        fileName, ext, mimeType, mimeType2));
-                    //                                                        
-                    //}
-                }
-
-            }
-            if (is404) {
-                mimeType = "plain/text";
-                code = "404 NOT FOUND";
-                Console.WriteLine("Could not find " + relativeUri);
             }
 
-            if (payload == null)
-                payload = new byte[0];
-
-            len = payload.Length;
-
-            string str = "HTTP/1.1 " + code + StarcounterConstants.NetworkConstants.CRLF +
-                "Server: SC" + StarcounterConstants.NetworkConstants.CRLF;
-            
-            // string[] parts = fileName.Split('.');
-            // string ext = parts[parts.Length-1];
-            //            Console.WriteLine("Type for " + fileName + "." + fileExtension + " is " + contentType);
-
-            //               string etag = relativeUri;
-            //                            "Etag: \"" + etag + "\"\r\n" +
-            isText = mimeType.StartsWith("text/");
-            if (isText)
+            response = Response.FromStatusCode((int)statusCode);
+            contentLength = (payload != null) ? payload.Length : -1;
+            if (mimeType.StartsWith("text/"))
                 mimeType += ";charset=utf-8";
+            response.ContentType = mimeType;
 
-            byte[] compressed = null;
-            bool didCompress = false;
-
-
-            if (req.NeedsScriptInjection && mimeType.StartsWith("text/html")) {
-                req.Debug(" (analysing html)");
-                fres.ScriptInjectionPoint = ScriptInjector.FindScriptInjectionPoint(payload, 0);
-                shouldCompress = false;
-            }
-
-            if (shouldCompress) {
+            shouldCompress = req.IsGzipAccepted;
+            didCompress = false;
+            if (shouldCompress && statusCode == HttpStatusCode.OK && contentLength != -1) {
                 compressed = Compress(payload);
                 didCompress = compressed.Length + 100 < payload.Length; // Don't use compress version if the difference is too small
-                //didCompress = false;
-                //                Console.WriteLine(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+//                Debug(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                 if (didCompress) {
-                    req.Debug(" (compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
-                    len = compressed.Length;
+                    Debug(" (compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+                    contentLength = compressed.Length;
+                    payload = compressed;
+                    response.ContentEncoding = "gzip";
+                } else {
+                    Debug(" (not-worth-compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+                    response.WorthWhileCompressing = false;
                 }
-                else {
-                    req.Debug(" (not-worth-compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
-                    fres.WorthWhileCompressing = false;
-                }
             }
 
+            if (statusCode != HttpStatusCode.OK)
+                response.CacheControl = "no-cache";
+            else if (Configuration.Current.FileServer.DisableAllCaching)
+                response.CacheControl = "private,max-age=0";
+            else 
+                response.CacheControl = "public,max-age=31536000";
 
-            str += "Content-Type: " + mimeType + StarcounterConstants.NetworkConstants.CRLF;
+            response.ContentLength = contentLength;
+            response.Content = payload;
 
-
-            //            if (!bigCookie)
-            //                str += "Set-Cookie: sid=" + req.SessionID.ToString() + StarcounterConstants.NetworkConstants.CRLF;
-
-            if (didCompress)
-                str += "Content-Encoding: gzip" + StarcounterConstants.NetworkConstants.CRLF;
-
-            if (Configuration.Current.FileServer.DisableAllCaching)
-                str += "Cache-control: private,max-age=0" + StarcounterConstants.NetworkConstants.CRLF; // Dont cache
-            else
-                str += "Cache-control: public,max-age=31536000" + StarcounterConstants.NetworkConstants.CRLF; // 1 year cache
- 
-            // Cache-Control: public,max-age=31536000
-            // Age: 0
-
-            string lenStr = len.ToString();
-            str += "Content-Length: " + lenStr + StarcounterConstants.NetworkConstants.CRLFCRLF;
-            fres.ContentLength = len;
-            fres.ContentLengthLength = lenStr.Length; // TODO! Should really measure bytes. In UTF-8 bytes and characters for numeric characters is one and the same.
-
-            byte[] header = Encoding.UTF8.GetBytes(str);
-
-            fres.ContentLengthInjectionPoint = header.Length - 4 - lenStr.Length;  // TODO! Should really measure bytes. In UTF-8 bytes and characters for numeric characters is one and the same.
-            fres.ScriptInjectionPoint += header.Length;
-            fres.HeaderInjectionPoint = 9 + code.Length + 2; // "HTTP/1.1 " + code + "/r/n"
-
-            byte[] response;
-
-            if (didCompress) {
-                response = new byte[header.Length + compressed.Length];
-                compressed.CopyTo(response, header.Length);
-                fres.Compressed = response;
-                fres.CompressedBodyOffset_ = header.Length;
-                fres.CompressedBodyLength_ = compressed.Length;
-            }
-            else {
-                response = new byte[header.Length + len];
-                payload.CopyTo(response, header.Length);
-                fres.Uncompressed = response;
-                fres.UncompressedBodyOffset_ = header.Length;
-               // fres.
-            }
-            fres.HeadersLength = header.Length;
-            header.CopyTo(response, 0);
-
-            if (shouldBeCached && cached == null) {
-                fres.Uris.Add(relativeUri);
-                string path = (dir + "\\" + fileName + "." + fileExtension);
+            if (statusCode == HttpStatusCode.OK && shouldBeCached && cached == null) {
+                response.Uris.Add(relativeUri);
+                string path = Path.Combine(dir,  fileName) + fileExtension;
                 string fileSignature = path.ToUpper();
-                fres.FilePath = fileSignature;
-                fres.FileDirectory = dir;
-                fres.FileName = fileName + "." + fileExtension;
-                fres.FileExists = !is404;
-                if (!is404) {
-                    fres.FileModified = File.GetLastWriteTime(path);
+                response.FilePath = fileSignature;
+                response.FileDirectory = dir;
+                response.FileName = fileName + fileExtension;
+                response.FileExists = (statusCode != HttpStatusCode.NotFound);
+                if (response.FileExists) {
+                    response.FileModified = File.GetLastWriteTime(path);
                 }
-                CacheOnUri[relativeUri] = fres;
-                CacheOnFilePath[fileSignature] = fres;
-                WatchChange(dir, fileName + "." + fileExtension); //.DirectoryName,fi.Name);
+                cacheOnUri[relativeUri] = response;
+                cacheOnFilePath[fileSignature] = response;
+                WatchChange(dir, fileName + fileExtension);
             }
 
-            //  if (found && isText)
-            //  {
-            //     Console.WriteLine(Encoding.UTF8.GetString(response).Substring(0,1000));
-            //  }
-            return fres;
+            return response;
+        }
+
+        /// <summary>
+        /// Searches for file specified in the relative uri and returns a bytearray containing
+        /// the contents. 
+        /// </summary>
+        /// <param name="relativeUri"></param>
+        /// <param name="fileExtension"></param>
+        /// <param name="payload"></param>
+        /// <returns>True if the file was found, false otherwise.</returns>
+        private bool ReadFile(string relativeUri, out string dir, out string fileName, out string fileExtension, out byte[] payload) {
+            int len;
+            
+            for (int t = 0; t < workingDirectories.Count; t++) {
+                ParseFileSpecifier(workingDirectories[t], relativeUri, out dir, out fileName, out fileExtension);
+
+                FileStream f = FileOpenAlternative(dir, fileName, ref fileExtension);
+                if (f != null) {
+                    len = (int)f.Length;
+
+                    // Check for UTF-8 byte order mark (BOM) offset
+                    if (len >= 3) {
+                        int utf8Size = 3;                  // UTF 8 byte check
+                        byte[] bom = new byte[utf8Size];   // allocate place for UTF-8 check
+                        f.Read(bom, 0, utf8Size);
+                        if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) // UTF-8 {
+                            len -= utf8Size;               // Adjust the payload size without the 'bom'
+                        else {
+                            f.Position -= utf8Size;        // Reset the filestream position
+                        }
+                    }
+
+                    payload = new byte[len];
+                    f.Read(payload, 0, (int)len);
+                    f.Close();
+                    return true;
+                }
+            }
+            dir = null;
+            fileName = null;
+            fileExtension = null;
+            payload = null;
+            return false;
         }
 
         /// <summary>
@@ -256,35 +180,69 @@ namespace Starcounter.Internal.Web {
         /// the cache is invalidated. This allows the web server to always server fresh
         /// versions of any resource.
         /// </summary>
-        /// <param name="dir">The dir.</param>
+        /// <param name="dir">The directory the file resides in.</param>
         /// <param name="fileName">Name of the file.</param>
         private void WatchChange(string dir, string fileName) {
             FileSystemWatcher fsw;
             string fileSpecifier = dir + "\\" + fileName;
-            if (!WatchedPaths.TryGetValue(fileSpecifier, out fsw)) {
+            if (!watchedPaths.TryGetValue(fileSpecifier, out fsw)) {
                 if (Directory.Exists(dir)) {
                     fsw = new FileSystemWatcher(dir);
                     fsw.InternalBufferSize = 64 * 1024;
                     fsw.Filter = fileName;
                     fsw.IncludeSubdirectories = false;
                     fsw.Changed += new FileSystemEventHandler(FileHasChanged);
+                    fsw.Deleted += new FileSystemEventHandler(FileHasChanged);
+                    fsw.Renamed += new RenamedEventHandler(FileIsRenamed);
                     fsw.EnableRaisingEvents = true;
                 } else {
                     fsw = null;
                 }
-                WatchedPaths[fileSpecifier] = fsw;
+                watchedPaths[fileSpecifier] = fsw;
             }
         }
 
+        /// <summary>
+        /// Removes all eventlisteners and disposes the watcher.
+        /// </summary>
+        /// <param name="fsw"></param>
+        private void ClearWatchedChange(FileSystemWatcher fsw) {
+            fsw.EnableRaisingEvents = false;
+            fsw.Changed -= new FileSystemEventHandler(FileHasChanged);
+            fsw.Deleted += new FileSystemEventHandler(FileHasChanged);
+            fsw.Renamed += new RenamedEventHandler(FileIsRenamed);
+            fsw.Dispose();
+        }
 
         /// <summary>
-        /// Files the has changed.
+        /// Clears the watched parts.
         /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="FileSystemEventArgs" /> instance containing the event data.</param>
-        internal void FileHasChanged(object sender, FileSystemEventArgs e) {
-            string fileSignature = e.FullPath.ToUpper();
+        private void ClearWatchedParts() {
+            if (watchedPaths != null) {
+                foreach (var watcher in watchedPaths.Values) {
+                    ClearWatchedChange(watcher);
+                }
+            }
+            watchedPaths = new Dictionary<string, FileSystemWatcher>();
+        }
 
+        /// <summary>
+        /// Triggered when a file in a watched directory is renamed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void FileIsRenamed(object sender, RenamedEventArgs e) {
+            string fileSignature = e.OldFullPath.ToUpper();
+            DecacheByFilePath(fileSignature);
+        }
+
+        /// <summary>
+        /// Triggered when a file in a watched directory is changed or deleted.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FileHasChanged(object sender, FileSystemEventArgs e) {
+            string fileSignature = e.FullPath.ToUpper();
             DecacheByFilePath(fileSignature);
         }
 
@@ -292,41 +250,51 @@ namespace Starcounter.Internal.Web {
         /// Removes the specified file from the cache
         /// </summary>
         /// <param name="fileSignature">The file to remove</param>
-        internal void DecacheByFilePath(string fileSignature) {
+        private void DecacheByFilePath(string fileSignature) {
             Response cached;
 
             // Locking because execution is done in separate thread.
-            lock (LockObject) {
-                if (CacheOnFilePath.TryGetValue(fileSignature, out cached)) {
-
+            lock (lockObject) {
+                if (cacheOnFilePath.TryGetValue(fileSignature, out cached)) {
                     foreach (var uri in cached.Uris) {
-                        Console.WriteLine("(decache uri) " + uri);
-                        CacheOnUri.Remove(uri);
+                        Debug("(decache uri) " + uri);
+                        cacheOnUri.Remove(uri);
                     }
-                    Console.WriteLine("(decache file) " + fileSignature);
-                    CacheOnFilePath.Remove(fileSignature);
+                    Debug("(decache file) " + fileSignature);
+                    cacheOnFilePath.Remove(fileSignature);
                 }
             }
         }
 
         /// <summary>
-        /// Files the open alternative.
+        /// Tries to open the file with the specified name in the specified directory.
+        /// If not succesful and the fileExtension parameter is not specified a default 
+        /// extension is used.
         /// </summary>
-        /// <param name="dir">The dir.</param>
+        /// <param name="dir">The directory to look for the file</param>
         /// <param name="fileName">Name of the file.</param>
         /// <param name="fileExtension">The file extension.</param>
-        /// <returns>FileStream.</returns>
-        public FileStream FileOpenAlternative(ref string dir, ref string fileName, ref string fileExtension) {
-            try {
-                return File.OpenRead(dir + "/" + fileName + "." + fileExtension);
+        /// <returns></returns>
+        private FileStream FileOpenAlternative(string dir, string fileName, ref string fileExtension) {
+            bool hasExtension = !string.IsNullOrEmpty(fileExtension);
+            string filePathWOExt = Path.Combine(dir, fileName);
+            string filePath;
+
+            filePath = filePathWOExt;
+            if (hasExtension)
+                filePath += fileExtension; 
+
+            if (File.Exists(filePath))
+                return File.OpenRead(filePath);
+          
+            if (!hasExtension) {
+                fileExtension = ".html";
+                filePath = filePathWOExt + fileExtension;
+                if (File.Exists(filePath))
+                    return File.OpenRead(filePath);
             }
-            catch (Exception) {
-                if (fileExtension == "") {
-                    fileExtension = "html";
-                    return File.OpenRead(dir + "/" + fileName + "." + fileExtension);
-                }
-                throw;
-            }
+
+            return null;
         }
 
         /// <summary>
@@ -337,19 +305,17 @@ namespace Starcounter.Internal.Web {
         /// <param name="directory">The directory.</param>
         /// <param name="fileName">Name of the file.</param>
         /// <param name="fileExtension">The file extension.</param>
-        public void ParseFileSpecifier(string serverPath, string relativeUri, out string directory, out string fileName, out string fileExtension) {
+        internal void ParseFileSpecifier(string serverPath, string relativeUri, out string directory, out string fileName, out string fileExtension) {
             if (!relativeUri.StartsWith("/")) {
-                Console.WriteLine(String.Format("Illegal URI for static resource: {0}", relativeUri));
+                Debug(String.Format("Illegal URI for static resource: {0}", relativeUri));
                 directory = null;
                 fileExtension = null;
                 fileName = null;
                 return; // Only local uris are supported
             }
 
-			var decodedUri = HttpUtility.UrlDecode(relativeUri);
-
-			string[] segments = decodedUri.Split('?');
-
+            var decodedUri = HttpUtility.UrlDecode(relativeUri);
+            string[] segments = decodedUri.Split('?');
             string[] components = segments[0].Split('/');
 
             directory = serverPath;
@@ -361,40 +327,35 @@ namespace Starcounter.Internal.Web {
             string fileNameWithExtension = components[components.Length - 1];
             components = fileNameWithExtension.Split('.');
             if (components.Length > 1) {
-                fileExtension = components[components.Length - 1];
+                fileExtension = "." + components[components.Length - 1];
                 fileName = components[0];
                 for (int i = 1; i < components.Length - 1; i++) {
                     fileName += "." + components[i];
                 }
-            }
-            else {
+            } else {
                 fileName = fileNameWithExtension;
                 fileExtension = "";
             }
             //    fileSpecifier = directory + @"\" + fileNameWithExtension;
         }
 
-        /// <summary>
-        /// Clears the watched parts.
-        /// </summary>
-        public void ClearWatchedParts() {
-            WatchedPaths = new Dictionary<string, FileSystemWatcher>();
+        [Conditional("DEBUG")]
+        private void Debug(string message) {
+            Console.WriteLine(message);
         }
 
-        /// <summary>
-        /// Encodes to base64.
-        /// </summary>
-        /// <param name="toEncode">To encode.</param>
-        /// <returns>System.String.</returns>
-        static public string EncodeToBase64(string toEncode) {
-            byte[] toEncodeAsBytes
-                  = System.Text.ASCIIEncoding.ASCII.GetBytes(toEncode);
-            string returnValue
-                  = System.Convert.ToBase64String(toEncodeAsBytes);
-            return returnValue;
-        }
-
+        ///// <summary>
+        ///// Encodes to base64.
+        ///// </summary>
+        ///// <param name="toEncode">To encode.</param>
+        ///// <returns>System.String.</returns>
+        //private static string EncodeToBase64(string toEncode) {
+        //    byte[] toEncodeAsBytes
+        //          = System.Text.ASCIIEncoding.ASCII.GetBytes(toEncode);
+        //    string returnValue
+        //          = System.Convert.ToBase64String(toEncodeAsBytes);
+        //    return returnValue;
+        //}
     }
-
 }
 

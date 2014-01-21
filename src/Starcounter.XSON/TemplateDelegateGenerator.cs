@@ -146,15 +146,12 @@ namespace Starcounter.XSON {
 		internal static void GenerateBoundDelegates<T>(Property<T> property, Json json) {
 			BindingInfo bInfo;
 			bool throwException;
-			Type dataType;
 			Expression<Func<Json, T>> getLambda;
 			Expression<Action<Json, T>> setLambda = null;
-			object dataObject = json.Data;
-
-			dataType = dataObject.GetType();
+			
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
 
-			bInfo = DataBindingHelper.GetBindingPath(dataType, dataObject, property.Bind, property, throwException);
+            bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
 			if (bInfo.Member != null) {
 				getLambda = GenerateBoundGetExpression<T>(bInfo);
 				property.BoundGetter = getLambda.Compile();
@@ -173,7 +170,8 @@ namespace Starcounter.XSON {
 			} else {
 				property.isVerifiedUnbound = true; // Auto binding where property not match.
 			}
-			property.dataTypeForBinding = dataType;
+            property.dataTypeForBinding = bInfo.BoundToType;
+            property.isBoundToParent = bInfo.IsBoundToParent;
 		}
 
 		/// <summary>
@@ -185,15 +183,11 @@ namespace Starcounter.XSON {
 		internal static void GenerateBoundDelegates(TObject property, Json json) {
 			BindingInfo bInfo;
 			bool throwException;
-			Type dataType;
 			Expression<Func<Json, object>> getLambda;
 			Expression<Action<Json, object>> setLambda = null;
-			object dataObject = json.Data;
-
-			dataType = dataObject.GetType();
+			
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
-
-			bInfo = DataBindingHelper.GetBindingPath(dataType, dataObject, property.Bind, property, throwException);
+			bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
 			if (bInfo.Member != null) {
 				getLambda = GenerateBoundGetExpression<object>(bInfo);
 				property.BoundGetter = getLambda.Compile();
@@ -209,9 +203,10 @@ namespace Starcounter.XSON {
 					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
 			} else {
-				property.isVerifiedUnbound = true; // Auto binding where property not match.
+                property.isVerifiedUnbound = true; // Auto binding where property not match.
 			}
-			property.dataTypeForBinding = dataType;
+            property.dataTypeForBinding = bInfo.BoundToType;
+            property.isBoundToParent = bInfo.IsBoundToParent;
 		}
 
 		/// <summary>
@@ -223,15 +218,12 @@ namespace Starcounter.XSON {
 		internal static void GenerateBoundDelegates(TObjArr property, Json json) {
 			BindingInfo bInfo;
 			bool throwException;
-			Type dataType;
 			Expression<Func<Json, IEnumerable>> getLambda;
 			Expression<Action<Json, IEnumerable>> setLambda = null;
 			object dataObject = json.Data;
 
-			dataType = dataObject.GetType();
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
-
-			bInfo = DataBindingHelper.GetBindingPath(dataType, dataObject, property.Bind, property, throwException);
+			bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
 			if (bInfo.Member != null) {
 				getLambda = GenerateBoundGetExpression<IEnumerable>(bInfo);
 				property.BoundGetter = getLambda.Compile();
@@ -248,9 +240,10 @@ namespace Starcounter.XSON {
 					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
 			} else {
-				property.isVerifiedUnbound = true; // Auto binding where property not match.
+                property.isVerifiedUnbound = true; // Auto binding where property not match.
 			}
-			property.dataTypeForBinding = dataType;
+            property.dataTypeForBinding = bInfo.BoundToType;
+            property.isBoundToParent = bInfo.IsBoundToParent;
 		}
 
 		private static Expression<Func<Json, T>> GenerateBoundOrUnboundGetExpression<T>(ParameterExpression property) {
@@ -262,6 +255,9 @@ namespace Starcounter.XSON {
 		}
 
 		private static Expression<Func<Json, T>> GenerateUnboundGetExpression<T>(Type jsonType, int templateIndex) {
+            if (templateIndex == -1)
+                throw new ArgumentException("Cannot generate expression with negative templateindex.", "templateIndex");
+
 			var jsonParam = Expression.Parameter(typeof(Json));
 			var valueParam = Expression.Parameter(typeof(T));
 			Expression expr = Expression.Call(jsonParam, valueListInfo);
@@ -273,6 +269,9 @@ namespace Starcounter.XSON {
 		}
 
 		private static Expression<Action<Json, T>> GenerateUnboundSetExpression<T>(Type jsonType, int templateIndex) {
+            if (templateIndex == -1)
+                throw new ArgumentException("Cannot generate expression with negative templateindex.", "templateIndex");
+
 			var jsonParam = Expression.Parameter(typeof(Json));
 			var valueParam = Expression.Parameter(typeof(T));
 			Expression expr = Expression.Call(jsonParam, valueListInfo);
@@ -287,7 +286,12 @@ namespace Starcounter.XSON {
 
 		private static Expression<Func<Json, T>> GenerateBoundGetExpression<T>(BindingInfo bInfo) {
 			var instance = Expression.Parameter(typeof(Json));
-			Expression expression = Expression.Call(instance, jsonGetDataInfo);
+            Expression expression;
+
+            if (bInfo.IsBoundToParent)
+                expression = instance;
+            else 
+			    expression = Expression.Call(instance, jsonGetDataInfo);
 
 			expression = CreateBinding<T>(bInfo, true, expression);
 
@@ -299,8 +303,13 @@ namespace Starcounter.XSON {
 
 		private static Expression<Action<Json, T>> GenerateBoundSetExpression<T>(BindingInfo bInfo) {
 			var instance = Expression.Parameter(typeof(Json));
-			Expression expression = Expression.Call(instance, jsonGetDataInfo);
+            Expression expression;
 
+            if (bInfo.IsBoundToParent)
+                expression = instance;
+            else
+                expression = Expression.Call(instance, jsonGetDataInfo);
+			
 			var value = Expression.Parameter(typeof(T));
 			expression = CreateBinding<T>(bInfo, false, expression, value);
 

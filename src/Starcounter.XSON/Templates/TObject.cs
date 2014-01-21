@@ -19,15 +19,8 @@ namespace Starcounter.Templates {
     /// Defines the properties of an App instance.
     /// </summary>
     public partial class TObject : TContainer {
-#if DEBUG
-		internal string DebugBoundSetter;
-		internal string DebugBoundGetter;
-		internal string DebugUnboundSetter;
-		internal string DebugUnboundGetter;
-#endif
-
-		public readonly Action<Json, Json> Setter;
-		public readonly Func<Json, Json> Getter;
+		public Action<Json, Json> Setter;
+		public Func<Json, Json> Getter;
 		internal Action<Json, object> BoundSetter;
 		internal Func<Json, object> BoundGetter;
 		internal Action<Json, Json> UnboundSetter;
@@ -56,6 +49,10 @@ namespace Starcounter.Templates {
 			Setter = BoundOrUnboundSet;
 		}
 
+		internal override void SetDefaultValue(Json parent) {
+			UnboundSetter(parent, (Json)CreateInstance(parent));
+		}
+
 		internal override void InvalidateBoundGetterAndSetter() {
 			BoundGetter = null;
 			BoundSetter = null;
@@ -68,7 +65,8 @@ namespace Starcounter.Templates {
 		}
 
 		internal override void GenerateUnboundGetterAndSetter() {
-			TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
+			if (UnboundGetter == null)
+				TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
 		}
 
 		internal override void Checkpoint(Json parent) {
@@ -98,6 +96,10 @@ namespace Starcounter.Templates {
 			Json current = UnboundGetter(parent);
 			if (current != null)
 				current.AttachData(value);
+		}
+
+		internal override object GetUnboundValueAsObject(Json parent) {
+			return UnboundGetter(parent);
 		}
 
 		/// <summary>
@@ -145,6 +147,55 @@ namespace Starcounter.Templates {
 				parent.MarkAsReplaced(TemplateIndex);
 
 			parent._CallHasChanged(this);
+		}
+
+		internal override void CopyValueDelegates(Template toTemplate) {
+			var p = toTemplate as TObject;
+			if (p != null) {
+				p.UnboundGetter = UnboundGetter;
+				p.UnboundSetter = UnboundSetter;
+				p.hasCustomAccessors = hasCustomAccessors;
+#if DEBUG
+				p.DebugUnboundGetter = DebugUnboundGetter;
+				p.DebugUnboundSetter = DebugUnboundSetter;
+#endif
+			}
+		}
+
+		/// <summary>
+		/// Sets the getter and setter delegates for unbound values to the submitted delegates.
+		/// </summary>
+		/// <param name="getter"></param>
+		/// <param name="setter"></param>
+		/// <param name="overwriteExisting">
+		/// If false the new delegates are only set if the current delegates are null.
+		/// </param>
+		public void SetCustomAccessors(Func<Json, Json> getter, 
+									   Action<Json, Json> setter,
+									   bool overwriteExisting = true) {
+			bool overwrite = (overwriteExisting || !hasCustomAccessors);
+
+			if (BindingStrategy == BindingStrategy.Unbound) {
+				if (overwrite || Getter == null)
+					Getter = getter;
+				if (overwrite || Setter == null)
+					Setter = setter;
+			}
+
+			if (overwrite || UnboundGetter == null) {
+				UnboundGetter = getter;
+#if DEBUG
+				DebugUnboundGetter = "<custom>";
+#endif
+			}
+			if (overwrite || UnboundSetter == null) {
+				UnboundSetter = setter;
+#if DEBUG
+				DebugUnboundSetter = "<custom>";
+#endif
+			}
+
+			hasCustomAccessors = true;
 		}
 
 		/// <summary>

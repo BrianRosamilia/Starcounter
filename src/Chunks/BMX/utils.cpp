@@ -174,14 +174,6 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
 
     _SC_ASSERT(!aggregated_flag);
 
-#ifdef GW_MEMORY_MANAGEMENT
-
-    // Enforcing usage of one chunk.
-    if (buf_len_bytes > num_bytes_left_first_chunk)
-        buf_len_bytes = num_bytes_left_first_chunk;
-    
-#endif
-
     // Checking if data fits in one chunk.
     if (buf_len_bytes <= num_bytes_left_first_chunk)
     {
@@ -192,9 +184,6 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
 
         // Setting the number of written bytes.
         *(uint32_t*)(cur_smc + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
-
-        // Setting total number of chunks.
-        *(uint16_t*)(cur_smc + starcounter::MixedCodeConstants::CHUNK_OFFSET_NUM_CHUNKS) = 1;
 
         // Setting number of total written bytes.
         *actual_written_bytes = buf_len_bytes;
@@ -209,14 +198,11 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
     int32_t num_bytes_to_write = buf_len_bytes;
 
     // Checking if more than maximum chunks we can take at once.
-    if ((num_extra_chunks >= starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS) && (!aggregated_flag))
+    if ((num_extra_chunks > starcounter::MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS) && (!aggregated_flag))
     {
-        num_extra_chunks = starcounter::bmx::MAX_EXTRA_LINKED_WSABUFS - 1;
-        num_bytes_to_write = starcounter::bmx::MAX_BYTES_EXTRA_LINKED_WSABUFS + num_bytes_left_first_chunk;
+        num_extra_chunks = starcounter::MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS;
+        num_bytes_to_write = starcounter::MixedCodeConstants::MAX_BYTES_EXTRA_LINKED_IPC_CHUNKS + num_bytes_left_first_chunk;
     }
-
-    // Setting total number of chunks.
-    *(uint16_t*)(cur_smc + starcounter::MixedCodeConstants::CHUNK_OFFSET_NUM_CHUNKS) = 1 + num_extra_chunks;
 
     // Acquiring linked chunks.
     err_code = cm_acquire_linked_shared_memory_chunks_counted(the_chunk_index, num_extra_chunks);
@@ -313,9 +299,6 @@ uint32_t __stdcall sc_bmx_send_small_buffer(
 
     // Setting number of actual user bytes written.
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
-
-    // Setting total number of chunks.
-    *(uint16_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_NUM_CHUNKS) = 1;
 
     // Copying buffer into chunk.
     memcpy(cur_chunk_buf + chunk_user_data_offset, buf, buf_len_bytes);
@@ -437,6 +420,9 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     // Points to user data offset in chunk.
     uint16_t chunk_user_data_offset = *(uint16_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA) +
         starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA;
+
+    // Setting total data length.
+    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH) = buf_len_bytes;
 
     _SC_ASSERT(chunk_user_data_offset < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
 

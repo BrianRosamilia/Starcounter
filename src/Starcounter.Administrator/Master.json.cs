@@ -1,7 +1,6 @@
 ﻿
 using Codeplex.Data;
 using Starcounter;
-using Starcounter.ABCIPC.Internal;
 using Starcounter.Administrator;
 using Starcounter.Administrator.API;
 using Starcounter.Administrator.API.Handlers;
@@ -148,6 +147,11 @@ namespace Starcounter.Administrator {
             });
 
             POST("/echotest", (Request req) => {
+                return new Response() { BodyBytes = req.BodyBytes };
+            });
+
+            GET("/echotestws", (Request req) =>
+            {
                 return new Response() { BodyBytes = req.BodyBytes };
             });
 

@@ -7,7 +7,6 @@
 using Starcounter;
 using System;
 using NUnit.Framework;
-using HttpStructs;
 using Starcounter.Advanced;
 
 namespace PlayersDemoApp {

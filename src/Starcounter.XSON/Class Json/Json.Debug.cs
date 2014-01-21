@@ -76,9 +76,6 @@ namespace Starcounter {
 		/// <param name="i"></param>
 		/// <param name="template"></param>
 		private void WriteObjectToDebugString(StringBuilder sb, int i, TObject template) {
-
-			//_WriteDebugProperty(sb);
-
 			if (Template == null) {
 				sb.Append("{}");
 				return;
@@ -91,46 +88,29 @@ namespace Starcounter {
 				}
 			}
 
-
 			sb.AppendLine("{");
-
 
 			i += 3;
 			int t = 0;
-			var vals = list;
-			foreach (var v in vals) {
+			foreach (var prop in template.Properties.ExposedProperties) {
 				if (t > 0) {
 					sb.AppendLine(",");
 				}
 				sb.Append(' ', i);
-				//                if (v is Json) {
-				//                    (v as Json).WriteToDebugString(sb, i);
-				//                }
-				//                else {
-				var prop = template.Properties[t];
+				
 				sb.Append('"');
 				sb.Append(prop.PropertyName);
 				sb.Append("\":");
-				if (WasReplacedAt(t)) {
-					//   if (prop is TContainer) {
-					//       // The "d" is already anotated for Containers.
-					//       // Let's just make sure that the dirty flag was the same
-					//       var obj = (Json)(this as Json).Get((TValue)prop);
-					//       if (!obj._Dirty) {
-					//           throw new Exception("Missmach in dirty flags");
-					//       }
-					//   }
-					//   else {
+				if (WasReplacedAt(prop.TemplateIndex)) {
 					sb.Append("(direct-set)");
-					//   }
 				}
-				if (v is Json) {
-					(v as Json).WriteToDebugString(sb, i);
+
+				if (prop is TContainer) {
+                    ((TContainer)prop).GetValue(this).WriteToDebugString(sb, i);
 				} else {
 					WriteChildStatus(sb, t);
 					sb.Append(((TValue)prop).ValueToJsonString(this));
-
-				}//}
+				}
 				t++;
 			}
 			i -= 3;
@@ -140,30 +120,39 @@ namespace Starcounter {
 		}
 
 		private void WriteChildStatus(StringBuilder sb, int index) {
-			Template template;
+            object oldValue;
+            string binding;
+            TValue template;
+
 			if (IsArray) {
-				template = (Template as TObjArr).ElementType;
+				template = (Template as TObjArr).ElementType as TValue;
 			} else {
-				template = (Template as TObject).Properties[index];
+				template = (Template as TObject).Properties[index] as TValue;
 			}
-			object value = _list[index];
-			if (template is TValue && Data != null) {
-				if (((TValue)template).Bind != null) {
-					string binding = ((TValue)template).Bind;
-					if (binding != ((TValue)template).PropertyName) {
-						sb.Append("(bound path=" + ((TValue)template).Bind + ")");
+
+			if (template != null) {
+                binding = template.Bind;
+                if (binding != null && Data != null) {
+					if (binding != template.PropertyName) {
+						sb.Append("(bound path=" + binding + ")");
 					} else {
 						sb.Append("(bound)");
 					}
 				}
-				
-				var tv = (TValue)template;
-				if (tv.GetValueAsObject(this) != value) {
-					var dbgVal = _list[index];
-					if (dbgVal == null)
-						dbgVal = "notsent";
-					sb.Append("(indirect-set old=" + dbgVal + ")");
-				}
+
+                if (IsArray) {
+                    var cjson = this._GetAt(index) as Json;
+                    oldValue = "notsent";
+                    if (cjson != null && cjson.HasBeenSent)
+                        oldValue = cjson;
+                } else {
+                    oldValue = template.GetUnboundValueAsObject(this);
+                    if (template.GetValueAsObject(this) != oldValue) {
+                        if (oldValue == null)
+                            oldValue = "notsent";
+                    }
+                }
+                sb.Append("(indirect-set old=" + oldValue + ")");
 			}
 		}
 	}

@@ -7,7 +7,7 @@
         <div class="controls">
 
             <div class="input-append">
-                <input name="file" id="file" class="span8" placeholder="path to the executable" id="appendedInputButton" type="text" ng-model="file" required >
+                <input name="file" id="file" class="span8" placeholder="path to the executable" id="appendedInputButton" type="text" ng-model="file" required>
                 <div class="btn-group" ng-hide="recentExecutables == 0">
                     <button class="btn dropdown-toggle" data-toggle="dropdown">
                         <span class="caret"></span>
@@ -29,8 +29,8 @@
         <label class="control-label" for="database">Database</label>
         <div class="controls">
 
-            <select class="input-large" name="database" id="database" ui-select2 ng-model="selectedDatabaseName" required>
-                <option value="">-- select a database --</option>
+            <select class="input-large" name="database" id="database" ui-select2 ng-model="selectedDatabaseName" required data-placeholder="Select a database">
+                <option value=""></option>
                 <option value="{{database.name}}" ng-repeat="database in databases | orderBy: 'name'">{{database.name}}</option>
             </select>
 

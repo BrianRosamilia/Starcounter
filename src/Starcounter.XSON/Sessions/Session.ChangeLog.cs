@@ -1,5 +1,4 @@
 ﻿
-using HttpStructs;
 using Starcounter.Internal.JsonPatch;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;

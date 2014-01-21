@@ -19,7 +19,7 @@ namespace GenerateInstaller
     {
         const String CompanyName = "Starcounter AB";
         const String ProductName = "Starcounter Components";
-        public static readonly String CertificateFilePath = BuildSystem.LocalToolsFolder + "\\starcounter-2014.cer";
+        public static readonly String LocalCertificateFilePath = BuildSystem.LocalToolsFolder + "\\StarcounterCertificate.cer";
 
         /// <summary>
         /// Generates unique build from given all-in-one directory.
@@ -323,7 +323,7 @@ namespace GenerateInstaller
                 String signingError = "error";
 
                 // Trying to sign several times.
-                signingError = BuildSystem.SignFiles(allFilesToSign, CompanyName, ProductName, @"\\scbuildserver\FTP\SCDev\BuildSystem\starcounter-2014.cer");
+                signingError = BuildSystem.SignFiles(allFilesToSign, CompanyName, ProductName, LocalCertificateFilePath);
 
                 // Checking if there are any errors during signing process.
                 if (signingError != null)
@@ -405,7 +405,7 @@ namespace GenerateInstaller
                 GenerateUniqueBuild(
                     "000000000000000000000000"/*DownloadID.GenerateNewUniqueDownloadKey()*/,
                     checkoutDir,
-                    @"\\scbuildserver\FTP\SCDev\BuildSystem\starcounter-2014.cer");
+                    LocalCertificateFilePath);
 
                 // Deleting the existing archive since we have a copy in .saved file.
                 if (File.Exists(tempBuildDir + @"\Level1\src\Starcounter.Installer\Starcounter.InstallerWPF\resources\Archive.zip"))

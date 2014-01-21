@@ -1,5 +1,4 @@
 ﻿
-using HttpStructs;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
@@ -367,7 +366,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Checks if HttpStructs is destroyed already.
+        /// Checks if request is destroyed already.
         /// </summary>
         /// <returns>True if destroyed.</returns>
         internal bool IsDestroyed()
@@ -396,21 +395,6 @@ namespace Starcounter {
         public void Debug(string message, Exception ex = null) 
         {
             Console.WriteLine(message);
-        }
-
-        /// <summary>
-        /// The needs script injection.
-        /// </summary>
-        bool needs_script_injection_ = false;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [needs script injection].
-        /// </summary>
-        /// <value><c>true</c> if [needs script injection]; otherwise, <c>false</c>.</value>
-        public bool NeedsScriptInjection
-        {
-            get { return needs_script_injection_; }
-            set { needs_script_injection_ = value; }
         }
 
         /// <summary>

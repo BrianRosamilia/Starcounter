@@ -7,31 +7,81 @@ namespace network {
 
 class WorkerChunks
 {
-    LinearQueue<SocketDataChunk*, MAX_GATEWAY_CHUNKS> worker_chunks_;
+    // Chunk stores.
+    LinearQueue<SocketDataChunk*, MAX_GATEWAY_CHUNKS> worker_chunks_[NumGatewayChunkSizes];
+
+    // Number of allocated chunks for each chunks store.
+    int32_t num_allocated_chunks_[NumGatewayChunkSizes];
 
 public:
 
     WorkerChunks()
     {
+        memset(num_allocated_chunks_, 0, sizeof(num_allocated_chunks_));
+    }
 
+    void PrintInfo(std::stringstream& stats_stream)
+    {
+        stats_stream << "Allocated chunks: ";
+
+        for (int32_t i = 0; i < NumGatewayChunkSizes; i++)
+            stats_stream << num_allocated_chunks_[i] << ", ";
+
+        stats_stream << "<br>";
+    }
+
+    int32_t GetNumberAllocatedChunks(chunk_store_type store_index)
+    {
+        return num_allocated_chunks_[store_index];
     }
 
     // Releasing existing chunk to the list.
     void ReleaseChunk(SocketDataChunkRef sd)
     {
-        worker_chunks_.PushBack(sd);
+        chunk_store_type store_index = sd->get_chunk_store_index();
+
+        // Checking if we should completely dispose the chunk.
+        if (worker_chunks_[store_index].get_num_entries() >= GatewayChunkStoresSizes[store_index])
+        {
+            _aligned_free(sd);
+            num_allocated_chunks_[store_index]--;
+        }
+        else
+        {
+            worker_chunks_[store_index].PushBack(sd);
+        }
+
+        sd->InvalidateWhenReturning();
         sd = NULL;
     }
 
     // Getting free chunk from the list or creating a new one.
-    SocketDataChunk* ObtainChunk()
+    SocketDataChunk* ObtainChunk(int32_t data_size = GatewayChunkDataSizes[DefaultGatewayChunkSizeType])
     {
-        if (worker_chunks_.get_num_entries())
-            return worker_chunks_.PopBack();
+        chunk_store_type chunk_store_index = ObtainGatewayChunkType(data_size);
+
+        return ObtainChunkByStoreIndex(chunk_store_index);
+    }
+
+    // Getting free chunk from the list or creating a new one.
+    SocketDataChunk* ObtainChunkByStoreIndex(chunk_store_type chunk_store_index)
+    {
+        SocketDataChunk* sd;
+
+        // Checking if a free chunk is available.
+        if (worker_chunks_[chunk_store_index].get_num_entries())
+        {
+            sd = worker_chunks_[chunk_store_index].PopBack();
+            goto RETURN_SD;
+        }
 
         // Creating new chunk.
-        SocketDataChunk* sd =  (SocketDataChunk*) _aligned_malloc(MixedCodeConstants::SOCKET_DATA_MAX_SIZE, MEMORY_ALLOCATION_ALIGNMENT);
+        sd = (SocketDataChunk*) _aligned_malloc(GatewayChunkSizes[chunk_store_index], MEMORY_ALLOCATION_ALIGNMENT);
+        num_allocated_chunks_[chunk_store_index]++;
 
+RETURN_SD:
+
+        sd->set_chunk_store_index(chunk_store_index);
         return sd;
     }
 };
@@ -53,7 +103,8 @@ class GatewayWorker
     int64_t worker_stats_bytes_received_,
         worker_stats_bytes_sent_,
         worker_stats_sent_num_,
-        worker_stats_recv_num_;
+        worker_stats_recv_num_,
+        worker_stats_num_bound_sockets_;
 
 #ifdef GW_COLLECT_SOCKET_STATISTICS
     int64_t port_num_active_conns_[MAX_PORTS_NUM];
@@ -138,6 +189,36 @@ public:
         sockets_indexes_to_disconnect_.push_back(socket_index);
     }
 
+    // Starting accumulation.
+    uint32_t StartAccumulation(SocketDataChunkRef sd, uint32_t total_desired_bytes, uint32_t num_already_accumulated)
+    {
+        // Enabling accumulative state.
+        sd->set_accumulating_flag();
+
+        // Checking if the host accumulation should be involved.
+        if (total_desired_bytes > static_cast<uint32_t>(GatewayChunkDataSizes[NumGatewayChunkSizes - 1]))
+        {
+            // We need to accumulate on host.
+            sd->set_on_host_accumulation_flag();
+
+            return SCERRGWMAXDATASIZEREACHED;
+        }
+
+        // Checking if data that needs accumulation fits into chunk.
+        if (sd->get_accum_buf()->get_chunk_orig_buf_len_bytes() < total_desired_bytes)
+        {
+            uint32_t err_code = SocketDataChunk::ChangeToBigger(this, sd, total_desired_bytes);
+            if (err_code)
+                return err_code;
+        }
+
+        GW_ASSERT(sd->get_accum_buf()->get_chunk_orig_buf_len_bytes() >= total_desired_bytes);
+
+        sd->get_accum_buf()->StartAccumulation(total_desired_bytes, num_already_accumulated);
+
+        return 0;
+    }
+
     // Processes sockets that should be disconnected.
     void ProcessSocketDisconnectList();
 
@@ -177,54 +258,6 @@ public:
         return reusable_accept_sockets_.get_num_entries();
     }
 
-    // Tracks certain socket.
-    void TrackSocket(db_index_type db_index, session_index_type index)
-    {
-        // NOTE: Only first database has attached sockets.
-        GW_ASSERT(0 == db_index);
-
-#ifdef GW_SOCKET_DIAG
-        GW_COUT << "Tracking socket index: " << index << GW_ENDL;
-#endif
-
-        worker_dbs_[db_index]->TrackSocket(index);
-    }
-
-    // Untracks certain socket.
-    void UntrackSocket(db_index_type db_index, session_index_type index)
-    {
-        // NOTE: Only first database has attached sockets.
-        GW_ASSERT(0 == db_index);
-
-#ifdef GW_SOCKET_DIAG
-        GW_COUT << "UnTracking socket index: " << index << GW_ENDL;
-#endif
-
-        worker_dbs_[db_index]->UntrackSocket(index);
-    }
-
-    // Getting number of used sockets.
-    int64_t NumberUsedSocketPerDatabase(db_index_type db_index)
-    {
-        if (worker_dbs_[db_index] != NULL)
-        {
-            return worker_dbs_[db_index]->get_num_used_sockets();
-        }
-
-        return 0;
-    }
-
-    // Getting number of used chunks.
-    int64_t NumberUsedChunksPerDatabasePerWorker(db_index_type db_index)
-    {
-        if (worker_dbs_[db_index] != NULL)
-        {
-            return worker_dbs_[db_index]->get_num_used_chunks();
-        }
-
-        return 0;
-    }
-
     // Getting number of chunks in overflow queue.
     int64_t NumberOverflowChunksPerDatabasePerWorker(db_index_type db_index)
     {
@@ -255,7 +288,7 @@ public:
     }
 
     // Creating accepting sockets on all ports and for all databases.
-    uint32_t CheckAcceptingSocketsOnAllActivePortsAndDatabases();
+    uint32_t CheckAcceptingSocketsOnAllActivePorts();
 
     // Changes number of accepting sockets.
     int64_t ChangeNumAcceptingSockets(int32_t port_index, int64_t change_value)
@@ -297,9 +330,9 @@ public:
 #endif
 
     // Generates a new scheduler id.
-    scheduler_id_type GenerateSchedulerId(db_index_type db_index)
+    scheduler_id_type GenerateSchedulerId()
     {
-        return GetWorkerDb(db_index)->GenerateSchedulerId();
+        return GetWorkerDb(0)->GenerateSchedulerId();
     }
 
     // Getting random generator.
@@ -356,9 +389,6 @@ public:
         return worker_dbs_[db_index];
     }
 
-    // Gets a new chunk for new database and copies the old one into it.
-    uint32_t CloneChunkForAnotherDatabase(SocketDataChunkRef old_sd, int32_t new_db_index, SocketDataChunk** out_sd);
-
     // Deleting inactive database.
     void DeleteInactiveDatabase(db_index_type db_index);
 
@@ -378,6 +408,11 @@ public:
     int64_t get_worker_stats_bytes_received()
     {
         return worker_stats_bytes_received_;
+    }
+
+    int64_t get_worker_stats_num_bound_sockets()
+    {
+        return worker_stats_num_bound_sockets_;
     }
 
     // Getting the bytes sent statistics.
@@ -405,6 +440,8 @@ public:
         stats_stream << "Packets received: " << worker_stats_recv_num_ << "<br>";
         stats_stream << "Bytes sent: " << worker_stats_bytes_sent_ << "<br>";
         stats_stream << "Packets sent: " << worker_stats_sent_num_ << "<br>";
+        stats_stream << "Bound sockets: " << worker_stats_num_bound_sockets_ << "<br>";
+        worker_chunks_.PrintInfo(stats_stream);
     }
 
     // Worker initialization function.
@@ -445,7 +482,7 @@ public:
     HANDLE get_worker_iocp() { return worker_iocp_; }
 
     // Used to create new connections when reaching the limit.
-    uint32_t CreateNewConnections(int32_t how_many, int32_t port_index, db_index_type db_index);
+    uint32_t CreateNewConnections(int32_t how_many, int32_t port_index);
 
 #ifdef GW_PROXY_MODE
     // Allocates a bunch of new connections.
@@ -535,14 +572,7 @@ public:
     // Creates the socket data structure.
     uint32_t CreateSocketData(
         session_index_type socket_info_index,
-        db_index_type db_index,
         SocketDataChunkRef out_sd);
-
-    // Gets SMC from given database chunk.
-    shared_memory_chunk* GetSmcFromChunkIndex(db_index_type db_index, core::chunk_index the_chunk_index)
-    {
-        return (shared_memory_chunk*) &(worker_dbs_[db_index]->get_shared_int()->chunk(the_chunk_index));
-    }
 
 #ifdef GW_TESTING_MODE
 

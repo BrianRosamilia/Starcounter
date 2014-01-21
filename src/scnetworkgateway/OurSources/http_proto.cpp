@@ -283,8 +283,14 @@ inline int HttpProto::OnHeadersComplete(http_parser* p)
     // Setting complete header flag.
     g_ts_sd_->set_complete_header_flag();
     
+    // NOTE: p->nread already points to the content after additional \r\n
+    // thats why we subtracting 2 bytes.
+
     // Setting headers length (skipping 2 bytes for \r\n).
     g_ts_http_request_->headers_len_bytes_ = p->nread - 2 - g_ts_http_request_->headers_len_bytes_;
+
+    // Setting content data offset.
+    g_ts_http_request_->content_offset_ = g_ts_sd_->GetAccumOrigBufferSocketDataOffset() + p->nread;
 
     return 0;
 }
@@ -496,9 +502,6 @@ inline int HttpProto::OnBody(http_parser* p, const char *at, size_t length)
     // Setting content parameters.
     if (g_ts_http_request_->content_len_bytes_ < 0)
         g_ts_http_request_->content_len_bytes_ = static_cast<uint32_t>(length);
-
-    // Setting content data offset.
-    g_ts_http_request_->content_offset_ = static_cast<uint16_t>(at - (char*)g_ts_sd_);
 
     return 0;
 }
@@ -716,6 +719,9 @@ uint32_t HttpProto::AppsHttpWsProcessData(
         // Resetting the parsing structure.
         ResetParser(sd);
 
+        // We can immediately set the request offset.
+        http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
+
         // Executing HTTP parser.
         size_t bytes_parsed = http_parser_execute(
             &g_ts_http_parser_,
@@ -723,13 +729,20 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             (const char *)accum_buf->get_chunk_orig_buf_ptr(),
             accum_buf->get_accum_len_bytes());
 
-        // Checking if we have complete data.
-        if (((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
-            || ((http_request_.content_offset_ <= 0) && (http_request_.content_len_bytes_ > 0)))
+        // Checking if we should continue receiving the headers.
+        if (!sd->get_complete_header_flag())
         {
+            // NOTE: At this point we don't really know here what the final size of the request will be.
+            // That is why we just extend the chunk to next bigger one, without specifying the size.
+
             // Checking if any space left in chunk.
             if (sd->get_accum_buf()->get_chunk_num_available_bytes() <= 0)
-                return SCERRGWMAXHTTPHEADERSSIZEREACHED;
+            {
+                err_code = SocketDataChunk::ChangeToBigger(gw, sd);
+
+                if (err_code)
+                    return err_code;
+            }
 
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);
@@ -804,34 +817,16 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                 break;
             }
 
-			// TODO: Check when resolved with NGINX http parser.
-            // Setting content length.
-            //http_request_.content_len_bytes_ = http_parser_.content_length;
-            // Checking if content length was determined at all.
-            //if (ULLONG_MAX == http_parser_.content_length)
-            //    http_request_.content_len_bytes_ = 0;
+            // Calculating total request size.
+            http_request_.request_len_bytes_ = http_request_.content_offset_ - http_request_.request_offset_ + http_request_.content_len_bytes_;
 
             // Checking if we have any content at all.
             if (http_request_.content_len_bytes_ > 0)
             {
-                // Number of content bytes already received.
-                uint32_t num_content_bytes_received = sd->GetAccumOrigBufferSocketDataOffset() + accum_buf->get_accum_len_bytes() - http_request_.content_offset_;
-                
-                // Checking if content was partially received at all.
-                if (http_request_.content_offset_ <= 0)
-                {
-                    // Setting the value for content offset.
-                    http_request_.content_offset_ = static_cast<uint16_t>(sd->GetAccumOrigBufferSocketDataOffset() + bytes_parsed);
-
-                    num_content_bytes_received = 0;
-                }
-
-                // Checking if full request is received when aggregated.
-                if (sd->GetSocketAggregatedFlag())
-                    GW_ASSERT(http_request_.content_len_bytes_ == num_content_bytes_received);
+                GW_ASSERT(http_request_.content_offset_ > http_request_.headers_offset_);
 
                 // Checking if we need to continue receiving the content.
-                if (http_request_.content_len_bytes_ > num_content_bytes_received)
+                if (http_request_.request_len_bytes_ > accum_buf->get_accum_len_bytes())
                 {
                     // Checking for maximum supported HTTP request content size.
                     if (http_request_.content_len_bytes_ > g_gateway.setting_maximum_receive_content_length())
@@ -850,21 +845,12 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                         return gw->SendPredefinedMessage(sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
                     }
 
-                    // Enabling accumulative state.
-                    sd->set_accumulating_flag();
-
-                    // Checking if content should be accumulated on host.
-                    if (http_request_.content_len_bytes_ >= CONTENT_SIZE_HOST_ACCUMULATION)
-                        sd->set_on_host_accumulation_flag();
-
                     // Setting the desired number of bytes to accumulate.
-                    accum_buf->StartAccumulation(
-                        accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received,
+                    err_code = gw->StartAccumulation(
+                        sd,
+                        http_request_.request_len_bytes_,
                         accum_buf->get_accum_len_bytes());
 
-                    // Trying to continue accumulation.
-                    bool is_accumulated;
-                    uint32_t err_code = sd->ContinueAccumulation(gw, &is_accumulated);
                     if (err_code)
                         return err_code;
 
@@ -908,10 +894,6 @@ ALL_DATA_ACCUMULATED:
                 return err_code;
 
 #else
-
-            // Setting request properties.
-            http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
-            http_request_.request_len_bytes_ = accum_buf->get_accum_len_bytes();
 
             // Resetting user data parameters.
             sd->ResetUserDataOffset();
@@ -961,7 +943,7 @@ ALL_DATA_ACCUMULATED:
             return SCERRGWDISCONNECTFLAG;
 
         // Prepare buffer to send outside.
-        sd->get_accum_buf()->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_written_bytes());
+        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
 
         // Sending data.
         err_code = gw->Send(sd);
@@ -1002,24 +984,35 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
         // Resetting the parsing structure.
         ResetParser(sd);
 
+        // We can immediately set the request offset.
+        http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
+
         // Executing HTTP parser.
         size_t bytes_parsed = http_parser_execute(
             &g_ts_http_parser_,
             &g_httpParserSettings,
-            (const char *)sd->get_accum_buf()->get_chunk_orig_buf_ptr(),
+            (const char *)accum_buf->get_chunk_orig_buf_ptr(),
             accum_buf->get_accum_len_bytes());
 
-        // Checking if we have complete data.
-        if (((!sd->get_complete_header_flag()) && (bytes_parsed == accum_buf->get_accum_len_bytes()))
-            || ((http_request_.content_offset_ <= 0) && (http_request_.content_len_bytes_ > 0)))
+        // Checking if we should continue receiving the headers.
+        if (!sd->get_complete_header_flag())
         {
+            // NOTE: At this point we don't really know here what the final size of the request will be.
+            // That is why we just extend the chunk to next bigger one, without specifying the size.
+
             // Checking if any space left in chunk.
             if (sd->get_accum_buf()->get_chunk_num_available_bytes() <= 0)
-                return SCERRGWMAXHTTPHEADERSSIZEREACHED;
+            {
+                err_code = SocketDataChunk::ChangeToBigger(gw, sd);
+
+                if (err_code)
+                    return err_code;
+            }
 
             // Returning socket to receiving state.
             err_code = gw->Receive(sd);
-            GW_ERR_CHECK(err_code);
+            if (err_code)
+                return err_code;
 
             // Handled successfully.
             *is_handled = true;
@@ -1040,6 +1033,8 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
         // Handle error. Usually just close the connection.
         else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
         {
+            GW_ASSERT(bytes_parsed < accum_buf->get_accum_len_bytes());
+
             GW_COUT << "HTTP packet has incorrect data!" << GW_ENDL;
             return SCERRGWHTTPINCORRECTDATA;
         }
@@ -1087,30 +1082,16 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
                 break;
             }
 
-            // TODO: Check when resolved with NGINX http parser.
-            // Setting content length.
-            //http_request_.content_len_bytes_ = http_parser_.content_length;
-            // Checking if content length was determined at all.
-            //if (ULLONG_MAX == http_parser_.content_length)
-            //    http_request_.content_len_bytes_ = 0;
+            // Calculating total request size.
+            http_request_.request_len_bytes_ = http_request_.content_offset_ - http_request_.request_offset_ + http_request_.content_len_bytes_;
 
             // Checking if we have any content at all.
             if (http_request_.content_len_bytes_ > 0)
             {
-                // Number of content bytes already received.
-                int32_t num_content_bytes_received = sd->GetAccumOrigBufferSocketDataOffset() + accum_buf->get_accum_len_bytes() - http_request_.content_offset_;
-
-                // Checking if content was partially received at all.
-                if (http_request_.content_offset_ <= 0)
-                {
-                    // Setting the value for content offset.
-                    http_request_.content_offset_ = static_cast<uint16_t> (sd->GetAccumOrigBufferSocketDataOffset() + bytes_parsed);
-
-                    num_content_bytes_received = 0;
-                }
+                GW_ASSERT(http_request_.content_offset_ > http_request_.headers_offset_);
 
                 // Checking if we need to continue receiving the content.
-                if (http_request_.content_len_bytes_ > static_cast<uint32_t>(num_content_bytes_received))
+                if (http_request_.request_len_bytes_ > accum_buf->get_accum_len_bytes())
                 {
                     // Checking for maximum supported HTTP request content size.
                     if (http_request_.content_len_bytes_ > g_gateway.setting_maximum_receive_content_length())
@@ -1129,18 +1110,14 @@ uint32_t HttpProto::GatewayHttpWsProcessEcho(
                         return gw->SendPredefinedMessage(sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
                     }
 
-                    // Enabling accumulative state.
-                    sd->set_accumulating_flag();
-
                     // Setting the desired number of bytes to accumulate.
-                    accum_buf->StartAccumulation(
-                        accum_buf->get_accum_len_bytes() + http_request_.content_len_bytes_ - num_content_bytes_received,
+                    err_code = gw->StartAccumulation(
+                        sd,
+                        http_request_.request_len_bytes_,
                         accum_buf->get_accum_len_bytes());
 
-                    // Trying to continue accumulation.
-                    bool is_accumulated;
-                    uint32_t err_code = sd->ContinueAccumulation(gw, &is_accumulated);
-                    GW_ERR_CHECK(err_code);
+                    if (err_code)
+                        return err_code;
 
                     // Handled successfully.
                     *is_handled = true;
@@ -1318,7 +1295,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
             return err_code;
 
 #ifdef GW_SOCKET_DIAG
-        GW_COUT << "Created proxy socket: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << sd->get_chunk_index() << ":" << (uint64_t)sd << GW_ENDL;
+        GW_COUT << "Created proxy socket: " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
         // Re-enabling socket representer flag.
@@ -1365,7 +1342,7 @@ uint32_t PostSocketResource(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     GW_ASSERT(INVALID_PORT_INDEX != port_index);
 
     // Getting new socket index.
-    ags.socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, sd->get_db_index(), INVALID_SOCKET, port_index, false);
+    ags.socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, INVALID_SOCKET, port_index, false);
     ags.unique_socket_id_ = g_gateway.GetUniqueSocketId(ags.socket_info_index_);
 
     // Setting some socket options.

@@ -13,6 +13,45 @@ namespace Starcounter.XSON {
         private static string propNotFound = "Property '{2}' was not found in type '{3}' (or baseclass). Json property: '{0}.{1}'.";
 
         /// <summary>
+        /// Looks first in the parent for a property with the same name as the binding name. If no property is 
+        /// found the dataobject is used (if any).
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="bindingName"></param>
+        /// <param name="template"></param>
+        /// <param name="throwException"></param>
+        /// <returns></returns>
+        internal static BindingInfo SearchForBinding(Json parent, string bindingName, TValue template, bool throwException) {
+            BindingInfo bInfo;
+            object dataObject;
+            TObject tobj;
+
+            bInfo = BindingInfo.Null;
+            tobj = parent.Template as TObject;
+
+            bInfo.BoundToType = parent.GetType();
+            bInfo.IsBoundToParent = true;
+
+            // We dont try to bind to the json if there is a template with the same name as the 
+            // binding since we only want to bind to properties declared in codebehind.
+            if (tobj.Properties.GetTemplateByPropertyName(bindingName) == null) {
+                bInfo = GetBindingPath(bInfo.BoundToType, parent, bindingName, template, false);
+                bInfo.BoundToType = parent.GetType();
+                bInfo.IsBoundToParent = true;
+            }
+          
+            if (bInfo.Member == null) {
+                dataObject = parent.Data;
+                if (dataObject != null) {
+                    bInfo = GetBindingPath(dataObject.GetType(), dataObject, bindingName, template, throwException);
+                    bInfo.IsBoundToParent = false;
+                    bInfo.BoundToType = dataObject.GetType();
+                }
+            } 
+            return bInfo;
+        }
+
+        /// <summary>
         /// Returns the property with the specified name from the data type. If not found an exception 
         /// is thrown.
         /// </summary>
@@ -21,7 +60,7 @@ namespace Starcounter.XSON {
         /// <param name="template"></param>
 		/// <param name="throwException"></param>
         /// <returns></returns>
-        internal static BindingInfo GetBindingPath(Type dataType, object data, string bindingName, Template template, bool throwException) {
+        private static BindingInfo GetBindingPath(Type dataType, object data, string bindingName, Template template, bool throwException) {
 			int index;
 			int offset;
 			string partName;
@@ -84,6 +123,8 @@ namespace Starcounter.XSON {
 
 			binfo.Member = memberInfo;
 			binfo.Path = memberPath;
+            binfo.BoundToType = null;
+            binfo.IsBoundToParent = false;
             return binfo;
         }
 

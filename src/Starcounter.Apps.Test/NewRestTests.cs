@@ -14,6 +14,7 @@ using Starcounter.Internal.Web;
 using TJson = Starcounter.Templates.TObject;
 using TArr = Starcounter.Templates.TArray<Starcounter.Json>;
 using Starcounter.Templates;
+using Starcounter.Rest;
 
 namespace Starcounter.Internal.Test
 {
@@ -24,7 +25,7 @@ namespace Starcounter.Internal.Test
     public class NewRestTestsSetup
     {
         /// <summary>
-        /// HttpStructs tests initialization.
+        /// Tests initialization.
         /// </summary>
         [SetUp]
         public void NewRestTestsSetupInit()

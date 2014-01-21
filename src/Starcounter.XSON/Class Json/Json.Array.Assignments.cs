@@ -34,7 +34,6 @@ namespace Starcounter {
                         if (tobj == null) {
                             template.CreateElementTypeFromDataObject(entity);
                             tobj = template.ElementType;
-							tobj.GenerateUnboundGetterAndSetter();
                         }
                         newApp = (Json)tobj.CreateInstance(this);
 						Add(newApp);

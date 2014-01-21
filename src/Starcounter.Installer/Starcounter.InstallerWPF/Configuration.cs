@@ -268,7 +268,7 @@ namespace Starcounter.InstallerWPF {
                 // VisualStudio2013
                 VisualStudio2013Integration visualStudio2013Integration = this.GetComponent(VisualStudio2013Integration.Identifier) as VisualStudio2013Integration;
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2013Integration);
-                elem.InnerText = visualStudio2012Integration.ExecuteCommand.ToString();
+                elem.InnerText = visualStudio2013Integration.ExecuteCommand.ToString();
                 subRootElem.AppendChild(elem);
 
             }

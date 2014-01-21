@@ -13,12 +13,6 @@ namespace Starcounter.Advanced {
     public interface IREST {
 
         /// <summary>
-        /// Allows you to register event listeners that trigger whenever the developer
-        /// registers a new request handler.
-        /// </summary>
-        List<Action<string>> RegistrationListeners { get; }
-
-        /// <summary>
         /// Registers a handler with no parameters
         /// </summary>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /test</param>
@@ -74,21 +68,5 @@ namespace Starcounter.Advanced {
         /// <param name="verbAndUri">The verb and uri template of the request.</param>
         /// <param name="handler">The code to call when receiving the request</param>
         void RegisterHandler<T1, T2, T3, T4, T5>(ushort port, string verbAndUri, Func<T1, T2, T3, T4, T5, Response> handler);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        object Get(string uri);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        object HandleRequest(Request request);
-
-        object HandleRawRequest(byte[] request);
     }
 }

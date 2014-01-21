@@ -8,7 +8,6 @@ using System;
 using System.Diagnostics; 
 using Starcounter.Templates;
 using Starcounter.Advanced;
-using HttpStructs;
 using Starcounter.Internal;
 using System.Text;
 using System.Collections.Generic;
@@ -48,7 +47,33 @@ namespace Starcounter {
         /// <summary>
         /// Destroy session delegate.
         /// </summary>
-        internal Action<Session> _SessionDestroyUserDelegate_;
+        internal Action<Session> _SessionDestroyUserDelegate;
+
+        /// <summary>
+        /// Database session interface.
+        /// </summary>
+        static IDbSession _dbSession;
+
+        /// <summary>
+        /// Setting actual database session implementation.
+        /// </summary>
+        internal static unsafe void SetDbSessionImplementation(IDbSession dbSessionImpl) {
+            _dbSession = dbSessionImpl;
+        }
+
+        /// <summary>
+        /// Runs a task asynchronously on a given scheduler.
+        /// </summary>
+        public void RunAsync(Action action, Byte schedId = Byte.MaxValue) {
+            _dbSession.RunAsync(action, schedId);
+        }
+
+        /// <summary>
+        /// Runs a task asynchronously on current scheduler.
+        /// </summary>
+        public void RunSync(Action action) {
+            _dbSession.RunSync(action);
+        }
 
         /// <summary>
         /// Tries to get cached JSON node.
@@ -309,7 +334,7 @@ namespace Starcounter {
         /// <param name="destroy_user_delegate"></param>
         public void SetSessionDestroyCallback(Action<Session> userDestroyMethod)
         {
-            _SessionDestroyUserDelegate_ = userDestroyMethod;
+            _SessionDestroyUserDelegate = userDestroyMethod;
         }
 
         /// <summary>
@@ -318,7 +343,7 @@ namespace Starcounter {
         /// <returns></returns>
         public Action<Session> GetDestroyCallback()
         {
-            return _SessionDestroyUserDelegate_;
+            return _SessionDestroyUserDelegate;
         }
 
         /// <summary>
@@ -341,10 +366,10 @@ namespace Starcounter {
             }
 
             // Checking if destroy callback is supplied.
-            if (null != _SessionDestroyUserDelegate_)
+            if (null != _SessionDestroyUserDelegate)
             {
-                _SessionDestroyUserDelegate_(this);
-                _SessionDestroyUserDelegate_ = null;
+                _SessionDestroyUserDelegate(this);
+                _SessionDestroyUserDelegate = null;
             }
 
             Session._Current = null;

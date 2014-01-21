@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Starcounter.Internal.Tests;
+using Starcounter.Rest;
 
 namespace Starcounter.Internal.Test
 {

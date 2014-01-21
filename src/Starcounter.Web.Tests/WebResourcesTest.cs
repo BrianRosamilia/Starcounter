@@ -38,9 +38,9 @@ namespace Starcounter.Internal.Tests
          relativeUri = "/test2/test3/test4.txt";
          directoryExpected = "c:\\test1\\test2\\test3";
          fileNameExpected = "test4";
-         fileExtensionExpected = "txt";
+         fileExtensionExpected = ".txt";
          target = new StaticWebServer();
-         target.WorkingDirectories.Add(serverPath);
+         target.workingDirectories.Add(serverPath);
          target.ParseFileSpecifier(serverPath,relativeUri, out directory, out fileName, out fileExtension);
          Assert.AreEqual(directoryExpected, directory);
          Assert.AreEqual(fileNameExpected, fileName);

@@ -1,8 +1,0 @@
-﻿<ReverseProxies>
-	<ReverseProxy>
-		<DestinationDNS>www.starcounter.com</DestinationDNS>
-		<DestinationPort>80</DestinationPort>
-		<StarcounterProxyPort>80</StarcounterProxyPort>
-		<MatchingMethodAndUri>GET /Blogs@w</MatchingMethodAndUri>
-	</ReverseProxy>
-</ReverseProxies>

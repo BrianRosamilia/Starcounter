@@ -800,6 +800,7 @@
       <ExcludedItem>Starcounter.XSON.PartialClassGenerator~Modules_namespace</ExcludedItem>
     </ExcludedItems>
   </Filters>
+  <JavascriptProjectPlugin />
   <ComProjectPlugin />
   <AjaxProjectPlugin />
   <DotNetAssemblies>
@@ -845,6 +846,9 @@
       <Title />
     </Glossary>
   </GlossaryProjectPlugin>
+  <WebServiceProjectPlugin>
+    <WebServices />
+  </WebServiceProjectPlugin>
   <HelpProjectPlugin ShowGettingStartedPage="true" />
   <OtherFilesProjectPlugin>
     <OtherFiles>
@@ -891,6 +895,9 @@
     <WidgetTypes Version="2011.1" />
   </WidgetsProjectPlugin>
   <TemplateFileFeaturesProjectPlugin />
+  <ProjectSearchProjectPlugin>
+    <ProjectSearchDefinitions />
+  </ProjectSearchProjectPlugin>
   <ProjectProfiles>
     <ProjectProfile Id="6b2cfb6d-7340-49af-9cfb-d31ec7a4a0d5" Name="Internal">
       <DefaultItemQualifiedName></DefaultItemQualifiedName>
@@ -957,6 +964,7 @@
             <CollectionItemStyle Font="Segoe UI" FontSize="12" FontBrush="#FF000000" FontWeight="Normal" FontStyle="Normal" TextPadding="4" HorizontalAlignment="Left" BackgroundBrush="#FFFFCC66" BorderBrush="#FF000000" BorderThickness="-0" EndCap="Point" />
           </DiagramStyle>
           <DiagramRelationshipsFrom>PropertiesOnly</DiagramRelationshipsFrom>
+          <IncludeFields>false</IncludeFields>
           <DiagramDefaultCollectionMemberOnly>true</DiagramDefaultCollectionMemberOnly>
         </DiagramSettings>
         <IncludeVbNetDefaultConstructor>false</IncludeVbNetDefaultConstructor>
@@ -977,6 +985,7 @@
         <GroupExamples>true</GroupExamples>
         <ColorizeSyntax>false</ColorizeSyntax>
         <IncludeExtensionMethods>true</IncludeExtensionMethods>
+        <UseContentFromBaseMember>false</UseContentFromBaseMember>
         <ExcludedLanguages>
           <ExcludedLanguage>Delphi</ExcludedLanguage>
           <ExcludedLanguage>JScript</ExcludedLanguage>
@@ -986,6 +995,54 @@
           <ExcludedLanguage>CPP2005</ExcludedLanguage>
         </ExcludedLanguages>
       </DotNet>
+      <Javascript>
+        <IsBrowserCompatibilityIncluded>true</IsBrowserCompatibilityIncluded>
+        <IsBrowserCompatibilityIncludedOnEveryPage>true</IsBrowserCompatibilityIncludedOnEveryPage>
+        <UseDollarPrefix>true</UseDollarPrefix>
+        <WrapInDomReady>false</WrapInDomReady>
+        <IsIncludeParametersInUsageSyntaxEnabled>true</IsIncludeParametersInUsageSyntaxEnabled>
+        <IsGenerateTypeMemberPagesEnabled>false</IsGenerateTypeMemberPagesEnabled>
+        <SyntaxIndentParametersLength>60</SyntaxIndentParametersLength>
+        <IncludeRelationshipDiagrams>true</IncludeRelationshipDiagrams>
+        <IncludeInheritanceHierarchies>true</IncludeInheritanceHierarchies>
+        <NoInheritedMemberTopicsInternal>true</NoInheritedMemberTopicsInternal>
+        <UseXmlCommentFile>true</UseXmlCommentFile>
+        <NoInheritedInLists>false</NoInheritedInLists>
+        <IncludeBreadcrumbs>true</IncludeBreadcrumbs>
+        <IncludeComponentBreadcrumb>false</IncludeComponentBreadcrumb>
+        <XmlIsland></XmlIsland>
+        <XmlCommentUsage>Merge</XmlCommentUsage>
+        <DiagramSettings OverviewNestingLevels="0" PageNestingLevels="0" DiagramStyleSource="Template">
+          <SuppressSingleObjectDiagrams>true</SuppressSingleObjectDiagrams>
+          <DiagramStyle>
+            <CommonStyle OuterMargin="10" ShareSize="true">
+              <IsNewBrush>#FFFF0000</IsNewBrush>
+              <IsNewSize>10</IsNewSize>
+              <UseDropShadow>false</UseDropShadow>
+              <DropShadowOpacity>0.3</DropShadowOpacity>
+              <DropShadowDepth>3</DropShadowDepth>
+              <DropShadowColor>#FF000000</DropShadowColor>
+              <DropShadowDirection>300</DropShadowDirection>
+              <Connector Brush="#FF808080" Thickness="1.5" StyleName="Solid" Indent="30" />
+            </CommonStyle>
+            <ObjectItemStyle Font="Tahoma" FontSize="12" FontBrush="#FF000000" FontWeight="Normal" FontStyle="Normal" TextPadding="5" HorizontalAlignment="Left" BackgroundBrush="#FFADD8E6" BorderBrush="#FF808080" BorderThickness="0" EndCap="Rounded" />
+            <CollectionItemStyle Font="Tahoma" FontSize="12" FontBrush="#FF000000" FontWeight="Normal" FontStyle="Normal" TextPadding="5" HorizontalAlignment="Left" BackgroundBrush="#FFADD8E6" BorderBrush="#FF808080" BorderThickness="0" EndCap="Rounded" />
+          </DiagramStyle>
+          <DiagramRelationshipsFrom>All</DiagramRelationshipsFrom>
+          <IncludeFields>false</IncludeFields>
+          <DiagramDefaultCollectionMemberOnly>false</DiagramDefaultCollectionMemberOnly>
+        </DiagramSettings>
+        <RootComponentName></RootComponentName>
+        <IncludeConstructorsOnAbstractTypes>false</IncludeConstructorsOnAbstractTypes>
+        <TemplateName>2012 Style</TemplateName>
+        <ExcludeAllPrivateTypes>true</ExcludeAllPrivateTypes>
+        <ExcludeAllFriendTypes>true</ExcludeAllFriendTypes>
+        <ExcludeAllProtectedTypes>false</ExcludeAllProtectedTypes>
+        <ExcludeAllProtectedFriendTypes>false</ExcludeAllProtectedFriendTypes>
+        <IncludeMemberIndexKeywords>false</IncludeMemberIndexKeywords>
+        <GroupExamples>false</GroupExamples>
+        <ColorizeSyntax>true</ColorizeSyntax>
+      </Javascript>
       <Ajax>
         <IncludeRelationshipDiagrams>true</IncludeRelationshipDiagrams>
         <IncludeInheritanceHierarchies>true</IncludeInheritanceHierarchies>
@@ -1013,6 +1070,7 @@
             <CollectionItemStyle Font="Tahoma" FontSize="12" FontBrush="#FF000000" FontWeight="Normal" FontStyle="Normal" TextPadding="5" HorizontalAlignment="Left" BackgroundBrush="#FFADD8E6" BorderBrush="#FF808080" BorderThickness="0" EndCap="Rounded" />
           </DiagramStyle>
           <DiagramRelationshipsFrom>All</DiagramRelationshipsFrom>
+          <IncludeFields>false</IncludeFields>
           <DiagramDefaultCollectionMemberOnly>false</DiagramDefaultCollectionMemberOnly>
         </DiagramSettings>
         <RootComponentName></RootComponentName>
@@ -1024,6 +1082,7 @@
         <ExcludeAllProtectedFriendTypes>false</ExcludeAllProtectedFriendTypes>
         <IncludeMemberIndexKeywords>false</IncludeMemberIndexKeywords>
         <GroupExamples>false</GroupExamples>
+        <ColorizeSyntax>false</ColorizeSyntax>
       </Ajax>
       <Com>
         <IncludeRelationshipDiagrams>true</IncludeRelationshipDiagrams>
@@ -1049,6 +1108,7 @@
             <CollectionItemStyle Font="Tahoma" FontSize="12" FontBrush="#FF000000" FontWeight="Normal" FontStyle="Normal" TextPadding="5" HorizontalAlignment="Left" BackgroundBrush="#FFADD8E6" BorderBrush="#FF808080" BorderThickness="0" EndCap="Rounded" />
           </DiagramStyle>
           <DiagramRelationshipsFrom>All</DiagramRelationshipsFrom>
+          <IncludeFields>false</IncludeFields>
           <DiagramDefaultCollectionMemberOnly>true</DiagramDefaultCollectionMemberOnly>
         </DiagramSettings>
         <RootProjectName></RootProjectName>
@@ -1097,6 +1157,24 @@
         <UseSourceContent>true</UseSourceContent>
       </Xsd>
       <Filters />
+      <WebService>
+        <GroupExamples>true</GroupExamples>
+        <IncludeRequestBodyDiagram>true</IncludeRequestBodyDiagram>
+        <IncludeResponseBodyDiagram>true</IncludeResponseBodyDiagram>
+        <IncludeRequestBodyOverview>true</IncludeRequestBodyOverview>
+        <IncludeResponseBodyOverview>true</IncludeResponseBodyOverview>
+        <IncludeRequestBodySampleData>true</IncludeRequestBodySampleData>
+        <IncludeResponseBodySampleData>true</IncludeResponseBodySampleData>
+        <IsSampleDataColorized>true</IsSampleDataColorized>
+        <ImplyJsonSchemas>true</ImplyJsonSchemas>
+        <IsGroupedByResource>false</IsGroupedByResource>
+        <IncludeFullResourceUriInOperationPages>true</IncludeFullResourceUriInOperationPages>
+        <UseAbsolutePathForResourcePaths>true</UseAbsolutePathForResourcePaths>
+        <TemplateName>2012 Style</TemplateName>
+        <IncludeBreadcrumbs>true</IncludeBreadcrumbs>
+        <SourceContentUsage>Merge</SourceContentUsage>
+        <UseSourceContent>true</UseSourceContent>
+      </WebService>
       <HelpCompiler CompileHelpFile="false" IsWebOutputEnabled="true" IsMarkOfTheWebEnabled="false">
         <MarkOfTheWebDomain>(0014)about:internet</MarkOfTheWebDomain>
         <HelpFileVersion>HtmlHelp1</HelpFileVersion>
@@ -1167,7 +1245,7 @@
           </Rules>
         </Rules>
       </RuleEngine>
-      <ShortFileNames GenerateShortFileNames="true" />
+      <ShortFileNames GenerateShortFileNames="false" />
       <TopicsProjectProfilePlugin>
         <TemplateName>2012 Style</TemplateName>
         <IncludeBreadcrumbs>true</IncludeBreadcrumbs>
@@ -1179,6 +1257,10 @@
         <IsAnchorParsingEnabled>false</IsAnchorParsingEnabled>
       </TopicsProjectProfilePlugin>
       <WidgetsProjectProfilePlugin>
+        <IsIncludeInThisTopicWidgetEnabled>false</IsIncludeInThisTopicWidgetEnabled>
+        <InThisTopicWidgetHeadingsMinimum>5</InThisTopicWidgetHeadingsMinimum>
+        <InThisTopicWidgetTagName>H1</InThisTopicWidgetTagName>
+        <InThisTopicWidgetPrefix>$$In_This_Topic$$</InThisTopicWidgetPrefix>
         <WidgetTypes Version="2011.1" />
       </WidgetsProjectProfilePlugin>
       <OtherFiles>

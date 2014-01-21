@@ -3,7 +3,7 @@
  * Gateway Service
  * ----------------------------------------------------------------------------
  */
-adminModule.service('GatewayService', ['$http', '$log', 'UtilsFactory', function ($http, $log, UtilsFactory) {
+adminModule.service('GatewayService', ['$http', '$sce', '$log', 'UtilsFactory', function ($http, $sce,$log, UtilsFactory) {
 
     // Gateway model
     // {
@@ -51,7 +51,11 @@ adminModule.service('GatewayService', ['$http', '$log', 'UtilsFactory', function
             }
             else {
                 // Unhandle Error
-                messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                if (response.data.hasOwnProperty("Text") == true) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data.Text, response.data.Helplink, null);
+                } else {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.data, null, null);
+                }
             }
 
             $log.error(errorHeader, response);
@@ -77,7 +81,7 @@ adminModule.service('GatewayService', ['$http', '$log', 'UtilsFactory', function
         this.getGatewayStatistics(function (statistics) {
             // Success
       
-            self.model.statistics = statistics;
+            self.model.statistics = $sce.trustAsHtml(statistics);
 
             if (typeof (successCallback) == "function") {
                 successCallback();

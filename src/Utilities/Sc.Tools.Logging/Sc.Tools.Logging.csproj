@@ -37,6 +37,12 @@
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
     <DocumentationFile>..\..\..\bin\Release\Sc.Tools.Logging.XML</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\..\Starcounter.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="LogEntry.cs" />
     <Compile Include="LogReader.cs" />

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Text;
 using System.Threading;
-using HttpStructs;
 using Starcounter;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -187,7 +186,6 @@ namespace NetworkIoTestApp
             MODE_GATEWAY_SMC_RAW,
             MODE_WEBSOCKETS_PORT,
             MODE_STANDARD_BROWSER,
-            MODE_US_WEBSITE,
             MODE_APPS_URIS,
             MODE_APPS_URIS_SESSION,
             MODE_HTTP_REST_CLIENT,
@@ -286,14 +284,6 @@ namespace NetworkIoTestApp
                     GatewayHandlers.RegisterUriHandler(port_number, handler_uri, "POST /smc-http-echo ", null, OnHttpEcho, MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1, out handler_id, out numEntriesTotal);
                     Console.WriteLine("Successfully registered new handler \"" + handler_uri + "\" with id: " + handler_id);
                     
-                    break;
-                }
-
-                case TestTypes.MODE_US_WEBSITE:
-                {
-                    AppsBootstrapper.Bootstrap("c:\\ScOnScWeb\\sc\\www.starcounter.com", port_number);
-                    RequestHandler.GET("/", null);
-
                     break;
                 }
 
@@ -403,7 +393,7 @@ namespace NetworkIoTestApp
                     Handle.GET("/exc1", (Request req) =>
                     {
                         Response resp;
-                        X.GET("/exc2", null, out resp);
+                        X.GET("/exc2", out resp);
 
                         return resp;
                     });
@@ -413,7 +403,7 @@ namespace NetworkIoTestApp
                         try
                         {
                             Response resp;
-                            X.GET("/exc3", null, out resp);
+                            X.GET("/exc3", out resp);
                             return resp;
                         }
                         catch (ResponseException exc)

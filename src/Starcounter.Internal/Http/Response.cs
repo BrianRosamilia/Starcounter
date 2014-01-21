@@ -1,5 +1,4 @@
 ﻿
-using HttpStructs;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
@@ -246,49 +245,6 @@ namespace Starcounter
         /// <value>The session id offset.</value>
         /// <remarks>The offset is only valid in the uncompressed response.</remarks>
         public int SessionIdOffset { get; set; }
-
-        #region BodyInjection
-        /// <summary>
-        /// Used for content injection.
-        /// Where to insert the View Model assignment into the html document.
-        /// </summary>
-        /// <remarks>
-        /// The injection offset (injection point) is only valid in the uncompressed
-        /// response.
-        /// 
-        /// Insertion is made at one of these points (in order of priority).
-        /// ======================================
-        /// 1. The point after the &lt;head&gt; tag.
-        /// 2. The point after the &lt;!doctype&gt; tag.
-        /// 3. The beginning of the html document.
-        /// </remarks>
-        /// <value>The script injection point.</value>
-        public int ScriptInjectionPoint { get; set; }
-
-        /// <summary>
-        /// Used for content injection.
-        /// When injecting content into the response, the content length header
-        /// needs to be altered. Used together with the ContentLengthLength property.
-        /// </summary>
-        /// <value>The content length injection point.</value>
-        public int ContentLengthInjectionPoint { get; set; } // Used for injection
-
-        /// <summary>
-        /// Used for content injection.
-        /// When injecting content into the response, the content length header
-        /// needs to be altered. The existing previous number of bytes used for the text
-        /// integer length value starting at ContentLengthInjectionPoint is stored here.
-        /// </summary>
-        /// <value>The length of the content length.</value>
-        public int ContentLengthLength { get; set; } // Used for injection
-
-        /// <summary>
-        /// Used for injecting headers. Specifies where to insert additional
-        /// headers that might be needed.
-        /// </summary>
-        public int HeaderInjectionPoint { get; set; }
-
-        #endregion
 
         /// <summary>
         /// Indicates if user wants to send custom response.
@@ -1212,12 +1168,8 @@ namespace Starcounter
         /// </summary>
         public Response(MixedCodeConstants.NetworkProtocolType protocol_type = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-//            Retrieved = DateTime.Now.Ticks;
-            HeaderInjectionPoint = 0;
             protocol_type_ = protocol_type;
         }
-
-//        public long Retrieved { get; set; }
 
         /// <summary>
         /// Reference to corresponding request.
@@ -1401,7 +1353,7 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Checks if HttpStructs is destroyed already.
+        /// Checks if request is destroyed already.
         /// </summary>
         /// <returns>True if destroyed.</returns>
         public bool IsDestroyed()
@@ -1428,21 +1380,6 @@ namespace Starcounter
         public void Debug(string message, Exception ex = null)
         {
             Console.WriteLine(message);
-        }
-
-        /// <summary>
-        /// The needs script injection_
-        /// </summary>
-        bool needsScriptInjection_ = false;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [needs script injection].
-        /// </summary>
-        /// <value><c>true</c> if [needs script injection]; otherwise, <c>false</c>.</value>
-        public bool NeedsScriptInjection
-        {
-            get { return needsScriptInjection_; }
-            set { needsScriptInjection_ = value; }
         }
 
         /// <summary>

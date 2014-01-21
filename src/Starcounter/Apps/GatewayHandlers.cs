@@ -7,10 +7,10 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using HttpStructs;
 using Starcounter.Internal;
 using Starcounter.Advanced;
 using System.Diagnostics;
+using Starcounter.Rest;
 
 namespace Starcounter
 {
@@ -146,11 +146,15 @@ namespace Starcounter
             // Determining if chunk is single.
             Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
 
+            // Releasing linked chunks if not single.
+            if (!is_single_chunk)
+                throw new NotImplementedException();
+
             // Creating parameters.
             PortHandlerParams handler_params = new PortHandlerParams
             {
                 UserSessionId = *(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SESSION_LINEAR_INDEX),
-                DataStream = new NetworkDataStream(raw_chunk, is_single_chunk, task_info->chunk_index, task_info->client_worker_id)
+                DataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id)
             };
 
             // Calling user callback.
@@ -189,12 +193,16 @@ namespace Starcounter
             // Determining if chunk is single.
             Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
 
+            // Releasing linked chunks if not single.
+            if (!is_single_chunk)
+                throw new NotImplementedException();
+
             // Creating parameters.
             SubportHandlerParams handler_params = new SubportHandlerParams
             {
                 UserSessionId = *(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SESSION_LINEAR_INDEX),
                 SubportId = 0,
-                DataStream = new NetworkDataStream(raw_chunk, is_single_chunk, task_info->chunk_index, task_info->client_worker_id)
+                DataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id)
             };
 
             // Calling user callback.
@@ -260,9 +268,9 @@ namespace Starcounter
                 if (!is_single_chunk)
                 {
                     // Creating network data stream object.
-                    NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, is_single_chunk, task_info->chunk_index, task_info->client_worker_id);
+                    NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
-                    UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_CHUNKS);
+                    UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
                     Byte[] plain_chunks_data = new Byte[num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE];
 
@@ -306,7 +314,7 @@ namespace Starcounter
                     }*/
 
                     // Creating network data stream object.
-                    NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, is_single_chunk, task_info->chunk_index, task_info->client_worker_id);
+                    NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
                     // Obtaining Request structure.
                     Request http_request = new Request(

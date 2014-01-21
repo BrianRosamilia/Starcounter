@@ -3,7 +3,7 @@
  * Server Settings page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', 'NoticeFactory', 'ServerService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, ServerService, UserMessageFactory) {
+adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'NoticeFactory', 'ServerService', 'UserMessageFactory', function ($scope, $log, $location, NoticeFactory, ServerService, UserMessageFactory) {
 
     // Database Default settings
     $scope.model = ServerService.model;
@@ -32,8 +32,6 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', 'NoticeFactory',
         });
 
     }
-
-
 
 
     /**
@@ -96,7 +94,7 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', 'NoticeFactory',
             });
     }
 
-    
+
     $scope.btnSaveSettings = function (settings) {
 
         $scope.verifySettings(settings, function (validationErrors) {
@@ -116,6 +114,14 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', 'NoticeFactory',
                     if (messageObject != null) {
                         NoticeFactory.ShowNotice({ type: messageObject.header, msg: messageObject.message, helpLink: messageObject.helpLink });
                     }
+
+                    $scope.myForm.$setPristine();
+
+                    // Navigate to database list if user has not navigated to another page
+                    if ($location.path() == "/serverSettings") {
+                        $location.path("/");
+                    }
+
 
 
                 }, function (messageObjectList) {

@@ -1,5 +1,4 @@
 ﻿
-using HttpStructs;
 using NUnit.Framework;
 using Starcounter.Internal.XSON.Tests;
 using Starcounter.Templates;

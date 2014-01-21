@@ -129,40 +129,6 @@ adminModule.controller('LogCtrl', ['$scope', '$location', '$log', 'LogService', 
     // Init
     $scope.getLog();
 
-    // Handsontable (fixed the height)
-    var $window = $(window);
-    var winHeight = $window.height();
-    var winWidth = $window.width();
-    $window.resize(function () {
-        winHeight = $window.height();
-        winWidth = $window.width();
-    });
-
-    $scope.calcHeight = function () {
-        var border = 12;
-        var ht = $("#console");
-        var offset = ht.offset();
-        if (!offset) {
-            return;
-        }
-        var topOffset = offset.top;
-
-        var height = winHeight - topOffset - 2 * border;
-        if (height < 50) {
-            return 50;
-        }
-        return height;
-    };
-
-    $scope.calcWidth = function () {
-        var border = 12;
-        var leftOffset = $("#handsontable").offset().left;
-        var width = winWidth - leftOffset - 2 * border;
-        if (width < 50) {
-            return 50;
-        }
-        return width;
-    };
-
+    $scope.afterRender = scrollRefresh;
 
 }]);

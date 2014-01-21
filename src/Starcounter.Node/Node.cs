@@ -16,7 +16,6 @@ using System.Net.Http.Headers;
 using System.Diagnostics;
 using System.Threading;
 using System.Collections.Generic;
-using HttpStructs;
 using System.Runtime.InteropServices;
 
 namespace Starcounter

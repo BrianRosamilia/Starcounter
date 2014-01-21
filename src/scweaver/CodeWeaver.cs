@@ -696,6 +696,7 @@ namespace Weaver {
                 "HtmlAgilityPack.dll",
                 "Starcounter.dll",
                 "RGiesecke.DllExport.Metadata.dll",
+                "Starcounter.UriMatcher.dll",
                 "Starcounter.REST.dll",
                 "Starcounter.Node.dll",
                 "Starcounter.XSON.dll",

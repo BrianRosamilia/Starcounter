@@ -49,15 +49,6 @@
     <DelaySign>false</DelaySign>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ABCIPC\Client.cs" />
-    <Compile Include="ABCIPC\Internal\ClientServerFactory.cs" />
-    <Compile Include="ABCIPC\Internal\InternalConsoleServer.cs" />
-    <Compile Include="ABCIPC\Internal\InternalNamedPipeClient.cs" />
-    <Compile Include="ABCIPC\Internal\InternalNamedPipeServer.cs" />
-    <Compile Include="ABCIPC\Internal\PipeProtocol.cs" />
-    <Compile Include="ABCIPC\Reply.cs" />
-    <Compile Include="ABCIPC\Request.cs" />
-    <Compile Include="ABCIPC\Server.cs" />
     <Compile Include="bmx.cs" />
     <Compile Include="CommandLine\CommandLineStringParser.cs" />
     <Compile Include="CommandLine\InvalidCommandLineException.cs" />

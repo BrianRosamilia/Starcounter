@@ -76,5 +76,10 @@ namespace Starcounter.XSON.Tests {
         public void Dispose() {
         
         }
+
+        public Boolean IsDirty
+        {
+            get { return false; }
+        }
     }
 }

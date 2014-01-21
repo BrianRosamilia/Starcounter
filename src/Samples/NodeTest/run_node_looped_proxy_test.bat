@@ -1,4 +1,5 @@
 ﻿@echo off
+setlocal enabledelayedexpansion
 
 :: Checking if number of cycles parameter is supplied.
 set LOOP_TIMES=%1

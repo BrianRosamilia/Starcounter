@@ -16,6 +16,10 @@ adminModule.service('NoticeFactory', ['$log', function ($log) {
         factory.notises.push(notice);
     }
 
+    factory.ClearAll = function () {
+        factory.notises.length = 0;
+    }
+
     // Close notice
     factory.CloseNotice = function (notice) {
         var index = factory.notises.indexOf(notice);

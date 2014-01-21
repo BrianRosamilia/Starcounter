@@ -4,7 +4,6 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.ABCIPC;
 using Starcounter.Internal;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;

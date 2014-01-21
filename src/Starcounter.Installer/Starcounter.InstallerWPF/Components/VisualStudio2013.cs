@@ -13,7 +13,7 @@ namespace Starcounter.InstallerWPF.Components
         {
             get
             {
-                return false;
+                return true;
             }
         }
         public override string ComponentIdentifier
