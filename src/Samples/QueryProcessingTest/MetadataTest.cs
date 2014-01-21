@@ -51,6 +51,27 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.FullName == "base_type.Raw.Starcounter");
             Trace.Assert(rv.Table != null);
             Trace.Assert(rv.Table.Name == rv.Name);
+            Trace.Assert(!rv.Updatable);
+            Trace.Assert(rv.BaseVirtualTable == null);
+            rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "clr_view").First;
+            Trace.Assert(rv != null);
+            Trace.Assert(rv.FullName == "clr_view.Raw.Starcounter");
+            Trace.Assert(rv.Table != null);
+            Trace.Assert(rv.Table.Name == rv.Name);
+            Trace.Assert(!rv.Updatable);
+            Trace.Assert(rv.BaseVirtualTable != null);
+            Trace.Assert(rv.BaseVirtualTable.Name == "vm_view");
+            Trace.Assert(rv.BaseVirtualTable.BaseVirtualTable != null);
+            Trace.Assert(rv.BaseVirtualTable.BaseVirtualTable.BaseVirtualTable != null);
+            Trace.Assert(rv.BaseVirtualTable.BaseVirtualTable.BaseVirtualTable.Name == "runtime_view");
+            Trace.Assert(rv.BaseVirtualTable.BaseVirtualTable.BaseVirtualTable.BaseVirtualTable == null);
+            count = 0;
+            foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv")) {
+                Trace.Assert(v.Table != null);
+                Trace.Assert(v.Table.Name == v.Name);
+                count++;
+            }
+            Trace.Assert(count == 13);
         }
     }
 }
