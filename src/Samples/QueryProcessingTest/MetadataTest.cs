@@ -39,6 +39,18 @@ namespace QueryProcessingTest {
                 count++;
             }
             Trace.Assert(count == 16);
+            MaterializedTable m = Db.SQL<MaterializedTable>("select m from MaterializedTable m where name = ?", "base_type").First;
+            Trace.Assert(m != null);
+            Trace.Assert(m.BaseTable == null);
+            Trace.Assert(m.Name == "base_type");
+            MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ?", "base_virtual_table").First;
+            Trace.Assert(c != null);
+            Trace.Assert(c.Table.Name == "virtual_table");
+            RawView rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "base_type").First;
+            Trace.Assert(rv != null);
+            Trace.Assert(rv.FullName == "base_type.Raw.Starcounter");
+            Trace.Assert(rv.Table != null);
+            Trace.Assert(rv.Table.Name == rv.Name);
         }
     }
 }

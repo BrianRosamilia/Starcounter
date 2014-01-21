@@ -121,8 +121,9 @@ namespace Starcounter.Metadata {
         //        DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
 
-        public MaterializedType Table {
-            get { return (MaterializedType)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, 
+        public MaterializedTable Table {
+            get {
+                return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, 
                 __starcounterTypeSpecification.columnHandle_table); }
             internal set {
                 DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
