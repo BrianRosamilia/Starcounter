@@ -248,7 +248,7 @@ namespace Starcounter {
             // Updating last active date.
             InternalSession.UpdateLastActive();
 
-            Request req = bmx.GenerateNewRequest(InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS, isText);
+            Request req = Request.GenerateNewRequest(InternalSession, MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS, isText);
 
             req.SendResponse(data, 0, data.Length, connFlags);
         }

@@ -74,7 +74,7 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
                     }                    method = LimitType.GetMethod("Get", new Type[] { templ.GetType() });                }                /* (DynamicDurableProxy)this.Get(); */                Expression call = Expression.Call(Expression.Convert(this.Expression, this.LimitType), method, Expression.Constant(templ) );                // Expression wrapped = Expression.Block(call); // , Expression.New(typeof(object)));                Expression wrapped = Expression.Convert( call, binder.ReturnType );
 
                 var restrictions = BindingRestrictions.GetTypeRestriction(Expression, LimitType);
-                restrictions = restrictions.Merge(BindingRestrictions.GetInstanceRestriction(Expression, app));                return new DynamicMetaObject(wrapped, restrictions);
+//                restrictions = restrictions.Merge(BindingRestrictions.GetInstanceRestriction(Expression, app));                return new DynamicMetaObject(wrapped, restrictions);
             }
 
 			/// <summary>
@@ -172,6 +172,6 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
                 }
 
                 var restrictions = BindingRestrictions.GetTypeRestriction(Expression, LimitType);
-                restrictions = restrictions.Merge(BindingRestrictions.GetInstanceRestriction(Expression, app));
+//                restrictions = restrictions.Merge(BindingRestrictions.GetInstanceRestriction(Expression, app));
                 return new DynamicMetaObject(wrapped, restrictions);
             }        }    }}
