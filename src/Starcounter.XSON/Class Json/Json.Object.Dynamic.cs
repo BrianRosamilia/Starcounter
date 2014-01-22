@@ -71,7 +71,11 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
                     if (templ == null) {
                         // There is no property with this name, use default late binding mechanism
                         return base.BindGetMember(binder);
-                    }                    method = LimitType.GetMethod("Get", new Type[] { templ.GetType() });                }                /* (DynamicDurableProxy)this.Get(); */                Expression call = Expression.Call(Expression.Convert(this.Expression, this.LimitType), method, Expression.Constant(templ) );                // Expression wrapped = Expression.Block(call); // , Expression.New(typeof(object)));                Expression wrapped = Expression.Convert( call, binder.ReturnType );                return new DynamicMetaObject(wrapped, BindingRestrictions.GetTypeRestriction(Expression, LimitType));            }
+                    }                    method = LimitType.GetMethod("Get", new Type[] { templ.GetType() });                }                /* (DynamicDurableProxy)this.Get(); */                Expression call = Expression.Call(Expression.Convert(this.Expression, this.LimitType), method, Expression.Constant(templ) );                // Expression wrapped = Expression.Block(call); // , Expression.New(typeof(object)));                Expression wrapped = Expression.Convert( call, binder.ReturnType );
+
+                var restrictions = BindingRestrictions.GetTypeRestriction(Expression, LimitType);
+                restrictions = restrictions.Merge(BindingRestrictions.GetInstanceRestriction(Expression, app));                return new DynamicMetaObject(wrapped, restrictions);
+            }
 
 			/// <summary>
 			/// 
@@ -165,5 +169,9 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
                 else {
                     Expression call = Expression.Call(@this, method, Expression.Constant(templ), Expression.Convert(value.Expression, templ.InstanceType));
                     wrapped = Expression.Block(call, Expression.Convert(value.Expression, typeof(object)));
-                }                return new DynamicMetaObject(wrapped, BindingRestrictions.GetTypeRestriction(Expression, LimitType ));
+                }
+
+                var restrictions = BindingRestrictions.GetTypeRestriction(Expression, LimitType);
+                restrictions = restrictions.Merge(BindingRestrictions.GetInstanceRestriction(Expression, app));
+                return new DynamicMetaObject(wrapped, restrictions);
             }        }    }}

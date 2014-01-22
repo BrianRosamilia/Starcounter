@@ -147,6 +147,10 @@ namespace Starcounter.InstallerEngine
         {
             get
             {
+                if (string.Equals(BuildNumber, "12.0", StringComparison.InvariantCultureIgnoreCase)) {
+                    return Path.GetFullPath(ConstantsBank.VS2013DevEnvPath);
+                }
+
                 return Path.GetFullPath(ConstantsBank.VS2012DevEnvPath);
             }
         }

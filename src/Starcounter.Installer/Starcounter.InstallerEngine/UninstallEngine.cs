@@ -82,6 +82,9 @@ namespace Starcounter.InstallerEngine
 
                 if (InstallerMain.VS2012IntegrationComponent.ShouldBeRemoved())
                     remainingComponents[(Int32)ComponentsCheck.Components.VS2012Integration] = false;
+
+                if (InstallerMain.VS2013IntegrationComponent.ShouldBeRemoved())
+                    remainingComponents[(Int32)ComponentsCheck.Components.VS2013Integration] = false;
             }
             catch
             {
@@ -174,6 +177,7 @@ namespace Starcounter.InstallerEngine
             // Looking for components that were tried to be installed.
             if (InstallerMain.PersonalServerComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
             if (InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
+            if (InstallerMain.VS2013IntegrationComponent.ShouldBeInstalled()) InstallerMain.AddComponentToProgress();
 
             // Getting percentage step value.
             InstallerMain.CalculateProgressStep();
@@ -263,6 +267,7 @@ namespace Starcounter.InstallerEngine
                 // Loading settings.
                 if (InstallerMain.PersonalServerComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
                 if (InstallerMain.VS2012IntegrationComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
+                if (InstallerMain.VS2013IntegrationComponent.ShouldBeRemoved()) InstallerMain.AddComponentToProgress();
 
                 // Getting percentage step value.
                 InstallerMain.CalculateProgressStep();

@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="HttpStructs.cs" company="Starcounter AB">
+// <copyright file="InternalSessions.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -17,13 +17,12 @@ using System.Security.Cryptography;
 using Starcounter.Internal;
 using Starcounter;
 
-namespace HttpStructs
+namespace Starcounter.Internal
 {
     /// <summary>
     /// Represents Apps session.
     /// </summary>
-    public interface IAppsSession
-    {
+    public interface IAppsSession {
         /// <summary>
         /// Checks if this session is currently in use.
         /// </summary>
@@ -52,6 +51,21 @@ namespace HttpStructs
     }
 
     /// <summary>
+    /// Represents a database session.
+    /// </summary>
+    internal interface IDbSession {
+        /// <summary>
+        /// Runs a task asynchronously on a given scheduler.
+        /// </summary>
+        void RunAsync(Action action, Byte schedId = Byte.MaxValue);
+
+        /// <summary>
+        /// Runs a task asynchronously on current scheduler.
+        /// </summary>
+        void RunSync(Action action);
+    }
+
+    /// <summary>
     /// Enum HTTP_METHODS
     /// </summary>
     public enum HTTP_METHODS
@@ -67,7 +81,7 @@ namespace HttpStructs
         OTHER_METHOD
     };
 
-    public class Helper
+    public class UriHelper
     {
         /// <summary>
         /// Gets method enumeration from given string.

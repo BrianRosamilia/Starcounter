@@ -163,6 +163,8 @@ public class CSamplesDemos : CComponentBase
         // Checking installation of Visual Studio plugin.
         if ((!InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled()) &&
             (!InstallerMain.VS2012IntegrationComponent.IsInstalled()) &&
+            (!InstallerMain.VS2013IntegrationComponent.ShouldBeInstalled()) &&
+            (!InstallerMain.VS2013IntegrationComponent.IsInstalled()) &&
             (!Utilities.RunningOnBuildServer()))
         {
             sampleDbNames = new String[] { ConstantsBank.SCDemoDbName };
@@ -335,6 +337,11 @@ public class CSamplesDemos : CComponentBase
             vsNumberVersion = "11.0";
             vsYearVersion = "2012";
         }
+        else if (InstallerMain.VS2013IntegrationComponent.ShouldBeInstalled() || 
+            InstallerMain.VS2013IntegrationComponent.IsInstalled()) {
+            vsNumberVersion = "12.0";
+            vsYearVersion = "2013";
+        }
         else
         {
             return;
@@ -366,6 +373,8 @@ public class CSamplesDemos : CComponentBase
         // Checking Starcounter Visual Studio integration.
         if ((InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled()) ||
             (InstallerMain.VS2012IntegrationComponent.IsInstalled()) ||
+            (InstallerMain.VS2013IntegrationComponent.ShouldBeInstalled()) ||
+            (InstallerMain.VS2013IntegrationComponent.IsInstalled()) ||
             (Utilities.RunningOnBuildServer()))
         {
             return;
@@ -411,6 +420,9 @@ public class CSamplesDemos : CComponentBase
 
         if (installedComponents[(Int32)ComponentsCheck.Components.VS2012Integration])
             remainingComponents[(Int32)ComponentsCheck.Components.VS2012Integration] = true;
+
+        if (installedComponents[(Int32)ComponentsCheck.Components.VS2013Integration])
+            remainingComponents[(Int32)ComponentsCheck.Components.VS2013Integration] = true;
 
         try
         {
@@ -509,7 +521,8 @@ public class CSamplesDemos : CComponentBase
     public override Boolean ShouldBeInstalled()
     {
         return (InstallerMain.PersonalServerComponent.ShouldBeInstalled() ||
-            InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled());
+            InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled() ||
+            InstallerMain.VS2013IntegrationComponent.ShouldBeInstalled());
     }
 
     /// <summary>

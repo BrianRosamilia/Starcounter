@@ -255,6 +255,9 @@ namespace Starcounter.XSON {
 		}
 
 		private static Expression<Func<Json, T>> GenerateUnboundGetExpression<T>(Type jsonType, int templateIndex) {
+            if (templateIndex == -1)
+                throw new ArgumentException("Cannot generate expression with negative templateindex.", "templateIndex");
+
 			var jsonParam = Expression.Parameter(typeof(Json));
 			var valueParam = Expression.Parameter(typeof(T));
 			Expression expr = Expression.Call(jsonParam, valueListInfo);
@@ -266,6 +269,9 @@ namespace Starcounter.XSON {
 		}
 
 		private static Expression<Action<Json, T>> GenerateUnboundSetExpression<T>(Type jsonType, int templateIndex) {
+            if (templateIndex == -1)
+                throw new ArgumentException("Cannot generate expression with negative templateindex.", "templateIndex");
+
 			var jsonParam = Expression.Parameter(typeof(Json));
 			var valueParam = Expression.Parameter(typeof(T));
 			Expression expr = Expression.Call(jsonParam, valueListInfo);

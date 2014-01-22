@@ -87,6 +87,9 @@ namespace Starcounter.InstallerEngine
             if (InstallerMain.VS2012IntegrationComponent.IsInstalled())
                 cachedInstalledComponents[(Int32)Components.VS2012Integration] = true;
 
+            if (InstallerMain.VS2013IntegrationComponent.IsInstalled())
+                cachedInstalledComponents[(Int32)Components.VS2013Integration] = true;
+
             // In case if there are no components installed, returns 'false' array.
             return cachedInstalledComponents;
         }

@@ -11,17 +11,15 @@ using System.Diagnostics;
 using Starcounter.Binding;
 using Codeplex.Data;
 using System.Net;
-using HttpStructs;
 using System.Collections.Generic;
 using System.IO;
 using Starcounter.Query.Execution;
 using jp = Starcounter.Internal.JsonPatch;
 using System.Runtime.CompilerServices;
 using Starcounter.Templates;
-using Starcounter.Internal.Uri;
+using Starcounter.Rest;
 
 [assembly: InternalsVisibleTo("Starcounter.Bootstrap, PublicKey=0024000004800000940000000602000000240000525341310004000001000100e758955f5e1537c52891c61cd689a8dd1643807340bd32cc12aee50d2add85eeeaac0b44a796cefb6055fac91836a8a72b5dbf3b44138f508bc2d92798a618ad5791ff0db51b8662d7c936c16b5720b075b2a966bb36844d375c1481c2c7dc4bb54f6d72dbe9d33712aacb6fa0ad84f04bfa6c951f7b9432fe820884c81d67db")]
-
 
 namespace Starcounter.Internal {
 

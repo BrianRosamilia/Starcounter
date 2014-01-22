@@ -460,7 +460,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             a.Prefix.Add("        : base() {");
 
             if (a.BindChildren != BindingStrategy.Auto) {
-                a.Prefix.Add("        BindChildren = st::Bound." + a.BindChildren + ";");
+                a.Prefix.Add("        BindChildren = st::BindingStrategy." + a.BindChildren + ";");
             }
 
             sb = new StringBuilder();

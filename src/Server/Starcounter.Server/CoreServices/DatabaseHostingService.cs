@@ -9,8 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Starcounter.ABCIPC;
-using Starcounter.ABCIPC.Internal;
 
 namespace Starcounter.Server {
     /// <summary>
@@ -37,19 +35,6 @@ namespace Starcounter.Server {
         /// Executes setup of the current <see cref="DatabaseHostingService"/>.
         /// </summary>
         internal void Setup() {
-        }
-
-        /// <summary>
-        /// Gets the <see cref="Client"/> representing the local hosting
-        /// interface of the given <see cref="Database"/>.
-        /// </summary>
-        /// <param name="database">The <see cref="Database"/> whose hosting
-        /// interface is to be retreived.</param>
-        /// <returns>A <see cref="Client"/> that can be used to send
-        /// management commands to the host.</returns>
-        internal Client GetHostingInterface(Database database) {
-            var pipeName = ScUriExtensions.MakeLocalDatabasePipeString(engine.Name, database.Name);
-            return ClientServerFactory.CreateClientUsingNamedPipes(pipeName);
         }
     }
 }

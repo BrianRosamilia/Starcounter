@@ -38,6 +38,34 @@ namespace Starcounter.InstallerEngine.VsSetup {
         }
 
         /// <summary>
+        /// Installs the Starcounter VS extension in VS 2013.
+        /// </summary>
+        /// <param name="binDirectory">Full path to the Starcounter
+        /// installation folder.</param>
+        public static void InstallVs2013(string binDirectory) {
+            InstallUsingVSIXInstaller(
+                Path.Combine(ConstantsBank.VS2013IDEDirectory, ConstantsBank.VSIXInstallerEngineExecutable),
+                Path.Combine(binDirectory, VSIXPackageInfo.VS2013.FileName),
+                VisualStudioVersion.VS2013.BuildNumber,
+                "Pro"
+                );
+        }
+
+        /// <summary>
+        /// Uninstalls the Starcounter VS extension from VS 2013.
+        /// </summary>
+        /// <param name="binDirectory">Full path to the Starcounter
+        /// installation folder.</param>
+        public static void UninstallVs2013(string binDirectory) {
+            UninstallUsingVSIXInstaller(
+                Path.Combine(ConstantsBank.VS2013IDEDirectory, ConstantsBank.VSIXInstallerEngineExecutable),
+                VSIXPackageInfo.VS2013.ExtensionIdentity,
+                VisualStudioVersion.VS2013.BuildNumber,
+                "Pro"
+                );
+        }
+
+        /// <summary>
         /// Installs a VSIX package using the Visual Studio VSIX installer engine.
         /// </summary>
         /// <param name="installerEnginePath">

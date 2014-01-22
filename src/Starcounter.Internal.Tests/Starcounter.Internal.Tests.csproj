@@ -61,7 +61,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ABCIPCTest.cs" />
     <Compile Include="CommandLineTest.cs" />
     <Compile Include="ErrorCodeTest.cs" />
     <Compile Include="FakeDbImpl.cs" />

@@ -6,7 +6,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using HttpStructs;
 using Starcounter.Internal;
 using System.Diagnostics;
 using Starcounter.Advanced;

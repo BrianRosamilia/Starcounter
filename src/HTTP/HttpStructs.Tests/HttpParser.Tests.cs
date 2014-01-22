@@ -1,5 +1,5 @@
 ﻿// ***********************************************************************
-// <copyright file="HttpStructs.cs" company="Starcounter AB">
+// <copyright file="HttpParser.Tests.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
 // ***********************************************************************
@@ -15,16 +15,16 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HttpStructs.Tests
+namespace HttpParser.Tests
 {
     /// <summary>
-    /// Used for HttpStructs tests initialization/shutdown.
+    /// Used for tests initialization/shutdown.
     /// </summary>
     [SetUpFixture]
     public class HttpParserTestsSetup
     {
         /// <summary>
-        /// HttpStructs tests initialization.
+        /// Tests initialization.
         /// </summary>
         [SetUp]
         public void InitHttpParserTestsSetup()

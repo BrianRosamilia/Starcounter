@@ -80,42 +80,10 @@
     <Reference Include="System.Net.Http.WebRequest" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AstTree\AstTreeGenerator.VerificationBytes.cs" />
-    <Compile Include="AstTree\Nodes\AstAtEndVerifier.cs" />
-    <Compile Include="AstTree\Nodes\AstError.cs" />
-    <Compile Include="AstTree\Nodes\AstIfCallSub.cs" />
-    <Compile Include="AstTree\Nodes\AstCodeStatement.cs" />
-    <Compile Include="AstTree\Nodes\AstNamespace.cs" />
-    <Compile Include="AstTree\Nodes\AstParseCode.cs" />
-    <Compile Include="AstTree\Nodes\AstProcessFail.cs" />
-    <Compile Include="AstTree\Nodes\AstProcessFunction.cs" />
-    <Compile Include="AstTree\Nodes\AstNode.cs" />
-    <Compile Include="AstTree\Nodes\AstRequestProcessorClass.cs" />
-    <Compile Include="AstTree\Nodes\AstRpConstructor.cs" />
-    <Compile Include="AstTree\AstTreeGenerator.cs" />
-    <Compile Include="AstTree\Nodes\AstCase.cs" />
-    <Compile Include="AstTree\Nodes\AstInvoke.cs" />
-    <Compile Include="AstTree\AstTreeHelper.cs" />
-    <Compile Include="AstTree\Nodes\AstTrigger.cs" />
-    <Compile Include="AstTree\Nodes\AstUnsafe.cs" />
-    <Compile Include="AstTree\Nodes\AstValueJump.cs" />
-    <Compile Include="AstTree\Nodes\AstVerificationBytes.cs" />
-    <Compile Include="AstTree\Nodes\AstVerificationBytesOffset.cs" />
-    <Compile Include="AstTree\Nodes\AstVerifier.cs" />
-    <Compile Include="AstTree\Nodes\AstDeserializeMessage.cs" />
-    <Compile Include="NewRequestHandlers.cs" />
-    <Compile Include="ParseTree\ParseTreeGenerator.cs" />
-    <Compile Include="ParseTree\ParseNode.PrettyPrint.cs" />
-    <Compile Include="ParseTree\ParseTreeGenerator.Sort.cs" />
-    <Compile Include="PreprocessUriTemplate.cs" />
-    <Compile Include="RequestHandler.cs" />
-    <Compile Include="RequestProcessor\RequestProcessor.cs" />
-    <Compile Include="RequestProcessor\SingleRequestProcessor.cs" />
-    <Compile Include="RequestProcessor\TopLevelRequestProcessor.cs" />
-    <Compile Include="Compiler\RequestProcessorCompiler.cs" />
-    <Compile Include="RequestProcessorBuilder.cs" />
-    <Compile Include="ParseTree\ParseNode.cs" />
-    <Compile Include="RequestProcessorMetaData.cs" />
+    <Compile Include="HandlersManagement.cs" />
+    <Compile Include="PortUris.cs" />
+    <Compile Include="RestManager.cs" />
+    <Compile Include="RestInitialization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -139,25 +107,20 @@
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.UriMatcher\Starcounter.UriMatcher.csproj">
+      <Project>{f913dfeb-3817-41c6-bd28-a5fc55245668}</Project>
+      <Name>Starcounter.UriMatcher</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AstTree\Nodes\AstSwitch.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="RequestHandler\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <PropertyGroup>
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  
 </Project>

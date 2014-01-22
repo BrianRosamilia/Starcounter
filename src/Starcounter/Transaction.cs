@@ -15,6 +15,11 @@ namespace Starcounter
     /// </summary>
     public partial class Transaction
     {
+        /// <summary>
+        /// Commits current transaction.
+        /// </summary>
+        /// <param name="tran_locked_on_thread"></param>
+        /// <param name="detach_and_free"></param>
         internal static void Commit(int tran_locked_on_thread, int detach_and_free) {
             uint r;
             ulong hiter;
@@ -70,7 +75,9 @@ namespace Starcounter
         internal static Transaction _current;
 
         /// <summary>
+        /// Sets given transaction as current.
         /// </summary>
+        /// <param name="value">Transaction to set as current.</param>
         public static void SetCurrent(Transaction value) {
 
             // Checking if current transaction is the same.
@@ -99,7 +106,7 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// 
+        /// Returns current transaction if any.
         /// </summary>
         /// <returns></returns>
         public static Transaction GetCurrent() {
@@ -107,13 +114,18 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Creates a new transaction and sets it as current.
         /// </summary>
         public static Transaction NewCurrent() {
             return NewCurrent(false);
         }
 
         /// <summary>
+        /// Creates a new transaction and sets it as current.
         /// </summary>
+        /// <param name="readOnly">Transaction read-only flag.</param>
+        /// <param name="detectConflicts">Transaction conflicts detection flag (merging writes are used if False).</param>
+        /// <returns>New transaction object.</returns>
         public static Transaction NewCurrent(bool readOnly, bool detectConflicts = true) {
             try {
                 ulong handle;
@@ -216,11 +228,15 @@ namespace Starcounter
         public bool IsReadOnly { get; private set; }
 
         /// <summary>
+        /// Default constructor to create read-write transaction.
         /// </summary>
         public Transaction() : this(false) { }
 
         /// <summary>
+        /// New transaction constructor.
         /// </summary>
+        /// <param name="readOnly">Transaction read-only flag.</param>
+        /// <param name="detectConflicts">Transaction conflicts detection flag (merging writes are used if False).</param>
         public Transaction(bool readOnly, bool detectConflicts = true) {
             ulong handle;
             ulong verify;
@@ -303,9 +319,9 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Executes some code within this transaction.
+        /// Executes some code within this transaction scope.
         /// </summary>
-        /// <param name="action"></param>
+        /// <param name="action">Delegate that is called on transaction.</param>
         public void Add(Action action) {
 			Transaction old = _current;
 			try {
@@ -317,7 +333,7 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Begins the transaction scope.
+        /// Begins the transaction scope (sets transaction to current).
         /// </summary>
         /// <param name="action"></param>
         public void BeginScope() {
@@ -325,7 +341,7 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Ends the transaction scope.
+        /// Ends the transaction scope (resets current transaction).
         /// </summary>
         /// <param name="action"></param>
         public void EndScope() {
@@ -333,6 +349,7 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Commits changes made on transaction.
         /// </summary>
         public void Commit() {
             Transaction current = _current;
@@ -362,6 +379,7 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Rollbacks uncommitted changes on transaction.
         /// </summary>
         public void Rollback() {
             Transaction current = _current;
@@ -380,6 +398,25 @@ namespace Starcounter
                 finally {
                     Transaction.SetCurrent(current);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Checks if there are any changes on transaction since last commit.
+        /// </summary>
+        public Boolean IsDirty {
+            get {
+                Int32 isDirty;
+                uint r;
+
+                unsafe {
+                    r = sccoredb.Mdb_TransactionIsReadWrite(_handle, _verify, &isDirty);
+                }
+
+                if (r == 0)
+                    return (isDirty != 0);
+
+                throw ToException(this, r);
             }
         }
     }

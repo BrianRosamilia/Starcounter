@@ -334,7 +334,7 @@ namespace CheckBuildSystem
                 "PreBuildTasks.csproj", "RunUnitTests.csproj", "Starcounter.XSON.JsonByExample.csproj",
                 "Starcounter.XSON.PartialClassGenerator.csproj", "Starcounter.XSON.DeserializerCompiler.csproj",
                 "Starcounter.XSON.Tests.csproj", "PMail.csproj", "Starcounter.Tracking.csproj", "staradmin.csproj",
-				"scadminserver.csproj", "scservice.csproj", "BuildHelpers.csproj"
+				"scadminserver.csproj", "scservice.csproj", "BuildHelpers.csproj", "Starcounter.VS.VSIX.2013.csproj"
                 },
 
                 PolicyDescription = "All managed projects must have an XML documentation file."

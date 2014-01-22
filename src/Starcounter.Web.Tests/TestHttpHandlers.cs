@@ -8,8 +8,9 @@ using NUnit.Framework;
 using Starcounter.Internal.Uri;
 using System;
 using System.Text;
-using HttpStructs;
 using Starcounter.Advanced;
+using Starcounter.Rest;
+
 namespace Starcounter.Internal.Test {
 
     // TODO: Reenable all comments.
@@ -20,18 +21,18 @@ namespace Starcounter.Internal.Test {
 
 
     /// <summary>
-    /// Used for HttpStructs tests initialization/shutdown.
+    /// Used for tests initialization/shutdown.
     /// </summary>
     [SetUpFixture]
     class TestHttpHandlersSetup
     {
         /// <summary>
-        /// HttpStructs tests initialization.
+        /// Tests initialization.
         /// </summary>
         [SetUp]
         public void InitTestHttpHandlersSetup()
         {
-            Request.sc_init_http_parser();
+            RequestHandler.InitREST();
         }
     }
 
@@ -39,210 +40,212 @@ namespace Starcounter.Internal.Test {
     /// Class TestRoutes
     /// </summary>
     [TestFixture]
-    class TestRoutes : RequestHandler {
+    class TestRoutes {
 
         public static void RegisterSimpleHandlers() {
-            Reset();
-            GET("/__vm/{?}", (int p1) => "" );
-            PATCH("/__vm/{?}", (int p1) => "" );
-            GET("/{?}", (string p1) => "" );
-            GET("/{?}/{?}", (string p1, string p2) => "" );
-            GET("/{?}/{?}/{?}", (string p1, string p2,string p3) => "" );
-            GET("/ab", () => "" );            
+
+            RequestHandler.Reset();
+
+            Handle.GET("/__vm/{?}", (int p1) => "" );
+            Handle.PATCH("/__vm/{?}", (int p1) => "" );
+            Handle.GET("/{?}", (string p1) => "" );
+            Handle.GET("/{?}/{?}", (string p1, string p2) => "" );
+            Handle.GET("/{?}/{?}/{?}", (string p1, string p2,string p3) => "" );
+            Handle.GET("/ab", () => "" );            
             /*
-                                    GET("/{?}", (int x) => {
+                                    Handle.GET("/{?}", (int x) => {
                                         Console.WriteLine("Root int called with x " + x );
-                                        return "GET /@i";
+                                        return "Handle.GET /@i";
                                     });
-                                    GET("/{?}/{?}", (string a, int x) => {
+                                    Handle.GET("/{?}/{?}", (string a, int x) => {
                                         Console.WriteLine("Root int called with string " + a + " and int " + x);
-                                        return "GET /@s/@i";
+                                        return "Handle.GET /@s/@i";
                                     });
                                      */
         }
 
         public static void Main() {
             UserHandlerCodegen.ResetHandlersManager();
-            Reset();
+            RequestHandler.Reset();
 
-/*            GET("/@s/viewmodels/subs/@s", (string app, string vm) => {
+            /*Handle.GET("/@s/viewmodels/subs/@s", (string app, string vm) => {
                 return "404 Not Found";
             });
-            GET("/@s/viewmodels/@s", (string app, string vm) => {
+            Handle.GET("/@s/viewmodels/@s", (string app, string vm) => {
                 return "404 Not Found";
             });
             */
 
-            GET("/", () => {
-                Console.WriteLine("GET / called");
-                return "GET /";
+            Handle.GET("/", () => {
+                Console.WriteLine("Handle.GET / called");
+                return "Handle.GET /";
             });
 
-            GET("/test", () => {
-                Console.WriteLine("GET /test called");
+            Handle.GET("/test", () => {
+                Console.WriteLine("Handle.GET /test called");
                 return null;
             });
 
-            GET("/uri-with-req", (Request r) => {
+            Handle.GET("/uri-with-req", (Request r) => {
                 Assert.IsNotNull(r);
-                return "GET /uri-with-req";
+                return "Handle.GET /uri-with-req";
             });
 
-            GET("/uri-with-req/{?}", (Request r, int i) => {
+            Handle.GET("/uri-with-req/{?}", (Request r, int i) => {
                 Assert.AreEqual(123, i);
                 Assert.IsNotNull(r);
-                return "GET /uri-with-req/@i";
+                return "Handle.GET /uri-with-req/@i";
             });
 
-            GET("/uri-with-req/{?}", (string s, Request r) => {
+            Handle.GET("/uri-with-req/{?}", (string s, Request r) => {
                 Assert.AreEqual("KalleKula", s);
                 Assert.IsNotNull(r);
-                return "GET /uri-with-req/@s";
+                return "Handle.GET /uri-with-req/@s";
             });
 
-            GET("/admin/apapapa/{?}", (int i, Request r) => {
+            Handle.GET("/admin/apapapa/{?}", (int i, Request r) => {
                 Assert.AreEqual(19, i);
                 Assert.IsNotNull(r);
-                return "GET /admin/apapapa/@i";
+                return "Handle.GET /admin/apapapa/@i";
             });
 
-            GET("/admin/{?}", (string s, Request r) => {
+            Handle.GET("/admin/{?}", (string s, Request r) => {
                 Assert.AreEqual("KalleKula", s);
                 Assert.IsNotNull(r);
-                return "GET /admin/@s";
+                return "Handle.GET /admin/@s";
             });
 
-            GET("/admin/{?}/{?}", (string s, int i, Request r) => {
+            Handle.GET("/admin/{?}/{?}", (string s, int i, Request r) => {
                 Assert.AreEqual("KalleKula", s);
                 Assert.AreEqual(123, i);
                 Assert.IsNotNull(r);
-                return "GET /admin/@s/@i";
+                return "Handle.GET /admin/@s/@i";
             });
 
-            GET("/players", () => {
+            Handle.GET("/players", () => {
                 Console.WriteLine("players");
-                return "GET /players";
+                return "Handle.GET /players";
             });
 
-            GET("/players/{?}/abc/{?}", (int playerId, string a) => {
+            Handle.GET("/players/{?}/abc/{?}", (int playerId, string a) => {
                 Assert.AreEqual(123, playerId);
                 Console.WriteLine("playerId=" + playerId);
-                return "GET /players/@i/abc/@s";
+                return "Handle.GET /players/@i/abc/@s";
             });
 
-            GET("/dashboard/{?}", (int playerId) => {
+            Handle.GET("/dashboard/{?}", (int playerId) => {
                 Assert.AreEqual(123, playerId);
                 Console.WriteLine("playerId=" + playerId);
-                return "GET /dashboard/@i";
+                return "Handle.GET /dashboard/@i";
             });
 
-            GET("/players/{?}", (int id) => {
+            Handle.GET("/players/{?}", (int id) => {
                 Assert.AreEqual(123, id);
-                return "GET /players/@i";
+                return "Handle.GET /players/@i";
             });
 
-            GET("/players?{?}", (string fullName) => {
+            Handle.GET("/players?{?}", (string fullName) => {
                 Assert.AreEqual("KalleKula", fullName);
                 Console.WriteLine("f=" + fullName);
-                return "GET /players?@s";
+                return "Handle.GET /players?@s";
             });
 
-            GET("/whatever/{?}/more/{?}/{?}", (string v1, int v2, string v3) => {
+            Handle.GET("/whatever/{?}/more/{?}/{?}", (string v1, int v2, string v3) => {
                 Assert.AreEqual("apapapa", v1);
                 Assert.AreEqual(5547, v2);
                 Assert.AreEqual("KalleKula", v3);
-                return "GET /whatever/@s/more/@i/@s";
+                return "Handle.GET /whatever/@s/more/@i/@s";
             });
 
-            GET("/ordinary", () => {
-                return "GET /ordinary";
+            Handle.GET("/ordinary", () => {
+                return "Handle.GET /ordinary";
             });
 
-            GET("/ordAnary", () => {
-                return "GET /ordAnary";
+            Handle.GET("/ordAnary", () => {
+                return "Handle.GET /ordAnary";
             });
 
-            GET("/aaaaa/{?}/bbbb", (int v) => {
+            Handle.GET("/aaaaa/{?}/bbbb", (int v) => {
                 Assert.AreEqual(90510, v);
-                return "GET /aaaaa/@i/bbbb";
+                return "Handle.GET /aaaaa/@i/bbbb";
             });
 
-            GET("/whatever/{?}/xxYx/{?}", (string v1, int v2) => {
+            Handle.GET("/whatever/{?}/xxYx/{?}", (string v1, int v2) => {
                 Assert.AreEqual("abrakadabra", v1);
                 Assert.AreEqual(911, v2);
-                return "GET /whatever/@s/xxYx/@i";
+                return "Handle.GET /whatever/@s/xxYx/@i";
             });
 
-            GET("/whatever/{?}/xxZx/{?}", (string v1, int v2) => {
+            Handle.GET("/whatever/{?}/xxZx/{?}", (string v1, int v2) => {
                 Assert.AreEqual("abrakadabra", v1);
                 Assert.AreEqual(911, v2);
-                return "GET /whatever/@s/xxZx/@i";
+                return "Handle.GET /whatever/@s/xxZx/@i";
             });
 
-            GET("/whatmore/{?}/xxZx/{?}", (string v1, int v2) => {
+            Handle.GET("/whatmore/{?}/xxZx/{?}", (string v1, int v2) => {
                 Assert.AreEqual("abrakadabra", v1);
                 Assert.AreEqual(911, v2);
-                return "GET /whatmore/@s/xxZx/@i";
+                return "Handle.GET /whatmore/@s/xxZx/@i";
             });
 
-            GET("/test-decimal/{?}", (decimal val) => {
+            Handle.GET("/test-decimal/{?}", (decimal val) => {
                 Assert.AreEqual(99.123m, val);
-                return "GET /test-decimal/@m";
+                return "Handle.GET /test-decimal/@m";
             });
 
-            GET("/test-double/{?}", (double val) => {
+            Handle.GET("/test-double/{?}", (double val) => {
                 Assert.AreEqual(99.123d, val);
-                return "GET /test-double/@d";
+                return "Handle.GET /test-double/@d";
             });
 
-            GET("/test-bool/{?}", (bool val) => {
+            Handle.GET("/test-bool/{?}", (bool val) => {
                 Assert.AreEqual(true, val);
-                return "GET /test-bool/@b";
+                return "Handle.GET /test-bool/@b";
             });
 
-            GET("/test-datetime/{?}", (DateTime val) => {
+            Handle.GET("/test-datetime/{?}", (DateTime val) => {
                 DateTime expected;
                 DateTime.TryParse("2013-01-17", out expected);
                 Assert.AreEqual(expected, val);
-                return "GET /test-datatime/@t";
+                return "Handle.GET /test-datatime/@t";
             });
 
-            GET("/static{?}/{?}", (string part, string last, Request request) => {
+            Handle.GET("/static{?}/{?}", (string part, string last, Request request) => {
                 Assert.AreEqual("marknad", part);
                 Assert.AreEqual("nyhetsbrev", last);
                 Assert.IsNotNull(request);
-                return "GET /static@s/@s";
+                return "Handle.GET /static@s/@s";
             });
 
-            PUT("/players/{?}", (int playerId) => {
+            Handle.PUT("/players/{?}", (int playerId) => {
                 Assert.AreEqual(123, playerId);
                 //                Assert.IsNotNull(request);
                 Console.WriteLine("playerId: " + playerId); //+ ", request: " + request);
-                return "PUT /players/@i";
+                return "Handle.PUT /players/@i";
             });
 
-            POST("/transfer?{?}", (int from) => {
+            Handle.POST("/transfer?{?}", (int from) => {
                 Assert.AreEqual(99, from);
                 Console.WriteLine("From: " + from);
-                return "POST /transfer?@i";
+                return "Handle.POST /transfer?@i";
             });
 
-            POST("/deposit?{?}", (int to) => {
+            Handle.POST("/deposit?{?}", (int to) => {
                 Assert.AreEqual(56754, to);
                 Console.WriteLine("To: " + to);
-                return "POST /deposit?@i";
+                return "Handle.POST /deposit?@i";
             });
 
-            POST("/find-player?firstname={?}&lastname={?}&age={?}", (string fn, string ln, int age) => {
+            Handle.POST("/find-player?firstname={?}&lastname={?}&age={?}", (string fn, string ln, int age) => {
                 Assert.AreEqual("Kalle", fn);
                 Assert.AreEqual("Kula", ln);
                 Assert.AreEqual(19, age);
-                return "POST /find-player?firstname=@s&lastname=@s&age=@i";
+                return "Handle.POST /find-player?firstname=@s&lastname=@s&age=@i";
             });
 
-            DELETE("/all", () => {
+            Handle.DELETE("/all", () => {
                 Console.WriteLine("deleteAll");
-                return "DELETE /all";
+                return "Handle.DELETE /all";
             });
 
         }
@@ -251,7 +254,7 @@ namespace Starcounter.Internal.Test {
         public void GenerateSimpleCsAstTreeOverview() {
 
             UserHandlerCodegen.ResetHandlersManager();
-            Reset();
+            RequestHandler.Reset();
 
             RegisterSimpleHandlers(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
@@ -264,7 +267,7 @@ namespace Starcounter.Internal.Test {
         [Test]
         public void GenerateSimpleCppAstTreeOverview() {
 
-            Reset();
+            RequestHandler.Reset();
             RegisterSimpleHandlers();
 //            Main(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
@@ -279,7 +282,7 @@ namespace Starcounter.Internal.Test {
         /*[Test]
         public void GenerateSimpleParseTreeOverview() {
 
-            Reset();
+            RequestHandler.Reset();
 
             RegisterSimpleHandlers(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
@@ -293,7 +296,7 @@ namespace Starcounter.Internal.Test {
         /// </summary>
         /*[Test]
         public void GenerateSimpleParseTreeDetails() {
-            Reset();
+            RequestHandler.Reset();
             RegisterSimpleHandlers(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
             Console.WriteLine(umb.CreateParseTree().ToString(true));
@@ -344,8 +347,6 @@ namespace Starcounter.Internal.Test {
             var facit = file.ReadToEnd();
             file.Close();
 
-
-
             RegisterSimpleHandlers(); // Register some handlers
             var umb = RequestHandler.UriMatcherBuilder;
 
@@ -358,9 +359,6 @@ namespace Starcounter.Internal.Test {
 
         //    Console.WriteLine("Complete codegenerated C/C++ file");
             Console.WriteLine(str);
-
-
-
         }
 
 
@@ -399,7 +397,6 @@ namespace Starcounter.Internal.Test {
 
         }
 
-
        /// <summary>
         /// </summary>
         /*[Test]
@@ -407,12 +404,12 @@ namespace Starcounter.Internal.Test {
 
             Reset();
 
-            GET("/ab", () => {
+            Handle.GET("/ab", () => {
                 Console.WriteLine("Handler /ab was called" );
                 return 2;
             });
 
-            GET("/{?}", (string rest) => {
+            Handle.GET("/{?}", (string rest) => {
                 Console.WriteLine("Handler / was called");
                 return 1;
             });
@@ -431,8 +428,8 @@ namespace Starcounter.Internal.Test {
             Console.WriteLine(ast.ToString());
             Console.WriteLine(str);
 
-            byte[] h1 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
-            byte[] h2 = Encoding.UTF8.GetBytes("GET /ab\r\n\r\n");
+            byte[] h1 = Encoding.UTF8.Handle.GETBytes("Handle.GET /\r\n\r\n");
+            byte[] h2 = Encoding.UTF8.Handle.GETBytes("Handle.GET /ab\r\n\r\n");
 
             var um = RequestHandler.RequestProcessor;
             object resource;
@@ -451,14 +448,14 @@ namespace Starcounter.Internal.Test {
 
             Reset();
 
-            GET("/", () => {
+            Handle.GET("/", () => {
                 Console.WriteLine("Handler 1 was called");
-                return "GET /";
+                return "Handle.GET /";
             });
 
-            GET("/products/{?}", (string prodid) => {
+            Handle.GET("/products/{?}", (string prodid) => {
                 Console.WriteLine("Handler 2 was called with " + prodid);
-                return "GET /products/@s";
+                return "Handle.GET /products/@s";
             });
 
             var umb = RequestHandler.UriMatcherBuilder;
@@ -473,16 +470,16 @@ namespace Starcounter.Internal.Test {
             Console.WriteLine(ast.ToString());
             Console.WriteLine(str);
 
-            byte[] h1 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
-            byte[] h2 = Encoding.UTF8.GetBytes("GET /products/Test\r\n\r\n");
+            byte[] h1 = Encoding.UTF8.Handle.GETBytes("Handle.GET /\r\n\r\n");
+            byte[] h2 = Encoding.UTF8.Handle.GETBytes("Handle.GET /products/Test\r\n\r\n");
 
             var um = RequestHandler.RequestProcessor;
            
            object resource;
            um.Invoke(new Request(h1), out resource);
-           Assert.AreEqual("GET /", resource);
+           Assert.AreEqual("Handle.GET /", resource);
            um.Invoke(new Request(h2), out resource);
-           Assert.AreEqual("GET /products/@s", resource);
+           Assert.AreEqual("Handle.GET /products/@s", resource);
         }*/
 
         /// <summary>
@@ -491,19 +488,19 @@ namespace Starcounter.Internal.Test {
         /*[Test]
         public void TestRestHandler() {
 
-           byte[] h1 = Encoding.UTF8.GetBytes("GET /players/123\r\n\r\n");
-           byte[] h2 = Encoding.UTF8.GetBytes("GET /dashboard/123\r\n\r\n");
-           byte[] h3 = Encoding.UTF8.GetBytes("GET /players?KalleKula\r\n\r\n");
-           byte[] h4 = Encoding.UTF8.GetBytes("PUT /players/123\r\n\r\n");
-           byte[] h5 = Encoding.UTF8.GetBytes("POST /transfer?99\r\n\r\n");
-           byte[] h6 = Encoding.UTF8.GetBytes("POST /deposit?56754\r\n\r\n");
-           byte[] h7 = Encoding.UTF8.GetBytes("DELETE /all\r\n\r\n");
-           byte[] h8 = Encoding.UTF8.GetBytes("DELETE /allanballan\r\n\r\n");
-           byte[] h9 = Encoding.UTF8.GetBytes("GET /test\r\n\r\n");
-           byte[] h10 = Encoding.UTF8.GetBytes("GET /testing\r\n\r\n");
-           byte[] h11 = Encoding.UTF8.GetBytes("PUT /players/123/\r\n\r\n");
-           byte[] h12 = Encoding.UTF8.GetBytes("PUT /players/123\r\n\r\n");
-           byte[] h13 = Encoding.UTF8.GetBytes("GET /\r\n\r\n");
+           byte[] h1 = Encoding.UTF8.Handle.GETBytes("Handle.GET /players/123\r\n\r\n");
+           byte[] h2 = Encoding.UTF8.Handle.GETBytes("Handle.GET /dashboard/123\r\n\r\n");
+           byte[] h3 = Encoding.UTF8.Handle.GETBytes("Handle.GET /players?KalleKula\r\n\r\n");
+           byte[] h4 = Encoding.UTF8.Handle.GETBytes("Handle.PUT /players/123\r\n\r\n");
+           byte[] h5 = Encoding.UTF8.Handle.GETBytes("Handle.POST /transfer?99\r\n\r\n");
+           byte[] h6 = Encoding.UTF8.Handle.GETBytes("Handle.POST /deposit?56754\r\n\r\n");
+           byte[] h7 = Encoding.UTF8.Handle.GETBytes("Handle.DELETE /all\r\n\r\n");
+           byte[] h8 = Encoding.UTF8.Handle.GETBytes("Handle.DELETE /allanballan\r\n\r\n");
+           byte[] h9 = Encoding.UTF8.Handle.GETBytes("Handle.GET /test\r\n\r\n");
+           byte[] h10 = Encoding.UTF8.Handle.GETBytes("Handle.GET /testing\r\n\r\n");
+           byte[] h11 = Encoding.UTF8.Handle.GETBytes("Handle.PUT /players/123/\r\n\r\n");
+           byte[] h12 = Encoding.UTF8.Handle.GETBytes("Handle.PUT /players/123\r\n\r\n");
+           byte[] h13 = Encoding.UTF8.Handle.GETBytes("Handle.GET /\r\n\r\n");
 
            Main(); // Register some handlers
            var um = RequestHandler.RequestProcessor;
@@ -511,13 +508,13 @@ namespace Starcounter.Internal.Test {
            object resource;
 
            um.Invoke(new Request(h13), out resource);
-           Assert.AreEqual("GET /",resource);
+           Assert.AreEqual("Handle.GET /",resource);
 
            um.Invoke(new Request(h1), out resource);
-           Assert.AreEqual("GET /players/@i", resource);
+           Assert.AreEqual("Handle.GET /players/@i", resource);
 
            um.Invoke(new Request(h2), out resource);
-           Assert.AreEqual("GET /dashboard/@i", resource);
+           Assert.AreEqual("Handle.GET /dashboard/@i", resource);
 
             Assert.True(um.Invoke(new Request(h3), out resource));
             Assert.True(um.Invoke(new Request(h4), out resource));
@@ -527,8 +524,8 @@ namespace Starcounter.Internal.Test {
             Assert.True(um.Invoke(new Request(h9), out resource));
             Assert.False(um.Invoke(new Request(h10), out resource));
             Assert.True(um.Invoke(new Request(h12), out resource));
-            Assert.False(um.Invoke(new Request(h11), out resource), "PUT /players/123/ should not match a handler (there is a trailing slash)");
-            Assert.False(um.Invoke(new Request(h8), out resource), "There is no handler DELETE /allanballan. How could it be called.");
+            Assert.False(um.Invoke(new Request(h11), out resource), "Handle.PUT /players/123/ should not match a handler (there is a trailing slash)");
+            Assert.False(um.Invoke(new Request(h8), out resource), "There is no handler Handle.DELETE /allanballan. How could it be called.");
 
         }*/
 

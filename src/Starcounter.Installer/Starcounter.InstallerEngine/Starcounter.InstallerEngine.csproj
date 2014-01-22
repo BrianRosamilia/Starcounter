@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\VS2012Integration.cs" />
+    <Compile Include="Components\VS2013Integration.cs" />
     <Compile Include="Components\VSIntegration.cs" />
     <Compile Include="GAC.cs" />
     <Compile Include="PathVariable.cs" />

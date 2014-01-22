@@ -4,7 +4,6 @@
 // </copyright>
 // ***********************************************************************
 
-using HttpStructs;
 using Starcounter.Advanced;
 using System;
 using System.Runtime.InteropServices;
@@ -52,8 +51,8 @@ namespace Starcounter.Internal
         /// <returns>UInt32.</returns>
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static UInt32 sc_init_bmx_manager(
-            HttpStructs.GlobalSessions.DestroyAppsSessionCallback destroy_apps_session_callback,
-            HttpStructs.GlobalSessions.CreateNewAppsSessionCallback create_new_apps_session_callback,
+            GlobalSessions.DestroyAppsSessionCallback destroy_apps_session_callback,
+            GlobalSessions.CreateNewAppsSessionCallback create_new_apps_session_callback,
             Diagnostics.ErrorHandlingCallback error_handling_callback
             );
 

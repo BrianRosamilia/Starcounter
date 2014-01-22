@@ -166,13 +166,7 @@ namespace Starcounter {
         /// <param name="index"></param>
         internal void MarkAsReplaced(int index) {
             _SetFlag[index] = true;
-            var v = list[index];
-           // if (v is Json) {
-           //     (v as Json).Dirtyfy();
-           // }
-           // else {
-                this.Dirtyfy();
-           // }
+            this.Dirtyfy();
         }
 
         /// <summary>

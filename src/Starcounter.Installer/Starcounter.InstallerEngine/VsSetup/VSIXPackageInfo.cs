@@ -22,6 +22,11 @@ namespace Starcounter.InstallerEngine.VsSetup
         internal static readonly VSIXPackageInfo VS2012 = new VSIXPackageInfo("Starcounter.VS11.vsix", "Starcounter.VS11.DCCF9B11-E0CD-4D4F-BCE6-55EEA5AA1325");
 
         /// <summary>
+        /// Gets the extension metadata for the VS 2013 package file.
+        /// </summary>
+        internal static readonly VSIXPackageInfo VS2013 = new VSIXPackageInfo("Starcounter.VS12.vsix", "Starcounter.VS12.0C4CE454-5AE6-49D5-ACD5-90FF0A8AA61A");
+
+        /// <summary>
         /// Private constructor initializing a <see cref="VSIXPackageInfo"/>.
         /// </summary>
         /// <param name="fileName"></param>

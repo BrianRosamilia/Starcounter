@@ -8,5 +8,6 @@ namespace Starcounter.Advanced {
         void Add(Action action);
         void EndScope();
         void BeginScope();
+        Boolean IsDirty { get; }
     }
 }

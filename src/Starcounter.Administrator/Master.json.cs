@@ -1,7 +1,6 @@
 ﻿
 using Codeplex.Data;
 using Starcounter;
-using Starcounter.ABCIPC.Internal;
 using Starcounter.Administrator;
 using Starcounter.Administrator.API;
 using Starcounter.Administrator.API.Handlers;

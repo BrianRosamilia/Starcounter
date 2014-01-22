@@ -111,9 +111,19 @@ namespace Starcounter.InstallerEngine
         internal static string VS2012InstallationDirectory { get { return VSIntegration.GetVisualStudioInstallationDirectory("11.0"); } }
 
         /// <summary>
+        /// Gets the path to the Visual Studio 2013 (12.0) installation directory.
+        /// </summary>
+        internal static string VS2013InstallationDirectory { get { return VSIntegration.GetVisualStudioInstallationDirectory("12.0"); } }
+
+        /// <summary>
         /// Gets the path to the Visual Studio 2012 (11.0) IDE directory.
         /// </summary>
         internal static string VS2012IDEDirectory { get { return Path.Combine(VS2012InstallationDirectory, @"Common7\IDE"); } }
+
+        /// <summary>
+        /// Gets the path to the Visual Studio 2013 (12.0) IDE directory.
+        /// </summary>
+        internal static string VS2013IDEDirectory { get { return Path.Combine(VS2013InstallationDirectory, @"Common7\IDE"); } }
 
         /// <summary>
         /// Gets the path to the Visual Studio 2012 (11.0) exception assistant content
@@ -129,6 +139,11 @@ namespace Starcounter.InstallerEngine
         /// Gets the path to the Visual Studio 2012 (11.0) IDE executable file (i.e. "devenv.exe")
         /// </summary>
         internal static string VS2012DevEnvPath { get { return Path.Combine(VS2012IDEDirectory, "devenv.exe"); } }
+
+        /// <summary>
+        /// Gets the path to the Visual Studio 2013 (12.0) IDE executable file (i.e. "devenv.exe")
+        /// </summary>
+        internal static string VS2013DevEnvPath { get { return Path.Combine(VS2013IDEDirectory, "devenv.exe"); } }
 
         /// <summary>
         /// Gets the name of the VSIX installer executable file (i.e. currently "VSIXInstaller.exe").

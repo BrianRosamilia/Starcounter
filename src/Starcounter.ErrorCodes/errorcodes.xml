@@ -3557,6 +3557,9 @@
 	<code hex="0022" severity="Error" name="ScErrUnexpErrUnavailable">
 	  <message>Internal error in SQL Processor. Error cannot be retrieved.</message>
 	</code>
+	<code hex="0023" severity="Error" name="ScErrUnexpMetadata">
+	  <message>Internal error in unmanaged runtime meta-data population.</message>
+	</code>
   </facility>
 
   <facility name="TransactionAbort" hex="0008">

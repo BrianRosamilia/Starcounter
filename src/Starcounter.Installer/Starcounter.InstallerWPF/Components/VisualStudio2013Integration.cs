@@ -32,7 +32,7 @@ namespace Starcounter.InstallerWPF.Components
 
         public override bool CanBeInstalled {
             get {
-                return false;
+                return true;
             }
         }
         //public override bool IsExecuteCommandEnabled {

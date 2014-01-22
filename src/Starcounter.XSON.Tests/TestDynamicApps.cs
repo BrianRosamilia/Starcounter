@@ -142,6 +142,7 @@ namespace Starcounter.Internal.XSON.Tests {
             dynamic tim = new Json() { Template = personSchema };
 
             jocke.FirstName = "Joachim";
+            jocke.FirstName = "Joachim";
             jocke.LastName = "Wester";
             jocke.Age = 30;
 
@@ -182,23 +183,28 @@ namespace Starcounter.Internal.XSON.Tests {
 
 		[Test]
 		public static void TestDynamicJsonInLoop() {
-			for (int i = 0; i < 2; i++) {
-				Json jsonItem = new Json();
-				jsonItem["dummy"] = "dummy";
-			}
+            for (int i = 0; i < 2; i++) {
+                Json jsonItem = new Json();
+                jsonItem["dummy"] = "dummy";
+            }
 
-			for (int i = 0; i < 2; i++) {
-				dynamic jsonItem = new Json();
-				jsonItem["dummy"] = "dummy";
-			}
+            for (int i = 0; i < 2; i++) {
+                dynamic jsonItem = new Json();
+                jsonItem["dummy"] = "dummy";
+            }
 
-			// This will fail the second time because the Template never gets
-			// initialized since the callsite of the dynamic is the same and
-			// the previous binding is reused.
-//			for (int i = 0; i < 2; i++) {
-//				dynamic jsonItem = new Json();
-//				jsonItem.dummy = "dummy";
-//			}
+            for (int i = 0; i < 2; i++) {
+                dynamic jsonItem = new Json();
+                jsonItem.dummy = "dummy";
+            }
+
+            TObject template = new TObject();
+            template.Add<TString>("dummy");
+            dynamic json = new Json() { Template = template };
+
+            for (int i = 0; i < 2; i++) {
+                json.dummy = "dummy";
+            }
 		}
 
         /// <summary>

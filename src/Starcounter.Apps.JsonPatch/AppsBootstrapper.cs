@@ -1,9 +1,9 @@
 ﻿
-using HttpStructs;
 using Modules;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 using Starcounter.Logging;
+using Starcounter.Rest;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ namespace Starcounter.Internal {
     public static class AppsBootstrapper {
 
         private static AppRestServer AppServer_;
-        public static AppRestServer AppServer
+        internal static AppRestServer AppServer
         {
             get { return AppServer_; }
         }
@@ -39,7 +39,7 @@ namespace Starcounter.Internal {
         /// Initializes AppsBootstrapper.
         /// </summary>
         /// <param name="defaultPort"></param>
-        public static void InitAppsBootstrapper(
+        internal static void InitAppsBootstrapper(
             Byte numSchedulers,
             UInt16 defaultUserHttpPort,
             UInt16 defaultSystemHttpPort,
@@ -104,7 +104,7 @@ namespace Starcounter.Internal {
         /// resolve GET requests for static content.
         /// </summary>
         /// <param name="path">The directory to include</param>
-        public static void AddFileServingDirectory(UInt16 port, String path) {
+        internal static void AddFileServingDirectory(UInt16 port, String path) {
             AppServer_.UserAddedLocalFileDirectoryWithStaticContent(port, path);
         }
 

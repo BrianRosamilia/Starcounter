@@ -15,7 +15,6 @@ using System.IO;
 using Starcounter.Advanced;
 using Starcounter.XSON.Tests;
 using TJson = Starcounter.Templates.TObject;
-using HttpStructs;
 
 namespace Starcounter.Internal.JsonPatch.Test
 {

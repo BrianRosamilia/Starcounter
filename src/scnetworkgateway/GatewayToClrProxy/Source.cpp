@@ -12,7 +12,7 @@ extern "C" __declspec(dllexport) UInt32 __cdecl GenerateUriMatcher(
     UInt64* gen_code_str,
     UInt32% gen_code_str_num_bytes)
 {
-    return RequestProcessorBuilder::GenerateNativeUriMatcher(
+    return UriMatcherBuilder::GenerateNativeUriMatcher(
         server_log_handle,
         gcnew System::String(root_function_name),
         (IntPtr)uri_infos_ptr,

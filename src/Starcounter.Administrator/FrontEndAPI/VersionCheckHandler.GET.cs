@@ -48,7 +48,7 @@ namespace Starcounter.Administrator.FrontEndAPI {
 //#if ANDWAH
 //                    X.GET("http://192.168.8.183:80/api/channels/" + channel, null, out response, 5000);
 //#else
-                    X.GET("http://downloads.starcounter.com:80/api/channels/" + channel, null, out response, 5000);
+                    X.GET("http://downloads.starcounter.com:80/api/channels/" + channel, out response, null, 5000);
 //#endif
 
                     if (!response.IsSuccessStatusCode) {
