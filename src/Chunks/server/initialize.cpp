@@ -171,7 +171,7 @@ try {
 	sizeof(common_scheduler_interface_type));
 	
 	common_scheduler_interface_type* common_scheduler_interface = new (p)
-	common_scheduler_interface_type(server_name,
+	common_scheduler_interface_type(server_name, (uint32_t)schedulers,
 	common_scheduler_interface_alloc_inst);
 	
 	//--------------------------------------------------------------------------
