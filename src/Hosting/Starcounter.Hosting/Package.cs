@@ -209,13 +209,13 @@ namespace Starcounter.Hosting {
         private void UpdateDatabaseSchemaAndRegisterTypes() {
             var typeDefs = unregisteredTypeDefs_;
 
-            if (typeDefs[0].Name == "Starcounter.Metadata.MaterializedTable") {
-                Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
-                OnRuntimeMetadataPopulated();
-            }
-
             if (typeDefs.Length != 0)
             {
+                if (typeDefs[0].Name == "Starcounter.Metadata.MaterializedTable") {
+                    Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
+                    OnRuntimeMetadataPopulated();
+                }
+
                 for (int i = 0; i < typeDefs.Length; i++)
                 {
                     var typeDef = typeDefs[i];
