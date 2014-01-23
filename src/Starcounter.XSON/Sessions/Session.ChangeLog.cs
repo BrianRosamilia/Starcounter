@@ -27,19 +27,7 @@ namespace Starcounter {
 
             if (_Request != null)
             {
-#if DEBUG
-                // Checking if we have a predefined session.
-                if (_Request.IsSessionPredefined())
-                {
-                    errCode = _Request.GenerateForcedSession(this);
-                }
-                else
-                {
-                    errCode = _Request.GenerateNewSession(this);
-                }
-#else
                 errCode = _Request.GenerateNewSession(this);
-#endif
             }
             else
             {

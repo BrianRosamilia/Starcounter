@@ -503,7 +503,6 @@ WorkerDbInterface::WorkerDbInterface(
 
         // Allocating channels.
         num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
-
         if (num_schedulers_ <= 0)
             Sleep(100);
         else

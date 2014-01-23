@@ -34,6 +34,8 @@
 
    login: event,
 
+   untypedList: [{}],
+
    $doubleToDecimal: {Type:"decimal", Bind: null},
 
    child: {

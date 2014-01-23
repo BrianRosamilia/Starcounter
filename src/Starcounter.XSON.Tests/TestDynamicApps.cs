@@ -166,7 +166,29 @@ namespace Starcounter.Internal.XSON.Tests {
             ret.Add(tim);
         }
 
-		[Test]
+        [Test, Timeout(5000)]
+        public static void BenchmarkDynamicJson() {
+            dynamic json;
+            int repeats = 100000;
+            long value = 19;
+            DateTime start;
+            DateTime stop;
+
+            TObject template = new TObject();
+            template.Add<TLong>("Value");
+            
+            start = DateTime.Now;
+            for (int i = 0; i < repeats; i++){
+                json = new Json() { Template = template };
+                json.Value = value;
+                value = json.Value;
+            }
+            stop = DateTime.Now;
+
+            Console.WriteLine("Dynamic json get/set with " + repeats + " repeats in: " + (stop - start).TotalMilliseconds + " ms");
+        }
+
+        [Test]
 		public static void TestDynamicJson() {
 			dynamic json = new Json();
 			json["foo"] = "bar";

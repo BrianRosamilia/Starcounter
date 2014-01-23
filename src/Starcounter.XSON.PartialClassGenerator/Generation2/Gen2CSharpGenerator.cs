@@ -375,7 +375,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     string bfTypeName = null;
                     if (prop.Template is TObjArr) {
                         if (prop.Type.Generic != null && prop.Type.Generic.Length > 0) {
-                            bfTypeName = ((AstJsonClass)prop.Type.Generic[0]).ParentProperty.GlobalClassSpecifier;
+                            var astJsonClass = ((AstJsonClass)prop.Type.Generic[0]);
+                            if (astJsonClass.ParentProperty != null)
+                                bfTypeName = astJsonClass.ParentProperty.GlobalClassSpecifier;
                         }
                     }
 

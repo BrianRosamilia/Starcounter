@@ -461,16 +461,6 @@ namespace Starcounter.Internal
             return used_session_indexes_.Count;
         }
 
-#if DEBUG
-        // Force setting session values.
-        internal void ForceSetSessionValues(
-            ScSessionStruct session)
-        {
-            // Initializing session structure underneath.
-            apps_sessions_[session.linear_index_].session_struct_ = session;
-        }
-#endif
-
         // Creates new Apps session.
         internal UInt32 CreateNewSession(
             ref ScSessionStruct ss,
@@ -492,29 +482,6 @@ namespace Starcounter.Internal
                 apps_session_int,
                 linear_index_node);
         }
-
-
-#if DEBUG
-        // Creates forced Apps session.
-        internal UInt32 CreateForcedSession(
-            ref ScSessionStruct ss,
-            IAppsSession apps_session_int)
-        {
-            // Getting free linear session index.
-            LinkedListNode<UInt32> linear_index_node = free_session_indexes_.Find(ss.linear_index_);
-            
-            // Making sure that we got the right session.
-            Debug.Assert(null != linear_index_node);
-
-            free_session_indexes_.Remove(linear_index_node);
-
-            // Generating new session internally.
-            return CreateNewSessionInternal(
-                ref ss,
-                apps_session_int,
-                linear_index_node);
-        }
-#endif
 
         // Creates new Apps session.
         internal UInt32 CreateNewSessionInternal(
@@ -761,16 +728,6 @@ namespace Starcounter.Internal
             return scheduler_sessions_[sched_index];
         }
 
-#if DEBUG
-        // Force setting session values.
-        internal void ForceSetSessionValues(
-            ScSessionStruct s)
-        {
-            // Initializing session structure underneath.
-            scheduler_sessions_[s.scheduler_id_].ForceSetSessionValues(s);
-        }
-#endif
-
         /// <summary>
         /// Creates a new session.
         /// </summary>
@@ -785,24 +742,6 @@ namespace Starcounter.Internal
         {
             return scheduler_sessions_[ss.scheduler_id_].CreateNewSession(ref ss, apps_session);
         }
-
-#if DEBUG
-
-        /// <summary>
-        /// Creates a forced session.
-        /// </summary>
-        /// <param name="apps_session"></param>
-        /// <param name="scheduler_id"></param>
-        /// <param name="session_index"></param>
-        /// <param name="session_salt"></param>
-        /// <returns></returns>
-        public UInt32 CreateForcedSession(
-            ref ScSessionStruct ss,
-            IAppsSession apps_session)
-        {
-            return scheduler_sessions_[ss.scheduler_id_].CreateForcedSession(ref ss, apps_session);
-        }
-#endif
 
         /// <summary>
         /// Kills existing session.

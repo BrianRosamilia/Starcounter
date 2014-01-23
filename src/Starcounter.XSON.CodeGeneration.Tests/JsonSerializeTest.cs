@@ -216,8 +216,10 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
             return tobj;
         }
 
+#if !DEBUG // Serializer benchmark tests - only in release.
+
 		[Test]
-		[Category("LongRunning")]
+		[Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
 		public static void BenchmarkFTJSerializer() {
 			int numberOfTimes = 1000000;
 
@@ -233,7 +235,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 		}
 
 		[Test]
-		[Category("LongRunning")]
+        [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
 		public static void BenchmarkFTJCodegenSerializer() {
 			int numberOfTimes = 1000000;
 
@@ -249,7 +251,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 		}
 
 		[Test]
-		[Category("LongRunning")]
+        [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
 		public static void BenchmarkStandardJsonSerializer() {
 			int numberOfTimes = 1000000;
 
@@ -265,7 +267,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 		}
 
 		[Test]
-		[Category("LongRunning")]
+        [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
 		public static void BenchmarkStandardCodegenJsonSerializer() {
 			int numberOfTimes = 1000000;
 
@@ -281,7 +283,7 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 		}
 
 		[Test]
-		[Category("LongRunning")]
+        [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
 		public static void BenchmarkAllSerializers() {
 			int numberOfTimes = 1000000;
 
@@ -425,6 +427,8 @@ namespace Starcounter.Internal.XSON.Serializer.Tests {
 			PrintResult(stop, start, numberOfTimes, 0);
 			Console.Write("\n");
         }
+
+#endif // Serializer benchmark tests - only in release.
 
 		private static string AddSpaces(string str, int totalLength) {
 			string after = str;

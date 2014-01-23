@@ -774,6 +774,9 @@ namespace Starcounter.InstallerEngine
 
                     // Starting post-setup processes if needed.
                     StartPostSetupProcesses(false);
+
+                    // Restarting Starcounter service if needed.
+                    CPersonalServer.StartServiceIfAutomatic();
                 }
                 catch (InstallerAbortedException userCanceled)
                 {
@@ -860,11 +863,6 @@ namespace Starcounter.InstallerEngine
 
                     // Re-throwing the exception up.
                     throw generalException;
-                }
-                finally
-                {
-                    // Restarting Starcounter service if needed.
-                    CPersonalServer.StartServiceIfAutomatic();
                 }
 
                 // Adding last progress update.

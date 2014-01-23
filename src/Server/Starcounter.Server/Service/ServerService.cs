@@ -172,7 +172,20 @@ namespace Starcounter.Server.Service {
                     if (status != ServiceControllerStatus.StartPending) {
                         controller.Start();
                     }
-                    controller.WaitForStatus(ServiceControllerStatus.Running, timeout);
+
+                    controller.Refresh();
+
+                    // Waiting for service to start.
+                    while (controller.Status == ServiceControllerStatus.StartPending) {
+                        controller.Refresh();
+                        Thread.Sleep(300);
+                    }
+
+                    // Checking if service is running properly.
+                    controller.Refresh();
+                    if (controller.Status != ServiceControllerStatus.Running) {
+                        throw new Exception("The Starcounter service didn't start properly. Please check server logs for details.");
+                    }
                 }
             }
         }

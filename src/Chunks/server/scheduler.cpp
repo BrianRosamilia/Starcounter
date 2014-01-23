@@ -464,8 +464,6 @@ unsigned long server_port::init(const char* database_name, std::size_t id, owner
 		pm->find_named_block
 		(starcounter_core_shared_memory_common_scheduler_interface_name);
 		
-		common_scheduler_interface_->set_scheduler_number_flag(id);
-
 		// Find the common_client_interface.
 		common_client_interface_ = (common_client_interface_type*)
 		pm->find_named_block
@@ -509,7 +507,12 @@ unsigned long server_port::init(const char* database_name, std::size_t id, owner
 		//----------------------------------------------------------------------
 		this_scheduler_interface_->set_notify_flag(false);
 		this_scheduler_interface_->set_predicate(true);
-		common_scheduler_interface_->set_scheduler_number_flag(id_);
+
+        // We must not mark the scheduler as active until it is fully
+        // initialized.
+        _ReadWriteBarrier();
+		
+        common_scheduler_interface_->set_scheduler_number_flag(id_);
 #if defined (IPC_VERSION_2_0)
 		schedulers_ = common_scheduler_interface_->number_of_active_schedulers();
 #endif // defined (IPC_VERSION_2_0)
