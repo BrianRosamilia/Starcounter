@@ -33,7 +33,7 @@ namespace Starcounter.Internal.Test
             Node localNode = new Node("127.0.0.1", 8080);
             localNode.LocalNode = true;
 
-            Handle.GET("/response1", () =>
+            Handle.GET("/response10", () =>
             {
                 Response r = new Response()
                 {
@@ -41,8 +41,12 @@ namespace Starcounter.Internal.Test
                     StatusDescription = "Not Found",
                     ContentType = "text/html",
                     ContentEncoding = "gzip",
-                    SetCookie = "MyCookie1=123; MyCookie2=456",
-                    Body = "response1"
+                    Cookies = {
+                        "reg_fb_gate=deleted; Expires=Thu, 01-Jan-1970 00:00:01 GMT; Path=/; Domain=.example.com; HttpOnly",
+                        "MyCookie2=456; Domain=.foo.com; Path=/",
+                        "MyCookie3=789; Path=/; Expires=Wed, 13 Jan 2021 22:23:01 GMT; HttpOnly"
+                    },
+                    Body = "response10"
                 };
 
                 r["Allow"] = "GET, HEAD";
@@ -50,16 +54,20 @@ namespace Starcounter.Internal.Test
                 return r;
             });
 
-            Response resp = localNode.GET("/response1", null);
+            Response resp = localNode.GET("/response10", null);
 
             Assert.IsTrue(404 == resp.StatusCode);
             Assert.IsTrue("Not Found" == resp.StatusDescription);
             Assert.IsTrue("text/html" == resp.ContentType);
             Assert.IsTrue("gzip" == resp.ContentEncoding);
-            Assert.IsTrue("MyCookie1=123; MyCookie2=456" == resp.SetCookie);
-            Assert.IsTrue(9 == resp.ContentLength);
+
+            Assert.IsTrue("reg_fb_gate=deleted; Expires=Thu, 01-Jan-1970 00:00:01 GMT; Path=/; Domain=.example.com; HttpOnly" == resp.Cookies[0]);
+            Assert.IsTrue("MyCookie2=456; Domain=.foo.com; Path=/" == resp.Cookies[1]);
+            Assert.IsTrue("MyCookie3=789; Path=/; Expires=Wed, 13 Jan 2021 22:23:01 GMT; HttpOnly" == resp.Cookies[2]);
+
+            Assert.IsTrue(10 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
-            Assert.IsTrue("response1" == resp.Body);
+            Assert.IsTrue("response10" == resp.Body);
             Assert.IsTrue(resp["Allow"] == "GET, HEAD");
 
             // Modifying response.
@@ -69,7 +77,8 @@ namespace Starcounter.Internal.Test
             resp.StatusDescription = "Found";
             resp.ContentType = "application/json";
             resp.ContentEncoding = "zzzip";
-            resp.SetCookie = "MyCookie=CookieValue";
+            resp.Cookies = new List<String>();
+            resp.Cookies.Add("MyCookie=CookieValue");
             resp.Body = "Here is my body!";
 
             Assert.IsTrue("POST" == resp["Allow"]);
@@ -78,12 +87,12 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue("Found" == resp.StatusDescription);
             Assert.IsTrue("application/json" == resp.ContentType);
             Assert.IsTrue("zzzip" == resp.ContentEncoding);
-            Assert.IsTrue("MyCookie=CookieValue" == resp.SetCookie);
+            Assert.IsTrue("MyCookie=CookieValue" == resp.Cookies[0]);
             Assert.IsTrue("Here is my body!" == resp.Body);
             Assert.IsTrue("Here is my body!".Length == resp.ContentLength);
-            Assert.IsTrue("Content-Type: application/json\r\nContent-Encoding: zzzip\r\nSet-Cookie: MyCookie=CookieValue\r\nAllow: POST\r\nNewHeader: Haha\r\n" == resp.Headers);
+            Assert.IsTrue("Content-Type: application/json\r\nContent-Encoding: zzzip\r\nAllow: POST\r\nNewHeader: Haha\r\nSet-Cookie: MyCookie=CookieValue\r\n" == resp.Headers);
 
-            Handle.GET("/response2", (Request req) =>
+            Handle.GET("/response11", (Request req) =>
             {
                 Response r = new Response()
                 {
@@ -97,13 +106,13 @@ namespace Starcounter.Internal.Test
                 return r;
             });
 
-            resp = localNode.GET("/response2", null);
+            resp = localNode.GET("/response11", null);
 
             Assert.IsTrue(203 == resp.StatusCode);
             Assert.IsTrue("Non-Authoritative Information" == resp.StatusDescription);
             Assert.IsTrue(null == resp.ContentType);
             Assert.IsTrue(null == resp.ContentEncoding);
-            Assert.IsTrue(null == resp.SetCookie);
+            Assert.IsTrue(0 == resp.Cookies.Count);
             Assert.IsTrue(0 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
             Assert.IsTrue(null == resp.Body);
@@ -119,7 +128,7 @@ namespace Starcounter.Internal.Test
             resp.StatusDescription = "Found";
             resp.ContentType = "application/json";
             resp.ContentEncoding = "zzzip";
-            resp.SetCookie = "MyCookie=CookieValue";
+            resp.Cookies.Add("MyCookie=CookieValue");
             resp.Body = "Here is my body!";
 
             Assert.IsTrue("POST" == resp["Allow"]);
@@ -128,12 +137,12 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue("Found" == resp.StatusDescription);
             Assert.IsTrue("application/json" == resp.ContentType);
             Assert.IsTrue("zzzip" == resp.ContentEncoding);
-            Assert.IsTrue("MyCookie=CookieValue" == resp.SetCookie);
+            Assert.IsTrue("MyCookie=CookieValue" == resp.Cookies[0]);
             Assert.IsTrue("Here is my body!" == resp.Body);
             Assert.IsTrue("Here is my body!".Length == resp.ContentLength);
             Assert.IsTrue("MySuperHeader: Haha!\r\nMyAnotherSuperHeader: Hahaha!\r\nAllow: POST\r\nNewHeader: Haha\r\nContent-Type: application/json\r\nContent-Encoding: zzzip\r\nSet-Cookie: MyCookie=CookieValue\r\n" == resp.Headers);
 
-            Handle.GET("/response3", () =>
+            Handle.GET("/response12", () =>
             {
                 return new Response()
                 {
@@ -142,12 +151,12 @@ namespace Starcounter.Internal.Test
                 };
             });
 
-            resp = localNode.GET("/response3", null);
+            resp = localNode.GET("/response12", null);
 
             Assert.IsTrue(204 == resp.StatusCode);
             Assert.IsTrue("No Content" == resp.StatusDescription);
 
-            Handle.GET("/response4", () =>
+            Handle.GET("/response13", () =>
             {
                 return new Response()
                 {
@@ -156,7 +165,7 @@ namespace Starcounter.Internal.Test
                 };
             });
 
-            resp = localNode.GET("/response4", null);
+            resp = localNode.GET("/response13", null);
 
             Assert.IsTrue(201 == resp.StatusCode);
             Assert.IsTrue("OK" == resp.StatusDescription);
@@ -184,42 +193,42 @@ namespace Starcounter.Internal.Test
                 req["MyHeader4"] = "value4";
                 req.Uri = "/response2";
 
-                Response r = localNode.CustomRESTRequest(req);
+                Response resp = localNode.CustomRESTRequest(req);
 
-                Assert.IsTrue("Haha!" == r["MySuperHeader"]);
-                Assert.IsTrue("Hahaha!" == r["MyAnotherSuperHeader"]);
-                Assert.IsTrue(203 == r.StatusCode);
-                Assert.IsTrue("Non-Authoritative Information" == r.StatusDescription);
-                Assert.IsTrue("Here is my body!" == r.Body);
-                Assert.IsTrue("SuperCookie=SuperValue!" == r.SetCookie);
-                Assert.IsTrue("text/html" == r.ContentEncoding);
+                Assert.IsTrue("Haha!" == resp["MySuperHeader"]);
+                Assert.IsTrue("Hahaha!" == resp["MyAnotherSuperHeader"]);
+                Assert.IsTrue(203 == resp.StatusCode);
+                Assert.IsTrue("Non-Authoritative Information" == resp.StatusDescription);
+                Assert.IsTrue("Here is my body!" == resp.Body);
+                Assert.IsTrue("SuperCookie=SuperValue!" == resp.Cookies[0]);
+                Assert.IsTrue("text/html" == resp.ContentEncoding);
 
-                return r;
+                return resp;
             });
 
             Handle.POST("/response2", (Request req) =>
             {
-                Response r = new Response()
+                Response resp = new Response()
                 {
                     StatusCode = 203,
                     StatusDescription = "Non-Authoritative Information",
                     Body = "Here is my body!"
                 };
 
-                r["MySuperHeader"] = "Haha!";
-                r["MyAnotherSuperHeader"] = "Hahaha!";
-                r.SetCookie = "SuperCookie=SuperValue!";
-                r.ContentEncoding = "text/html";
+                resp["MySuperHeader"] = "Haha!";
+                resp["MyAnotherSuperHeader"] = "Hahaha!";
+                resp.Cookies.Add("SuperCookie=SuperValue!");
+                resp.ContentEncoding = "text/html";
 
-                return r;
+                return resp;
             });
 
-            Response resp = localNode.POST("/response1", "Another body!", "MyHeader1: value1\r\nMyHeader2: value2\r\n");
+            Response resp2 = localNode.POST("/response1", "Another body!", "MyHeader1: value1\r\nMyHeader2: value2\r\n");
 
-            Assert.IsTrue("Haha!" == resp["MySuperHeader"]);
-            Assert.IsTrue("Hahaha!" == resp["MyAnotherSuperHeader"]);
-            Assert.IsTrue(203 == resp.StatusCode);
-            Assert.IsTrue("Non-Authoritative Information" == resp.StatusDescription);
+            Assert.IsTrue("Haha!" == resp2["MySuperHeader"]);
+            Assert.IsTrue("Hahaha!" == resp2["MyAnotherSuperHeader"]);
+            Assert.IsTrue(203 == resp2.StatusCode);
+            Assert.IsTrue("Non-Authoritative Information" == resp2.StatusDescription);
        }
     }
 }

@@ -628,10 +628,10 @@ namespace Starcounter
         private IHypermedia _Hypermedia;
 
         /// <summary>
-        /// The response can be contructed in one of the following ways:
+        /// The response can be constructed in one of the following ways:
         /// 
         /// 1) using a complete binary HTTP response
-        /// in the Uncompressed or Compressed propery (this includes the header)
+        /// in the Uncompressed or Compressed property (this includes the header)
         /// 
         /// 2) using a IHypermedia object in the Hypermedia property
         /// 
@@ -650,23 +650,39 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Set-Cookie string.
+        /// List of cookies.
         /// </summary>
-        public String SetCookie
+        List<String> _Cookies;
+
+        /// <summary>
+        /// List of Set-Cookie headers.
+        /// Each string is in the form of "key=value; options..."
+        /// </summary>
+        public List<String> Cookies
         {
             get
             {
-                EnsureHttpV1IsUsed();
+                if (_Cookies != null)
+                    return _Cookies;
 
-                return this[HttpHeadersUtf8.SetCookieHeader];
+                _Cookies = new List<String>();
+
+                // Adding new cookies list from response.
+                unsafe
+                {
+                    if (http_response_struct_ != null)
+                    {
+                        _Cookies = http_response_struct_->GetHeadersValues(HttpHeadersUtf8.SetCookieHeader, ref headersString_);
+                    }
+                }
+
+                return _Cookies;
             }
 
             set
             {
-                EnsureHttpV1IsUsed();
-
                 customFields_ = true;
-                this[HttpHeadersUtf8.SetCookieHeader] = value;
+                _Cookies = value;
             }
         }
 
@@ -807,51 +823,31 @@ namespace Starcounter
                                     writer.Write(h.Key);
                                     writer.Write(": ");
                                     writer.Write(h.Value);
-                                    if (h.Key == HttpHeadersUtf8.SetCookieHeader)
-                                    {
-                                        if (null != AppsSession)
-                                        {
-                                            if (AppsSession.use_session_cookie_)
-                                            {
-                                                writer.Write(HttpHeadersUtf8.SetSessionCookieMiddle);
-                                                writer.Write(AppsSession.ToAsciiString());
-                                                writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
-                                            }
-                                            else
-                                            {
-                                                writer.Write(HttpHeadersUtf8.SetCookieLocationMiddle);
-                                                writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
-                                                writer.Write(AppsSession.ToAsciiString());
-                                                writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
-                                            }
-                                        }
-                                    }
                                     writer.Write(HttpHeadersUtf8.CRLF);
                                 }
                             }
 
-                            // Checking if session is in place.
-                            if (null != AppsSession)
-                            {
-                                if (this[HttpHeadersUtf8.SetCookieHeader] == null)
-                                {
-                                    if (AppsSession.use_session_cookie_)
-                                    {
-                                        writer.Write(HttpHeadersUtf8.SetSessionCookieHeader);
-                                        writer.Write(AppsSession.ToAsciiString());
-                                        writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
-                                        writer.Write(HttpHeadersUtf8.CRLF);
-                                    }
-                                    else
-                                    {
-						                writer.Write(HttpHeadersUtf8.SetLocationHeader);
-							            writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
-							            writer.Write(AppsSession.ToAsciiString());
-							            writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
-							            writer.Write(HttpHeadersUtf8.CRLF);	
-                                    }
+                            // Checking if session is defined.
+                            if ((null != AppsSession) && (request_ == null || !request_.CameWithCorrectSession)) {
+                                if (AppsSession.use_session_cookie_) {
+                                    writer.Write(HttpHeadersUtf8.SetSessionCookieStart);
+                                    writer.Write(AppsSession.ToAsciiString());
+                                } else {
+                                    writer.Write(HttpHeadersUtf8.SetCookieLocationStart);
+                                    writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+                                    writer.Write(AppsSession.ToAsciiString());
                                 }
-					        }
+                                writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
+                            }
+
+                            // Checking the cookies list.
+                            if (null != _Cookies) {
+                                foreach (String c in _Cookies) {
+                                    writer.Write(HttpHeadersUtf8.SetCookieStart);
+                                    writer.Write(c);
+                                    writer.Write(HttpHeadersUtf8.CRLF);
+                                }
+                            }
 
 					        if (null != bodyString_) {
 						        if (null != bytes)
@@ -1471,13 +1467,23 @@ namespace Starcounter
                 unsafe
                 {
                     // Concatenating headers from dictionary.
-                    if (null != customHeaderFields_)
+                    if ((null != customHeaderFields_) || (null != _Cookies))
                     {
                         headersString_ = "";
 
+                        // Adding each header.
                         foreach (KeyValuePair<string, string> h in customHeaderFields_)
                         {
                             headersString_ += h.Key + ": " + h.Value + StarcounterConstants.NetworkConstants.CRLF;
+                        }
+
+                        // Checking the cookies list.
+                        if (null != _Cookies)
+                        {
+                            foreach (String c in _Cookies)
+                            {
+                                headersString_ += HttpHeadersUtf8.SetCookieStartString + c + StarcounterConstants.NetworkConstants.CRLF;
+                            }
                         }
 
                         return headersString_;
@@ -2050,6 +2056,48 @@ namespace Starcounter
         public void GetHeaderValue(byte[] headerName, out IntPtr ptr, out UInt32 sizeBytes)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Gets the header value.
+        /// </summary>
+        /// <param name="headerName">Name of the header.</param>
+        /// <param name="headersString">Reference of the header string.</param>
+        /// <returns>String.</returns>
+        public List<String> GetHeadersValues(String headerName, ref String headersString)
+        {
+            // Constructing the string if its the first time.
+            if (headersString == null)
+                headersString = Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
+
+            List<String> headerValues = new List<String>();
+            Int32 hend = 0;
+
+            while (true)
+            {
+                // Getting needed substring.
+                Int32 hstart = headersString.IndexOf(headerName, hend); 
+                if (hstart < 0)
+                    break;
+
+                // Skipping header name and colon.
+                hstart += headerName.Length + 1;
+
+                // Skipping header name.
+                while (headersString[hstart] == ' ' || headersString[hstart] == ':')
+                    hstart++;
+
+                // Going until end of line.
+                hend = headersString.IndexOf(StarcounterConstants.NetworkConstants.CRLF, hstart);
+                if (hend <= 0)
+                    throw new ArgumentException("HTTP header is corrupted!");
+
+                headerValues.Add(headersString.Substring(hstart, hend - hstart));
+
+                hend += 2; // Skipping \r\n
+            }
+
+            return headerValues;
         }
 
         /// <summary>

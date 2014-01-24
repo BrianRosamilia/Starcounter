@@ -73,6 +73,7 @@
     <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="..\..\bin\$(Configuration)\Starcounter.UriMatcher.dll" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Web" />
@@ -106,10 +107,6 @@
     <ProjectReference Include="..\Starcounter.Logging\Starcounter.Logging.csproj">
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.UriMatcher\Starcounter.UriMatcher.csproj">
-      <Project>{f913dfeb-3817-41c6-bd28-a5fc55245668}</Project>
-      <Name>Starcounter.UriMatcher</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

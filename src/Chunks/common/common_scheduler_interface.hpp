@@ -130,7 +130,7 @@ public:
 		return state_;
 	}
 #endif
-	
+
 	bool is_scheduler_active(std::size_t index) {
 		return active_schedulers_mask_.is_scheduler_active(index);
 	}
@@ -138,14 +138,18 @@ public:
 	void set_scheduler_number_flag(std::size_t ch) {
 		active_schedulers_mask_.set_scheduler_number_flag(ch);
 	}
-	
+
+#if 0	
 	void clear_scheduler_number_flag(std::size_t ch) {
 		active_schedulers_mask_.clear_scheduler_number_flag(ch);
 	}
-	
+#endif
+
+#if 0	
 	uint64_t get_scheduler_mask(std::size_t ch) const {
 		return active_schedulers_mask_.get_scheduler_mask(ch);
 	}
+#endif
 	
 	std::size_t number_of_active_schedulers() const {
 		std::size_t count = 0;

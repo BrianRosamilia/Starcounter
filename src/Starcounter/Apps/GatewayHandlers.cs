@@ -264,6 +264,8 @@ namespace Starcounter
 
                 }
 
+                Request http_request = null;
+
                 // Checking if we need to process linked chunks.
                 if (!is_single_chunk)
                 {
@@ -286,7 +288,7 @@ namespace Starcounter
                             throw ErrorCode.ToException(errorCode);
 
                         // Obtaining Request structure.
-                        Request http_request = new Request(
+                        http_request = new Request(
                             raw_chunk,
                             is_single_chunk,
                             chunk_index,
@@ -295,12 +297,6 @@ namespace Starcounter
                             p_plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
                             data_stream,
                             protocol_type);
-
-                        // Checking for the correct session.
-                        http_request.GetAppsSessionInterface();
-
-                        // Calling user callback.
-                        *is_handled = user_callback(http_request);
                     }
                 }
                 else
@@ -317,7 +313,7 @@ namespace Starcounter
                     NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
                     // Obtaining Request structure.
-                    Request http_request = new Request(
+                    http_request = new Request(
                         raw_chunk,
                         is_single_chunk,
                         task_info->chunk_index,
@@ -326,13 +322,10 @@ namespace Starcounter
                         socket_data_begin,
                         data_stream,
                         protocol_type);
-
-                    // Checking for the correct session.
-                    http_request.GetAppsSessionInterface();
-
-                    // Calling user callback.
-                    *is_handled = user_callback(http_request);
                 }
+
+                // Calling user callback.
+                *is_handled = user_callback(http_request);
             
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();

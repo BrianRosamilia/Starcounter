@@ -44,6 +44,9 @@
     <!-- Building SqlProcessor solution. -->
     <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True'" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe ..\..\..\Level0\msbuild\SqlProcessor\SqlProcessor.sln /property:Configuration=$(Level0Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
     
+    <!-- Building UriMatcher solution x64. -->
+    <Exec Condition="'$(BUILD_BLUE_FROM_LEVEL1)' == 'True'" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe ..\..\..\Level0\msbuild\uri_matcher_generator\Starcounter.UriMatcher.csproj /property:Configuration=$(Level0Configuration);Platform=AnyCPU;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
+    
     <!-- Creating dynamic copied files lists. -->
     <ItemGroup>
       <LocalLevel0BinFiles Include="..\..\..\Level0\msbuild\x64\$(Level0Configuration)\*" />

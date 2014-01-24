@@ -466,6 +466,10 @@ inline worker& worker::set_active_schedulers(std::size_t n) {
 inline worker& worker::set_shared_interface() {
 	_mm_mfence();
 	shared().init(segment_name_, monitor_interface_name_, pid_, owner_id_);
+	uint32_t c = shared().common_scheduler_interface().scheduler_count();
+	for (uint32_t i = 0; i < c; i++) {
+		shared().open_scheduler_work_event(i); // Exception on failure.
+	}
 	_mm_mfence();
 	return *this;
 }

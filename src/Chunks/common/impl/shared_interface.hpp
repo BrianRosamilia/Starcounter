@@ -63,6 +63,7 @@ client_number_(no_client_number),
 owner_id_(0),
 pid_(0) {}
 
+#if 0
 inline shared_interface::shared_interface(std::string segment_name, std::string
 monitor_interface_name, pid_type pid, owner_id oid)
 : segment_name_(segment_name),
@@ -79,6 +80,7 @@ owner_id_(oid),
 pid_(pid) {
 	init(segment_name, monitor_interface_name, pid, oid);
 }
+#endif
 #endif // defined (IPC_VERSION_2_0)
 
 inline shared_interface::~shared_interface() {
@@ -156,13 +158,14 @@ monitor_interface_name, pid_type pid, owner_id oid) {
 	
 	for (std::size_t i = 0; i < max_number_of_schedulers; ++i) {
 		scheduler_work_event(i) = 0;
-		
+#if 0		
 		if (common_scheduler_interface().is_scheduler_active(i)) {
 			if (!open_scheduler_work_event(i)) {
 				// Failed to open the event.
 				throw shared_interface_exception(SCERROPENSCHEDULERWORKEVENT);
 			}
 		}
+#endif
 	}
 }
 #endif // defined (IPC_VERSION_2_0)

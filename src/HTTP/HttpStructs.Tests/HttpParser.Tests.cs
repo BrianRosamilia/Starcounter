@@ -49,7 +49,7 @@ namespace HttpParser.Tests
             {
                 "GET /players/123 HTTP/1.0\r\n\r\n",
 
-//                "GET /123\r\n", // Legal HTTP 0.9 request (from 1991 specification found here http://www.w3.org/Protocols/HTTP/AsImplemented.html)
+                //"GET /123\r\n", // Legal HTTP 0.9 request (from 1991 specification found here http://www.w3.org/Protocols/HTTP/AsImplemented.html)
 
                 "GET /123\r\n\r\n",
 
@@ -77,6 +77,7 @@ namespace HttpParser.Tests
 
                 "POST /post_identity_body_world?q=search#hey HTTP/1.1\r\n" +
                 "Accept: */*\r\n" +
+                "Cookie: name=value; name2=value2;   name3=value3\r\n" +
                 "Transfer-Encoding: identity\r\n" +
                 "Content-Length: 5\r\n" +
                 "\r\n" +
@@ -86,6 +87,7 @@ namespace HttpParser.Tests
                 "Host: www.example.com\r\n" +
                 "Content-Type: application/example\r\n" +
                 "If-Match: \"e0023aa4e\"\r\n" +
+                "Cookie: MySuperCookie=MySuperValue\r\n" +
                 "Content-Length: 10\r\n" +
                 "\r\n" +
                 "cccccccccc",
@@ -141,6 +143,20 @@ namespace HttpParser.Tests
                 "q=42"
             };
 
+            // Correct HTTP request cookies.
+            String[] http_request_cookies =
+            {
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "name=value;name2=value2;name3=value3",
+                "MySuperCookie=MySuperValue",
+                null
+            };
+
             // Collecting all parsed HTTP requests.
             for (Int32 i = 0; i < http_request_strings.Length; i++)
             {
@@ -158,6 +174,14 @@ namespace HttpParser.Tests
 
                 // Checking correct bodies.
                 Assert.That(http_request.Body == http_request_bodies[i], Is.True);
+
+                // Checking correct cookies.
+                if (http_request_cookies[i] != null)
+                {
+                    String[] correctCookies = http_request_cookies[i].Split(new Char[] { ';' });
+                    for (Int32 k = 0; k < correctCookies.Length; k++)
+                        Assert.That(http_request.Cookies[k] == correctCookies[k], Is.True);
+                }
 
                 // Immediately destroying the structure.
                 http_request.Destroy();

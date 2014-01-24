@@ -98,6 +98,7 @@ public:
 	void init(std::string segment_name, std::string monitor_interface_name,
 	pid_type pid, owner_id oid = owner_id(owner_id::none), uint32_t iid = -1);
 #else // !defined (IPC_VERSION_2_0)
+#if 0
 	/// Constructor.
 	/**
 	 * @param segment_name is used to open the database shared memory.
@@ -107,6 +108,7 @@ public:
 	explicit shared_interface(std::string segment_name, std::string
 	monitor_interface_name, pid_type pid, owner_id oid = owner_id
 	(owner_id::none));
+#endif
 	
 	/// Destructor.
 	~shared_interface();

@@ -491,24 +491,29 @@ WorkerDbInterface::WorkerDbInterface(
 
     ActiveDatabase* active_db = g_gateway.GetDatabase(db_index_);
 
-    // TODO: Fix correct in-time interface initialization.
-    while (true)
-    {
-        // Initializing worker shared memory interface.
-        shared_int_.init(
-            active_db->get_shm_seg_name().c_str(),
-            g_gateway.get_shm_monitor_int_name().c_str(),
-            g_gateway.get_gateway_pid(),
-            g_gateway.get_gateway_owner_id());
+    // Initializing worker shared memory interface.
+    shared_int_.init(
+        active_db->get_shm_seg_name().c_str(),
+        g_gateway.get_shm_monitor_int_name().c_str(),
+        g_gateway.get_gateway_pid(),
+        g_gateway.get_gateway_owner_id());
 
-        // Allocating channels.
-        num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
-        if (num_schedulers_ <= 0)
-            Sleep(100);
-        else
-            break;
-    }
+    uint32_t scheduler_count =
+      shared_int_.common_scheduler_interface().scheduler_count();
 
+    // Wait until the scheduler interface has been properly initialized.
+    while (
+        shared_int_.common_scheduler_interface().number_of_active_schedulers()
+        != scheduler_count
+        ) ::Sleep(0);
+
+    // Open events used to notify scheduler of work available.
+	for (uint32_t i = 0; i < scheduler_count; i++) {
+      shared_int_.open_scheduler_work_event(i); // Exception on failure.
+	}
+
+    // Allocating channels.
+    num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
     channels_ = new core::channel_number[num_schedulers_];
 
     // Getting unique client interface for this worker.
