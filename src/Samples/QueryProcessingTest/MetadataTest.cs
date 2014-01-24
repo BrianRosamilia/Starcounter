@@ -71,7 +71,14 @@ namespace QueryProcessingTest {
                 Trace.Assert(v.Table.Name == v.Name);
                 count++;
             }
-            Trace.Assert(count == 13);
+            Trace.Assert(count == 17);
+            rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "materialized_index").First;
+            Trace.Assert(rv != null);
+            Trace.Assert(rv.FullName == "materialized_index.Raw.Starcounter");
+            Trace.Assert(rv.Table != null);
+            Trace.Assert(rv.Table.Name == rv.Name);
+            Trace.Assert(!rv.Updatable);
+            Trace.Assert(rv.BaseVirtualTable == null);
         }
     }
 }
