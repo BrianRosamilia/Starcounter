@@ -123,7 +123,7 @@ namespace NetworkIoTestApp
             // http://127.0.0.1:8080/new-session
             GET("/new-session", (Request r) =>
             {
-                if (!r.HasSession)
+                if (!r.CameWithCorrectSession)
                 {
                     if (Session.Current == null)
                         Session.Current = new Session();
@@ -144,7 +144,7 @@ namespace NetworkIoTestApp
             // http://127.0.0.1:8080/del-session/70300000CAA03ED139EB1306FFFFFFFF
             GET("/del-session/{?}", (Session s, Request r) =>
             {
-                if (r.HasSession)
+                if (r.CameWithCorrectSession)
                 {
                     r.DestroySession();
                     return "Session deleted!";
@@ -967,7 +967,7 @@ namespace NetworkIoTestApp
                 "Content-Length: " + responseBody.Length + "\r\n";
 
             // Generating new session cookie if needed.
-            if (p.HasSession)
+            if (p.CameWithCorrectSession)
             {
                 // Generating and writing new session.
                 p.DestroySession();
@@ -1008,7 +1008,7 @@ namespace NetworkIoTestApp
                 "Content-Length: " + responseBody.Length + "\r\n";
 
             // Generating new session cookie if needed.
-            if (!p.HasSession)
+            if (!p.CameWithCorrectSession)
             {
                 try
                 {

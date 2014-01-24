@@ -127,7 +127,7 @@ namespace Starcounter.Internal.Tests {
 			request.HostName = "192.168.8.1";
 			request.ContentType = "application/json";
 			request.ContentEncoding = "utf8";
-			request.Cookie = "dfsafeHYWERGSfswefw";
+			request.Cookies.Add("dfsafeHYWERGSfswefw");
 			request.BodyBytes = Encoding.UTF8.GetBytes(json);
 
             Assert.IsTrue(request.Method == "PUT");
@@ -135,7 +135,7 @@ namespace Starcounter.Internal.Tests {
             Assert.IsTrue(request.HostName == "192.168.8.1");
             Assert.IsTrue(request.ContentType == "application/json");
             Assert.IsTrue(request.ContentEncoding == "utf8");
-            Assert.IsTrue(request.Cookie == "dfsafeHYWERGSfswefw");
+            Assert.IsTrue(request.Cookies[0] == "dfsafeHYWERGSfswefw");
 
             IStructuralEquatable eqa1 = Encoding.UTF8.GetBytes(json);
             Assert.IsTrue(eqa1.Equals(request.BodyBytes, StructuralComparisons.StructuralEqualityComparer));

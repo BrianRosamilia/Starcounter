@@ -136,7 +136,7 @@ namespace Starcounter.Internal.Web {
         public Response HandleRequest(Request request) {
             Response response = null;
             UInt32 errCode;
-            Boolean cameWithSession = request.HasSession;
+            Boolean cameWithSession = request.CameWithCorrectSession;
 
             switch (request.ProtocolType)
             {

@@ -254,6 +254,10 @@ void test::initialize(const std::vector<std::string>& ipc_shm_params_name) {
 		///=========================================================================
 
 		shared_[n].init(segment_name, monitor_interface_name, pid_, owner_id_);
+		uint32_t c = shared_[n].common_scheduler_interface().scheduler_count();
+	    for (uint32_t i = 0; i < c; i++) {
+			shared_[n].open_scheduler_work_event(i); // Exception on failure.
+		}
 		++number_of_shared_;
 
 		for (std::size_t i = 0; i < workers(); ++i) {

@@ -71,6 +71,11 @@
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.1\lib\nunit.framework.dll</HintPath>
     </Reference>
+    <Reference Include="Starcounter.UriMatcher, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\bin\$(Configuration)\Starcounter.UriMatcher.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
@@ -104,10 +109,6 @@
     <ProjectReference Include="..\Starcounter.Hypermedia\Starcounter.Hypermedia.csproj">
       <Project>{42137e4c-afe5-4c60-b970-3343c3b3ec30}</Project>
       <Name>Starcounter.Hypermedia</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.UriMatcher\Starcounter.UriMatcher.csproj">
-      <Project>{f913dfeb-3817-41c6-bd28-a5fc55245668}</Project>
-      <Name>Starcounter.UriMatcher</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

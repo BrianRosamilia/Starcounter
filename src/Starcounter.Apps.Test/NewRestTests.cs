@@ -293,7 +293,7 @@ namespace Starcounter.Internal.Test
                     StatusDescription = "Not Found",
                     ContentType = "text/html",
                     ContentEncoding = "gzip",
-                    SetCookie = "MyCookie1=123; MyCookie2=456",
+                    Cookies = { "MyCookie1=123", "MyCookie2=456" },
                     Body = "response1"
                 };
 
@@ -308,7 +308,10 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue("Not Found" == resp.StatusDescription);
             Assert.IsTrue("text/html" == resp.ContentType);
             Assert.IsTrue("gzip" == resp.ContentEncoding);
-            Assert.IsTrue("MyCookie1=123; MyCookie2=456" == resp.SetCookie);
+
+            Assert.IsTrue("MyCookie1=123" == resp.Cookies[0]);
+            Assert.IsTrue("MyCookie2=456" == resp.Cookies[1]);
+
             Assert.IsTrue(9 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
             Assert.IsTrue("response1" == resp.Body);
@@ -334,7 +337,7 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue("Non-Authoritative Information" == resp.StatusDescription);
             Assert.IsTrue(null == resp.ContentType);
             Assert.IsTrue(null == resp.ContentEncoding);
-            Assert.IsTrue(null == resp.SetCookie);
+            Assert.IsTrue(0 == resp.Cookies.Count);
             Assert.IsTrue(0 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
             Assert.IsTrue(null == resp.Body);
