@@ -175,7 +175,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualView")
+                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualTable")
                 });
         }
 
@@ -217,7 +217,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualView")
+                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualTable")
                 });
         }
 
@@ -262,8 +262,8 @@ namespace Starcounter.Metadata {
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualView"),
-                    new PropertyDef("AssmeblyName", DbTypeCode.String),
+                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualTable"),
+                    new PropertyDef("AssemblyName", DbTypeCode.String),
                     new PropertyDef("AppdomainName", DbTypeCode.String),
                     new PropertyDef("FullClassName", DbTypeCode.String)
                 });

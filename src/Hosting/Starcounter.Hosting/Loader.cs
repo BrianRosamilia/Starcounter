@@ -148,7 +148,8 @@ namespace StarcounterInternal.Hosting
                     BaseType.CreateTypeDef(), MaterializedType.CreateTypeDef(), RuntimeType.CreateTypeDef(),
                     MappedType.CreateTypeDef(), ReferenceType.CreateTypeDef(),
                     RuntimeView.CreateTypeDef(), VirtualTable.CreateTypeDef(), RawView.CreateTypeDef(),
-                    VMView.CreateTypeDef()
+                    VMView.CreateTypeDef(), ClrView.CreateTypeDef(), RuntimeMember.CreateTypeDef(), 
+                    TableColumn.CreateTypeDef(), CodeProperty.CreateTypeDef()
                 },
                 null,
                 stopwatch_,
@@ -199,6 +200,11 @@ namespace StarcounterInternal.Hosting
             HostManager.InitTypeSpecification(typeof(VirtualTable.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(RawView.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(ClrView.__starcounterTypeSpecification));
+
+            HostManager.InitTypeSpecification(typeof(RuntimeMember.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(TableColumn.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(CodeProperty.__starcounterTypeSpecification));
 
             stopwatch_ = null;
         }

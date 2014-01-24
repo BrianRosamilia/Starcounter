@@ -9,6 +9,7 @@ namespace QueryProcessingTest {
         public static void TestPopulatedMetadata() {
             HelpMethods.LogEvent("Test populated meta-data");
             TestTypeMetadata();
+            TestRuntimeColumnMetadata();
             HelpMethods.LogEvent("Finished testing populated meta-data");
         }
 
@@ -79,6 +80,16 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.Table.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.BaseVirtualTable == null);
+        }
+
+        public static void TestRuntimeColumnMetadata() {
+            TableColumn c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "materialized_column").First;
+            Trace.Assert(c != null);
+            Trace.Assert(c.Name == "materialized_column");
+            Trace.Assert(c.RuntimeView != null);
+            Trace.Assert(c.RuntimeView.Name == "table_column");
+            Trace.Assert(c.RuntimeView is RawView);
+            Trace.Assert((c.RuntimeView as RawView).BaseVirtualTable != null);
         }
     }
 }
