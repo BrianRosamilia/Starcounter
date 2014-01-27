@@ -1,5 +1,7 @@
 ﻿using Codeplex.Data;
 using Starcounter.Advanced;
+using Starcounter.Server;
+using Starcounter.Server.Service;
 using Starcounter.Tools.Service.Task;
 using System;
 using System.Collections.Generic;
@@ -35,6 +37,16 @@ namespace Starcounter.Tools.Service {
             private set;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsStarcounterServiceOnline {
+            get {
+                return ServerServiceProcess.IsOnline();
+            }
+        }
+
+
         private BackgroundWorker StatusBackgroundWorker;
 
         #endregion
@@ -47,6 +59,10 @@ namespace Starcounter.Tools.Service {
         /// <param name="e"></param>
         public delegate void StatusChangedEventHandler(object sender, StatusEventArgs e);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public event StatusChangedEventHandler StatusChanged;
 
         /// <summary>
         /// 
@@ -59,14 +75,21 @@ namespace Starcounter.Tools.Service {
         /// <summary>
         /// 
         /// </summary>
-        public event StatusChangedEventHandler StatusChanged;
-
-        /// <summary>
-        /// 
-        /// </summary>
         public event ErrorEventHandler Error;
 
         #endregion
+
+        /// <summary>
+        /// Start Starcounter Service
+        /// </summary>
+        /// <param name="serviceName"></param>
+        public static void StartService(string serviceName = ServerService.Name) {
+
+            if (!ServerServiceProcess.IsOnline()) {
+                ServerServiceProcess.StartInteractiveOnDemand();
+            }
+
+        }
 
         /// <summary>
         /// Start worker thread that polls the status
@@ -83,6 +106,11 @@ namespace Starcounter.Tools.Service {
             this.StatusBackgroundWorker.ProgressChanged += StatusBackgroundWorker_ProgressChanged;
             this.StatusBackgroundWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(StatusBackgroundWorkCompleted);
             this.StatusBackgroundWorker.RunWorkerAsync();
+
+            StatusEventArgs statusArgs = new StatusEventArgs();
+            statusArgs.Connected = ServerServiceProcess.IsOnline();
+            OnChanged(statusArgs);
+
         }
 
         private void StatusBackgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e) {

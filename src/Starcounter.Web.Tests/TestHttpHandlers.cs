@@ -303,22 +303,6 @@ namespace Starcounter.Internal.Test {
         }*/
 
         /// <summary>
-        /// Generates the request processor in the C# language.
-        /// </summary>
-        [Test]
-        public void GenerateCSharpRequestProcessor() {
-            Main(); // Register some handlers
-            var umb = RequestHandler.UriMatcherBuilder;
-
-            var ast = umb.CreateAstTree(false);
-            ast.Namespace = "__big_urimatcher__";
-            var compiler = umb.CreateCompiler();
-            var str = compiler.GenerateRequestProcessorCSharpSourceCode( ast );
-            Console.WriteLine( str );
-        }
-
-
-        /// <summary>
         /// Generates the request processor in the C++ language.
         /// </summary>
         [Test]
@@ -359,42 +343,6 @@ namespace Starcounter.Internal.Test {
 
         //    Console.WriteLine("Complete codegenerated C/C++ file");
             Console.WriteLine(str);
-        }
-
-
-        /// <summary>
-        /// Generates the request processor in the C++ language.
-        /// </summary>
-        [Test]
-        public void GenerateSimpleCsRequestProcessor() {
-            UserHandlerCodegen.ResetHandlersManager();
-            RegisterSimpleHandlers(); // Register some handlers
-            var umb = RequestHandler.UriMatcherBuilder;
-
-            var ast = umb.CreateAstTree(false);
-            ast.Namespace = "__simple_urimatcher__";
-            var compiler = umb.CreateCompiler();
-            var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
-
-            Console.WriteLine(str);
-
-        }
-
-        /// <summary>
-        /// Generates the request processor in the C++ language.
-        /// </summary>
-        [Test]
-        public void GenerateBigCsRequestProcessor() {
-           Main(); // Register some handlers
-           var umb = RequestHandler.UriMatcherBuilder;
-
-           var ast = umb.CreateAstTree(false);
-           ast.Namespace = "__big_urimatcher__";
-           var compiler = umb.CreateCompiler();
-           var str = compiler.GenerateRequestProcessorCSharpSourceCode(ast);
-
-           Console.WriteLine(str);
-
         }
 
        /// <summary>

@@ -1,5 +1,8 @@
 @echo off
 
+:: Checking if its SCBUILDSERVER.
+IF NOT "%COMPUTERNAME%"=="scbuildserver" GOTO :EOF
+
 :: Checking if documentation should be generated.
 IF "%SC_GENERATE_CODE_DOCS%"=="False" GOTO :EOF
 
