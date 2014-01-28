@@ -14,136 +14,158 @@ using System.Windows.Shapes;
 using System.Windows.Resources;
 using System.IO;
 using System.ComponentModel;
+using System.Windows.Media.Animation;
 
-namespace Starcounter.InstallerWPF.Slides
-{
+namespace Starcounter.InstallerWPF.Slides {
     /// <summary>
     /// Interaction logic for AddComponentsFinishedPage.xaml
     /// </summary>
-    public partial class Movie : Grid, ISlide, INotifyPropertyChanged
-    {
+    public partial class Movie : Grid, ISlide, INotifyPropertyChanged {
 
         private Uri MovieUri { get; set; }
 
-        private bool _MediaCanBePlayed = true; 
-        public bool MediaCanBePlayed
-        {
-            get
-            {
+        public bool AutoClose {
+            get {
+                return !this.MediaCanBePlayed;
+            }
+        }
+
+        private bool _MediaCanBePlayed = true;
+        public bool MediaCanBePlayed {
+            get {
                 return this._MediaCanBePlayed;
             }
-            protected set
-            {
+            protected set {
                 if (this._MediaCanBePlayed == value) return;
                 this._MediaCanBePlayed = value;
                 this.OnPropertyChanged("MediaCanBePlayed");
             }
         }
 
-        public Movie()
-        {
+        public Movie() {
             InitializeComponent();
 
             this.Loaded += new RoutedEventHandler(Movie_Loaded);
             this.mediaElement.MediaEnded += new RoutedEventHandler(mediaElement_MediaEnded);
             this.mediaElement.MediaFailed += new EventHandler<ExceptionRoutedEventArgs>(mediaElement_MediaFailed);
             this.Unloaded += new RoutedEventHandler(Movie_Unloaded);
+
+            this.PropertyChanged += Movie_PropertyChanged;
         }
 
-        void mediaElement_MediaFailed(object sender, ExceptionRoutedEventArgs e)
-        {
+        void Movie_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+
+            if (e.PropertyName == "MediaCanBePlayed") {
+                if (this.MediaCanBePlayed) {
+                    StopAnimation();
+                }
+                else {
+                    StartAnimation();
+                }
+            }
+
+        }
+
+        void mediaElement_MediaFailed(object sender, ExceptionRoutedEventArgs e) {
             this.mediaElement.Visibility = System.Windows.Visibility.Collapsed;
             this.MediaCanBePlayed = false;
-            this.nomovieimage.Visibility = System.Windows.Visibility.Visible;
+            //this.nomovieimage.Visibility = System.Windows.Visibility.Visible;
         }
 
-        void Movie_Unloaded(object sender, RoutedEventArgs e)
-        {
-            if (this.MovieUri != null && File.Exists(this.MovieUri.LocalPath))
-            {
+        void Movie_Unloaded(object sender, RoutedEventArgs e) {
+            if (this.MovieUri != null && File.Exists(this.MovieUri.LocalPath)) {
                 File.Delete(this.MovieUri.LocalPath);
             }
         }
 
-        void Movie_Loaded(object sender, RoutedEventArgs e)
-        {
-            if (this.MediaCanBePlayed)
-            {
+        void Movie_Loaded(object sender, RoutedEventArgs e) {
+            if (this.MediaCanBePlayed) {
                 this.MovieUri = this.prepareVideo();
-                this.mediaElement.Source = this.MovieUri;
-                this.mediaElement.Play();
+                if (this.MovieUri == null) {
+                    this.MediaCanBePlayed = false;
+                }
+                else {
+                    this.mediaElement.Source = this.MovieUri;
+                    this.mediaElement.Play();
+                }
             }
-            else
-            {
+            else {
                 // TODO: Show picture/text
             }
         }
 
-        void mediaElement_MediaEnded(object sender, RoutedEventArgs e)
-        {
+        void mediaElement_MediaEnded(object sender, RoutedEventArgs e) {
             NavigationCommands.NextPage.Execute(null, this);
             CommandManager.InvalidateRequerySuggested();
         }
 
-        private Uri prepareVideo()
-        {
+        private Uri prepareVideo() {
 
-            StreamResourceInfo sri = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/../resources/FullStory.wmv"));
+            try {
+                StreamResourceInfo sri = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/../resources/FullStory.wmv"));
 
-            Stream resFilestream = sri.Stream;
+                Stream resFilestream = sri.Stream;
 
-            string tempFileName = System.IO.Path.GetTempFileName();
+                if (resFilestream.Length == 0) return null;
 
-            // Prepare file name 
-            tempFileName = System.IO.Path.ChangeExtension(tempFileName, "wmv");
+                string tempFileName = System.IO.Path.GetTempFileName();
 
-            // Remove any escaped characters like "%20" (FileStream dosent work so good with escaped pathes)
-            tempFileName = Uri.UnescapeDataString(tempFileName);
+                // Prepare file name 
+                tempFileName = System.IO.Path.ChangeExtension(tempFileName, "wmv");
 
-            // Create the Uri to the tempFile
-            Uri movieUri = new Uri(tempFileName);
+                // Remove any escaped characters like "%20" (FileStream dosent work so good with escaped pathes)
+                tempFileName = Uri.UnescapeDataString(tempFileName);
 
-            if (resFilestream != null)
-            {
-                using (BinaryReader br = new BinaryReader(resFilestream))
-                {
-                    using (FileStream fs = new FileStream(movieUri.LocalPath, FileMode.Create))
-                    {
-                        using (BinaryWriter bw = new BinaryWriter(fs))
-                        {
-                            byte[] ba = new byte[resFilestream.Length];
-                            resFilestream.Read(ba, 0, ba.Length);
-                            bw.Write(ba);
-                            bw.Close();
+                // Create the Uri to the tempFile
+                Uri movieUri = new Uri(tempFileName);
+
+                if (resFilestream != null) {
+                    using (BinaryReader br = new BinaryReader(resFilestream)) {
+                        using (FileStream fs = new FileStream(movieUri.LocalPath, FileMode.Create)) {
+                            using (BinaryWriter bw = new BinaryWriter(fs)) {
+                                byte[] ba = new byte[resFilestream.Length];
+                                resFilestream.Read(ba, 0, ba.Length);
+                                bw.Write(ba);
+                                bw.Close();
+                            }
+                            fs.Close();
                         }
-                        fs.Close();
+                        br.Close();
                     }
-                    br.Close();
+                    resFilestream.Close();
                 }
-                resFilestream.Close();
+                return movieUri;
+            }
+            catch (Exception) {
+                return null;
             }
 
+        }
 
-            return movieUri;
+
+        private void StartAnimation() {
+            Storyboard Element_Storyboard = (Storyboard)PART_Canvas.FindResource("canvasAnimation");
+            Element_Storyboard.Begin(PART_Canvas, true);
+        }
+
+        private void StopAnimation() {
+            Storyboard Element_Storyboard = (Storyboard)PART_Canvas.FindResource("canvasAnimation");
+            Element_Storyboard.Stop(PART_Canvas);
         }
 
         #region ISlide Members
 
-        public string HeaderText
-        {
+        public string HeaderText {
             get { return "Movie"; }
         }
 
         #endregion
 
-
         #region INotifyPropertyChanged Members
 
         public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged(string fieldName)
-        {
-            if (PropertyChanged != null)
-            {
+        protected virtual void OnPropertyChanged(string fieldName) {
+            if (PropertyChanged != null) {
                 PropertyChanged(this, new PropertyChangedEventArgs(fieldName));
             }
         }

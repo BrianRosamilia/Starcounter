@@ -209,11 +209,7 @@ namespace Starcounter
         /// <param name="customHeaders"></param>
         /// <param name="userObject"></param>
         /// <param name="userDelegate"></param>
-        internal static Boolean CheckLocalCache(String uri, 
-                                                bool internalRequest,
-                                                Object userObject, 
-                                                Action<Response, Object> userDelegate, 
-                                                out Response resp)
+        internal static Boolean CheckLocalCache(String uri, Object userObject, Action<Response, Object> userDelegate, out Response resp)
         {
             resp = null;
 
@@ -225,15 +221,13 @@ namespace Starcounter
                     Json cachedObj = Session.Current.GetCachedJsonNode(uri);
                     if (null != cachedObj)
                     {
-                        if (internalRequest || !cachedObj.HasBeenSent) {
-                            // Calling user delegate directly.
-                            if (null != userDelegate)
-                                userDelegate.Invoke(cachedObj, userObject);
-                            else
-                                resp = cachedObj;
+                        // Calling user delegate directly.
+                        if (null != userDelegate)
+                            userDelegate.Invoke(cachedObj, userObject);
+                        else
+                            resp = cachedObj;
 
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -275,7 +269,7 @@ namespace Starcounter
         public static void GET(String uri, out Response response, String customHeaders = null, Int32 receiveTimeoutMs = 0)
         {
             // Checking if we can reuse the cache.
-            if (IsInSccode && CheckLocalCache(uri, true, null, null, out response))
+            if (IsInSccode && CheckLocalCache(uri, null, null, out response))
                 return;
 
             Node node;
@@ -299,7 +293,7 @@ namespace Starcounter
             Response resp;
 
             // Checking if we can reuse the cache.
-            if (IsInSccode && CheckLocalCache(uri, true, userObject, userDelegate, out resp))
+            if (IsInSccode && CheckLocalCache(uri, userObject, userDelegate, out resp))
                 return;
 
             Node node;

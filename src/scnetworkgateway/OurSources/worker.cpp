@@ -1662,15 +1662,14 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
     if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING;
 
-    db_index_type target_db_index = sd->GetDestDbIndex();
-    GW_ASSERT(INVALID_DB_INDEX != target_db_index);
-
     // Getting database to which this chunk belongs.
-    WorkerDbInterface *db = GetWorkerDb(target_db_index);
-    GW_ASSERT(NULL != db);
+    WorkerDbInterface *db = GetWorkerDb(sd->GetDestDbIndex());
 
     // Pushing chunk to that database.
-    return db->PushSocketDataToDb(this, sd, handler_id);
+    if (NULL != db)
+        return db->PushSocketDataToDb(this, sd, handler_id);
+
+    return 0;
 }
 
 // Deleting inactive database.

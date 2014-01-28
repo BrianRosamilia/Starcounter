@@ -19,6 +19,8 @@ namespace Starcounter.InstallerWPF.Slides
     /// </summary>
     public partial class Slide3 : Grid, ISlide
     {
+        public bool AutoClose { get { return false; } }
+
         public Slide3()
         {
             InitializeComponent();

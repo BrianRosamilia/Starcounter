@@ -23,6 +23,10 @@ using System.Windows.Threading;
 using Starcounter.InstallerWPF.DemoSequence;
 using Starcounter.Internal;
 using System.Windows.Documents;
+using System.Linq;
+using System.Windows.Resources;
+
+
 
 namespace Starcounter.InstallerWPF {
     /// <summary>
@@ -365,6 +369,13 @@ namespace Starcounter.InstallerWPF {
         }
 
 
+        private IList<String> _PoweredByResources = new ObservableCollection<string>();
+        public IList<String> PoweredByResources {
+            get {
+                return this._PoweredByResources;
+            }
+        }
+
         public static Boolean[] InstalledComponents;
 
         #endregion
@@ -375,8 +386,48 @@ namespace Starcounter.InstallerWPF {
             this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
             this.Closed += new EventHandler(CleanUpAfterUninstall);
 
+            this.InitPoweredByResources();
+
             InitializeComponent();
         }
+
+
+        /// <summary>
+        /// Populate "poweredby" resource image list
+        /// </summary>
+        private void InitPoweredByResources() {
+
+            string resource1 = "resources/poweredby1.png";
+            if (this.IsResourceIsAvailable(resource1)) {
+                this.PoweredByResources.Add(resource1);
+            }
+
+            string resource2 = "resources/poweredby2.png";
+            if (this.IsResourceIsAvailable(resource2)) {
+                this.PoweredByResources.Add(resource2);
+            }
+
+        }
+
+        /// <summary>
+        /// Check if resource is available
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private bool IsResourceIsAvailable(string name) {
+
+            try {
+                StreamResourceInfo sri = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/../" + name));
+                if (sri != null && sri.Stream.Length > 0) {
+                    return true;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+
+
 
         void MainWindow_PropertyChanged(object sender, PropertyChangedEventArgs e) {
             if ("SetupOptions".Equals(e.PropertyName)) {
@@ -472,12 +523,10 @@ namespace Starcounter.InstallerWPF {
 #if SIMULATE_CLEAN_INSTALLATION
             WpfMessageBoxResult result = WpfMessageBox.Show("Simulate Clean installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
-            if (!this.HasCurrentInstalledComponents() || (result == WpfMessageBoxResult.Yes))
-            {
+            if (!this.HasCurrentInstalledComponents() || (result == WpfMessageBoxResult.Yes)) {
                 this.SetupOptions = SetupOptions.Install;
             }
-            else
-            {
+            else {
                 this.SetupOptions = SetupOptions.Ask;
             }
 #else

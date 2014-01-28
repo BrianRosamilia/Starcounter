@@ -19,7 +19,7 @@
   <GatewayStatisticsPort>8181</GatewayStatisticsPort>
 
   <!-- Gateway traffic aggregation port -->
-  <AggregationPort>9090</AggregationPort>
+  <AggregationPort>9191</AggregationPort>
 
   <!-- Information on reverse proxies if any. -->
 

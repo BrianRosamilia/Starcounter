@@ -165,7 +165,6 @@ enum GatewayErrorCodes
     SCERRGWMAXDATASIZEREACHED
 };
 
-
 // Maximum number of ports the gateway operates with.
 const int32_t MAX_PORTS_NUM = 16;
 

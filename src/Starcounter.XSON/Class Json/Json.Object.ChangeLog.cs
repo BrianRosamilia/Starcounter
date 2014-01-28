@@ -160,7 +160,9 @@ namespace Starcounter {
 			} else if (template.HasAtLeastOneBoundProperty) {
 				for (int t = 0; t < exposed.Count; t++) {
 					if (exposed[t] is TContainer) {
-						((TContainer)exposed[t]).GetValue(this).LogValueChangesWithDatabase(session);
+                        var c = ((TContainer)exposed[t]).GetValue(this);
+                        if (c != null)
+						    c.LogValueChangesWithDatabase(session);
 					} else {
 						if (IsArray) {
 							throw new NotImplementedException();

@@ -198,7 +198,9 @@ namespace Starcounter.InstallerWPF.Pages {
 
                 this._CurrentIndex = value;
 
-                this.cp_SlideShow.Content = this.Slides[this._CurrentIndex];
+                if (this.Slides.Count > 0) {
+                    this.cp_SlideShow.Content = this.Slides[this._CurrentIndex];
+                }
 
                 //this.tb_header.Text = ((ISlide)this.cp_SlideShow.Content).HeaderText;
 
@@ -215,7 +217,6 @@ namespace Starcounter.InstallerWPF.Pages {
 
         public ProgressPage() {
             this._dispatcher = Dispatcher.FromThread(Thread.CurrentThread);
-
 
             Slides.Add(new Movie());
             //Slides.Add(new Slide1());
@@ -345,6 +346,17 @@ namespace Starcounter.InstallerWPF.Pages {
         private void OnSuccess() {
             this.IsInstalling = false;
             this._CanGoNext = true;
+
+            if (this.Slides.Count > 0) {
+                ISlide currentClide = this.Slides[this.CurrentIndex] as ISlide;
+
+                if (currentClide.AutoClose) {
+
+                    // Go to next "page"
+                    NavigationCommands.NextPage.Execute(null, Application.Current.MainWindow);
+                }
+            }
+
             CommandManager.InvalidateRequerySuggested();
         }
 

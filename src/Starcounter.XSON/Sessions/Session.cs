@@ -94,7 +94,9 @@ namespace Starcounter {
                 return _Data;
 
             // Checking if node has no parent, indicating that it was removed from tree.
-            if (null != obj.Parent)
+            // We need to check all the way up to the root, since a parent might have been removed 
+            // further up.
+            if (obj.HasThisRoot(_Data))
                 return obj;
 
             return null;

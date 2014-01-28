@@ -21,6 +21,12 @@ namespace Starcounter.InstallerWPF.Pages
     public partial class FinishedPage : BasePage, IFinishedPage
     {
 
+        public override bool CanGoBack {
+            get {
+                return false;
+            }
+        }
+
         public FinishedPage()
         {
             InitializeComponent();

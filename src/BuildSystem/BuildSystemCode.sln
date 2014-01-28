@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleanUpSourceDirectory", "C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnforceBuildSystemPolicy", "EnforceBuildSystemPolicy\EnforceBuildSystemPolicy.csproj", "{16538912-F6F4-4F33-B698-F1F8421A8DBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiErrorCodes", "WikiErrorCodes\WikiErrorCodes.csproj", "{56CD2176-A48A-426D-8916-24146DB0AEAF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackArtifactsAndUpload", "PackArtifactsAndUpload\PackArtifactsAndUpload.csproj", "{729F7148-376A-4E7F-BC73-E3339371D9D0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorHelpPages", "ErrorHelpPages\ErrorHelpPages.csproj", "{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}"
@@ -49,10 +47,6 @@ Global
 		{16538912-F6F4-4F33-B698-F1F8421A8DBC}.Debug|AnyCPU.Build.0 = Debug|Any CPU
 		{16538912-F6F4-4F33-B698-F1F8421A8DBC}.Release|AnyCPU.ActiveCfg = Release|Any CPU
 		{16538912-F6F4-4F33-B698-F1F8421A8DBC}.Release|AnyCPU.Build.0 = Release|Any CPU
-		{56CD2176-A48A-426D-8916-24146DB0AEAF}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
-		{56CD2176-A48A-426D-8916-24146DB0AEAF}.Debug|AnyCPU.Build.0 = Debug|Any CPU
-		{56CD2176-A48A-426D-8916-24146DB0AEAF}.Release|AnyCPU.ActiveCfg = Release|Any CPU
-		{56CD2176-A48A-426D-8916-24146DB0AEAF}.Release|AnyCPU.Build.0 = Release|Any CPU
 		{729F7148-376A-4E7F-BC73-E3339371D9D0}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
 		{729F7148-376A-4E7F-BC73-E3339371D9D0}.Release|AnyCPU.ActiveCfg = Release|Any CPU
 		{13DB3FE2-3257-49A2-9DB2-F40C619F3E7D}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
