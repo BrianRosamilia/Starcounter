@@ -12,25 +12,21 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Starcounter.InstallerWPF.Slides
-{
+namespace Starcounter.InstallerWPF.Slides {
     /// <summary>
     /// Interaction logic for AddComponentsFinishedPage.xaml
     /// </summary>
-    public partial class Slide1 : Grid, ISlide
-    {
+    public partial class Slide1 : Grid, ISlide {
 
+        public bool AutoClose { get { return false; } }
 
-
-        public Slide1()
-        {
+        public Slide1() {
             InitializeComponent();
         }
 
         #region ISlide Members
 
-        public string HeaderText
-        {
+        public string HeaderText {
             get { return "Get Excited"; }
         }
 

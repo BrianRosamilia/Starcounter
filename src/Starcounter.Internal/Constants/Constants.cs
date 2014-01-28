@@ -137,7 +137,7 @@ namespace Starcounter.Internal
             /// <summary>
             /// Default aggregation port for Personal server.
             /// </summary>
-            public const UInt16 DefaultPersonalServerAggregationPort = 9090;
+            public const UInt16 DefaultPersonalServerAggregationPort = 9191;
 
             /// <summary>
             /// Default user port for Personal server.

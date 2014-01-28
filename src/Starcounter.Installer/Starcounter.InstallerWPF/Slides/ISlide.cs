@@ -8,5 +8,6 @@ namespace Starcounter.InstallerWPF.Slides
     interface ISlide
     {
         string HeaderText { get; }
+        bool AutoClose { get; }
     }
 }

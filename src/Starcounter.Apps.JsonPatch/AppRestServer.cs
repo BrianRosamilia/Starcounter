@@ -159,7 +159,8 @@ namespace Starcounter.Internal.Web {
                                 Session.Start(s);
 
                                 // Checking if we can reuse the cache.
-                                if (X.CheckLocalCache(request.Uri, request.IsInternal, null, null, out response)) {
+                                if (request.IsInternal && X.CheckLocalCache(request.Uri, null, null, out response)) {
+
                                     // Setting the session again.
                                     response.AppsSession = Session.Current.InternalSession;
 

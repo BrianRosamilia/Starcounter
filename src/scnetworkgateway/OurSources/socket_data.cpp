@@ -280,7 +280,11 @@ uint32_t SocketDataChunk::SendDeleteSession(GatewayWorker* gw)
     {
         ScSessionStruct s = g_gateway.GetGlobalSessionCopy(socket_info_index_);
 
-        return (gw->GetWorkerDb(GetDestDbIndex())->PushSessionDestroy(s.linear_index_, s.random_salt_, s.scheduler_id_));
+        WorkerDbInterface *db = gw->GetWorkerDb(GetDestDbIndex());
+
+        // Pushing chunk to that database.
+        if (NULL != db)
+            return (db->PushSessionDestroy(s.linear_index_, s.random_salt_, s.scheduler_id_));
     }
 
     return 0;

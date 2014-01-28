@@ -20,6 +20,7 @@ namespace Starcounter.InstallerWPF.Slides
     public partial class Slide2 : Grid, ISlide
     {
 
+        public bool AutoClose { get { return false; } }
  
 
         public Slide2()

@@ -20,7 +20,7 @@
         <SolidColorBrush x:Key="Icon_Sc_Logo_1_Foreground" Color="#fffd7f02"/>
         <SolidColorBrush x:Key="Icon_Sc_Logo_2_Foreground" Color="#fffdbb02"/>
 
-        
+
         <DataTemplate x:Key="icon_sc_symbol">
             <Viewbox>
                 <Grid>
@@ -45,7 +45,7 @@
             </Viewbox>
         </DataTemplate>
 
-        
+
         <DataTemplate x:Key="icon_sc_symbol_with_text_horizontal">
             <Viewbox>
                 <StackPanel Orientation="Horizontal">
@@ -54,7 +54,9 @@
                 </StackPanel>
             </Viewbox>
         </DataTemplate>
-        
+
+
+
     </Window.Resources>
 
     <Window.CommandBindings>
@@ -164,21 +166,23 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- Logo -->
                 <Grid Margin="0,0,0,0"  HorizontalAlignment="Left" VerticalAlignment="Top" >
 
+                    <Image Source="resources/logo.png" RenderOptions.BitmapScalingMode="HighQuality" />
 
                     <!--<Image RenderOptions.BitmapScalingMode="HighQuality" Stretch="None" Source="..\resources\SC_200.png" />-->
-                    <ContentPresenter Margin="15,20,15,0"  ContentTemplate="{StaticResource icon_sc_symbol_with_text_horizontal}" />
+                    <!--<ContentPresenter Margin="15,20,15,0"  ContentTemplate="{StaticResource icon_sc_symbol_with_text_horizontal}" />-->
 
                 </Grid>
 
                 <!-- Devider -->
                 <!--<Border Grid.Row="1" Margin="30,0,30,0" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0"   />-->
 
-                <ListBox IsSynchronizedWithCurrentItem="True" Margin="0,60,0,0" SelectionMode="Single" IsEnabled="False" x:Name="pages_lb" SelectedIndex="0" SelectionChanged="pages_lb_SelectionChanged" ItemsSource="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Pages}" Grid.Row="2" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                <ListBox IsSynchronizedWithCurrentItem="True" Margin="0,13,0,0" SelectionMode="Single" IsEnabled="False" x:Name="pages_lb" SelectedIndex="0" SelectionChanged="pages_lb_SelectionChanged" ItemsSource="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Pages}" Grid.Row="2" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
                     <ListBox.Resources>
                         <!-- Disabled color -->
@@ -275,8 +279,52 @@
                 <!-- Devider -->
                 <!--<Border Grid.Row="3" Margin="30,0,30,40" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0"   />-->
 
-                <TextBlock Margin="5" Foreground="#20ffffff" Grid.Row="3" Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Version}"></TextBlock>
+                <ListBox  ItemsSource="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=PoweredByResources}" Padding="0" Margin="0" Grid.Row="3" >
+                    <ListBox.Resources>
+
+                        <!-- ### ListBox ###  -->
+                        <Style TargetType="{x:Type ListBox}">
+                            <Setter Property="BorderThickness" Value="0" />
+
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ListBox}">
+                                        <ItemsPresenter />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+
+                    </ListBox.Resources>
+
+
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <!--<Setter Property="Padding" Value="25,0,25,2.5"/>-->
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Focusable" Value="False"/>
+                            <Setter Property="Background" Value="{DynamicResource Selector_Background}"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                        <ContentPresenter x:Name="contentPresenter" Tag="{TemplateBinding Background}"  Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalAlignment="{TemplateBinding HorizontalAlignment}"  Margin="{TemplateBinding Padding}" />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding}" RenderOptions.BitmapScalingMode="HighQuality" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+
+
+                </ListBox>
                 
+                <TextBlock Margin="5" Foreground="#20ffffff" Grid.Row="4" Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=Version}"></TextBlock>
+
             </Grid>
 
         </Grid>
