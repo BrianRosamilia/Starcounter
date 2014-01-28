@@ -4,6 +4,7 @@ using Starcounter.Server;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 
 namespace scservice {
@@ -93,7 +94,9 @@ namespace scservice {
                 string scBin = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.InstallationDirectory);
 
                 // Need to use full path to EXE because of no shell execute.
-                var startInfo = new ProcessStartInfo(Path.Combine(Environment.CurrentDirectory, StarcounterConstants.ProgramNames.ScTrayIcon+".exe"));
+                var startInfo = new ProcessStartInfo(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                    StarcounterConstants.ProgramNames.ScTrayIcon + ".exe"));
+
                 startInfo.WorkingDirectory = scBin;
 
                 Process.Start(startInfo);
