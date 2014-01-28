@@ -140,6 +140,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     string destinationFolder = string.Empty;
                     for (int i = 0; i < 50; i++) {
                         destinationFolder = settings.VersionFolder;
+                        destinationFolder = System.IO.Path.Combine(destinationFolder, source.Edition);
                         destinationFolder = System.IO.Path.Combine(destinationFolder, source.Channel);
                         destinationFolder = System.IO.Path.Combine(destinationFolder, source.Version);
                         destinationFolder = System.IO.Path.Combine(destinationFolder, System.IO.Path.GetRandomFileName());
@@ -204,6 +205,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                             build.DownloadDate = DateTime.MinValue;
                             build.Version = source.Version;
                             build.Channel = source.Channel;
+                            build.Edition = source.Edition;
                             build.Source = source;
                         });
                     }

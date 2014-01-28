@@ -64,6 +64,8 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             // }
             Handle.GET(port, "/api/channels/{?}", (string channel, Request request) => {
 
+                // LIVE: This is used by the administrator
+
                 try {
 
                     VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.IsAvailable=?", channel, true).First;

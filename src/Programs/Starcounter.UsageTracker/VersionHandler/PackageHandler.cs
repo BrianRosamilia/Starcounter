@@ -52,10 +52,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// <param name="sourceUTCDate"></param>
         /// <param name="builderTool"></param>
         /// <returns></returns>
-        internal static bool ReadPackageInfo(string file, out string version, out string channel, out DateTime sourceUTCDate, out string builderTool) {
+        internal static bool ReadPackageInfo(string file, out string version, out string channel, out string edition, out DateTime sourceUTCDate, out string builderTool) {
 
             version = string.Empty;
             channel = string.Empty;
+            edition = string.Empty;
             sourceUTCDate = DateTime.MinValue;
             builderTool = string.Empty;
 
@@ -64,28 +65,13 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     if (entry.FullName.Equals("versioninfo.xml", StringComparison.OrdinalIgnoreCase)) {
                         Stream s = entry.Open();
 
-
-                        ReadInfoVersionInfo(s, out version, out channel, out sourceUTCDate);
+                        ReadInfoVersionInfo(s, out version, out channel, out edition, out sourceUTCDate);
 
                         if (sourceUTCDate == DateTime.MinValue) {
                             sourceUTCDate = entry.LastWriteTime.UtcDateTime;
                             LogWriter.WriteLine(string.Format("WARNING: VersionDate tag is missing from VersionInfo.xml in package {0}. Using the file date as version date.", file));
                         }
 
-                        //XmlDocument xmlDoc = new XmlDocument();
-                        //xmlDoc.Load(s);
-
-                        //XmlNodeList versionInfo = xmlDoc.GetElementsByTagName("VersionInfo");
-                        //if (versionInfo != null && versionInfo.Count > 0) {
-                        //    XmlNodeList nodeList = versionInfo[0].SelectNodes("Version");
-                        //    if (nodeList != null && nodeList.Count > 0) {
-                        //        version = nodeList[0].InnerText;
-                        //    }
-                        //    nodeList = versionInfo[0].SelectNodes("Channel");
-                        //    if (nodeList != null && nodeList.Count > 0) {
-                        //        channel = nodeList[0].InnerText;
-                        //    }
-                        //}
                         s.Close();
                         s.Dispose();
                     }
@@ -96,7 +82,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 }
             }
 
-            return version != string.Empty && channel != string.Empty && builderTool != string.Empty && sourceUTCDate != DateTime.MinValue;
+            return version != string.Empty && channel != string.Empty && edition != string.Empty && builderTool != string.Empty && sourceUTCDate != DateTime.MinValue;
         }
 
 
@@ -106,11 +92,13 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// <param name="s"></param>
         /// <param name="version"></param>
         /// <param name="channel"></param>
+        /// <param name="edition"></param>
         /// <param name="sourceUTCDate"></param>
-        internal static void ReadInfoVersionInfo(Stream s, out string version, out string channel, out DateTime sourceUTCDate) {
+        internal static void ReadInfoVersionInfo(Stream s, out string version, out string channel, out string edition, out DateTime sourceUTCDate) {
 
             version = string.Empty;
             channel = string.Empty;
+            edition = string.Empty;
             sourceUTCDate = DateTime.MinValue;
 
             XmlDocument xmlDoc = new XmlDocument();
@@ -126,6 +114,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 if (nodeList != null && nodeList.Count > 0) {
                     channel = nodeList[0].InnerText;
                 }
+                nodeList = versionInfo[0].SelectNodes("Edition");
+                if (nodeList != null && nodeList.Count > 0) {
+                    edition = nodeList[0].InnerText;
+                }
+
                 nodeList = versionInfo[0].SelectNodes("VersionDate");
                 if (nodeList != null && nodeList.Count > 0) {
                     //DateTime.TryParse(nodeList[0].InnerText, out sourceUTCDate);
@@ -152,6 +145,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                 string version = string.Empty;
                 string channel = string.Empty;
+                string edition = string.Empty;
                 string builderTool = string.Empty;
                 DateTime sourceUTCDate = DateTime.MinValue;
 
@@ -160,7 +154,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 }
 
                 // Validate the file.
-                bool result = PackageHandler.ReadPackageInfo(file, out version, out channel, out sourceUTCDate, out builderTool);
+                bool result = PackageHandler.ReadPackageInfo(file, out version, out channel, out edition, out sourceUTCDate, out builderTool);
 
                 if (result == false) {
                     message = "Invalid package content.";
@@ -170,6 +164,9 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     }
                     if (channel == string.Empty) {
                         message += message + " Missing <Channel> tag information.";
+                    }
+                    if (edition == string.Empty) {
+                        message += message + " Missing <Edition> tag information.";
                     }
                     if (sourceUTCDate == DateTime.MinValue) {
                         message += message + " Failed to read source datetime on VersionInfo.xml.";
@@ -192,6 +189,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 }
 
                 // Check if version already exist in database
+                // Note, the version number is unique between editions and channels.
                 VersionSource dupCheckResult = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Version=?", version).First;
                 if (dupCheckResult != null) {
                     message = string.Format("Source version {0} already exist in database", version);
@@ -215,6 +213,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     VersionSource versionSource = new VersionSource();
                     versionSource.SourceFolder = null;
                     versionSource.PackageFile = file;
+                    versionSource.Edition = edition;
                     versionSource.Channel = channel;
                     versionSource.Version = version;
                     versionSource.BuildError = false;
@@ -254,10 +253,10 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             string sourceDocsFolder = Path.Combine(item.SourceFolder, "docs");
             sourceDocsFolder = Path.Combine(sourceDocsFolder, "public");
 
-            // Source folder path example: <usersettings>\nightlybuilds\2.0.904.3
+            // Source folder path example: <usersettings>\oem\nightlybuilds\2.0.904.3
 
             if (!Directory.Exists(sourceDocsFolder)) {
-                LogWriter.WriteLine(string.Format("WARNING: The package {0} in {1} doesn't contain the documentation folder.", item.Version, item.Channel));
+                LogWriter.WriteLine(string.Format("WARNING: The package {0} in {1} ({2}) doesn't contain a documentation folder.", item.Version, item.Channel, item.Edition));
                 return false;
             }
 
@@ -266,6 +265,10 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
             // Add 'public' 
             string outputDocumentationFolder = Path.Combine(VersionHandlerApp.Settings.DocumentationFolder, "public");
+
+            // Add edition name
+            outputDocumentationFolder = Path.Combine(outputDocumentationFolder, item.Edition);
+
             // Add channel name
             outputDocumentationFolder = Path.Combine(outputDocumentationFolder, item.Channel);
 
@@ -275,7 +278,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             }
 
             outputDocumentationFolder = Path.Combine(outputDocumentationFolder, item.Version);
-            // Example path: <usersettings>\public\nightlybuilds\2.0.904.3
+            // Example path: <usersettings>\public\oem\nightlybuilds\2.0.904.3
 
             if (!Directory.Exists(sourceDocsFolder) && Directory.Exists(outputDocumentationFolder)) {
                 // Doc's already moved?

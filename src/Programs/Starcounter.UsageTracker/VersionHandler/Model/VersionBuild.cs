@@ -24,6 +24,12 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
 
         /// <summary>
+        /// Edition of the source, example 'OEM', 'Polyjuice'
+        /// </summary>
+        public string Edition;
+
+
+        /// <summary>
         /// Download date (UTC) when the download was initiated
         /// </summary>
         /// <remarks>If the download wa aborted this date will still be set</remarks>
@@ -79,29 +85,31 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
 
         /// <summary>
-        /// Get the latest (Higest version number) of a version in a specific channel
+        /// Get the latest version for a specific edition and channel
         /// </summary>
+        /// <param name="edition"></param>
         /// <param name="channel"></param>
         /// <returns>Unique build or null</returns>
-        internal static VersionBuild GetLatestAvailableBuild(string channel) {
+        internal static VersionBuild GetLatestAvailableBuild(string edition, string channel) {
 
             // Get latest version source
-            VersionSource versionSource = VersionSource.GetLatestVersion(channel);
+            VersionSource versionSource = VersionSource.GetLatestVersion(edition, channel);
             if (versionSource == null) return null;
 
             // Get version build
-            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", versionSource.Channel, versionSource.Version, false).First;
+            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Edition=? AND o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", versionSource.Edition, versionSource.Channel, versionSource.Version, false).First;
         }
 
 
         /// <summary>
         /// Get an available build of a specific version
         /// </summary>
+        /// <param name="edition"></param>
         /// <param name="channel"></param>
         /// <param name="version"></param>
         /// <returns>Unique build or null</returns>
-        internal static VersionBuild GetAvailableBuild(string channel, string version) {
-            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", channel, version, false).First;
+        internal static VersionBuild GetAvailableBuild(string edition, string channel, string version) {
+            return Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Edition=? AND o.Channel=? AND o.Version=? AND o.HasBeenDownloaded=?", edition, channel, version, false).First;
         }
 
 
@@ -109,14 +117,15 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         /// This will delete the Version build from filesystem and it's database reference
         /// if the version build has been downloaded the database entry will NOT be deleted.
         /// </summary>
+        /// <param name="edition"></param>
         /// <param name="channel"></param>
         /// <param name="version"></param>
-        internal static void DeleteVersionBuild(string channel, string version) {
+        internal static void DeleteVersionBuild(string edition, string channel, string version) {
 
             Db.Transaction(() => {
 
                 // A downloaded version build should not be deleted
-                QueryResultRows<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE  o.Channel=? AND o.Version=?", channel, version);
+                QueryResultRows<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Edition=? AND o.Channel=? AND o.Version=?", edition, channel, version);
                 foreach (VersionBuild versionBuild in versionBuilds) {
 
                     VersionBuild.DeleteVersionBuildFile(versionBuild);
@@ -129,8 +138,9 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                 }
 
                 // Delete folder if it's empty
-                // c:\versions\builds\NightlyBuilds\2.0.986.3\
-                string versionFolder = Path.Combine(VersionHandlerSettings.GetSettings().VersionFolder, channel);
+                // c:\versions\builds\oem\NightlyBuilds\2.0.986.3\
+                string editionFolder = Path.Combine(VersionHandlerSettings.GetSettings().VersionFolder, edition);
+                string versionFolder = Path.Combine(editionFolder, channel);
                 versionFolder = Path.Combine(versionFolder, version);
 
                 try {

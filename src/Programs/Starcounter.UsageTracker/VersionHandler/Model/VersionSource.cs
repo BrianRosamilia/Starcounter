@@ -24,6 +24,12 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
 
         /// <summary>
+        /// Edition of the source, example 'OEM', 'Polyjuice'
+        /// </summary>
+        public string Edition;
+
+
+        /// <summary>
         /// UTC Date of the Version
         /// </summary>
         public DateTime VersionDate;
@@ -65,14 +71,15 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
 
         /// <summary>
-        /// Get the latest version in a specific channel
+        /// Get the latest version for a specific edition and channel
         /// </summary>
+        /// <param name="edition">Edition name</param>
         /// <param name="channel">Channel name</param>
         /// <returns>Version or null if no valid versions was found in the specified channel</returns>
-        internal static VersionSource GetLatestVersion(string channel) {
+        internal static VersionSource GetLatestVersion(string edition, string channel) {
 
             // Get latest version source
-            VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.IsAvailable=? ORDER BY o.VersionDate DESC", channel, true).First;
+            VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Edition=? AND o.Channel=? AND o.IsAvailable=? ORDER BY o.VersionDate DESC", edition, channel, true).First;
             if (versionSource == null) return null;
 
             return versionSource;

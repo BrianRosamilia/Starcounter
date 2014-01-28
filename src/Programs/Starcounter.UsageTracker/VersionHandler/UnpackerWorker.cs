@@ -122,8 +122,11 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     continue;
                 }
 
+                // Add edition to destination path
+                string destination = Path.Combine(VersionHandlerApp.Settings.SourceFolder, item.Edition);
+
                 // Add channel to destination path
-                string destination = Path.Combine(VersionHandlerApp.Settings.SourceFolder, item.Channel);
+                destination = Path.Combine(destination, item.Channel);
 
                 // Add version to destination path
                 destination = Path.Combine(destination, item.Version);
@@ -183,23 +186,27 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// </summary>
         private void CleanUpObsoleteVersions() {
 
-            var result = Db.SlowSQL<string>("SELECT o.Channel FROM VersionSource o WHERE o.IsAvailable=? GROUP BY o.Channel", true);
+            var editionsResult = Db.SlowSQL<string>("SELECT o.Edition FROM VersionSource o WHERE o.IsAvailable=? GROUP BY o.Edition", true);
+            foreach (string edition in editionsResult) {
 
-            foreach (string channel in result) {
-                this.CleanUpObsoleteVersion(channel);
+                var channelResult = Db.SlowSQL<string>("SELECT o.Channel FROM VersionSource o WHERE o.Edition=? AND o.IsAvailable=? GROUP BY o.Channel", edition, true);
+                foreach (string channel in channelResult) {
+                    this.CleanUpObsoleteVersion(edition, channel);
+                }
             }
         }
 
 
         /// <summary>
-        /// Cleanup obsolete versions from a specific channel
+        /// Cleanup obsolete versions from a specific edition and channel
         /// </summary>
+        /// <param name="edition"></param>
         /// <param name="channel"></param>
-        private void CleanUpObsoleteVersion(string channel) {
+        private void CleanUpObsoleteVersion(string edition, string channel) {
 
             int sourceCount = VersionHandlerSettings.GetSettings().MaximumSourceCount;
 
-            Int64 numVersion = Db.SlowSQL<Int64>("SELECT count(*) FROM VersionSource o WHERE o.IsAvailable=? AND o.Channel=?", true, channel).First;
+            Int64 numVersion = Db.SlowSQL<Int64>("SELECT count(*) FROM VersionSource o WHERE o.Edition=? AND o.Channel=? AND o.IsAvailable=?", edition, channel, true).First;
 
             if (numVersion > sourceCount) {
 
@@ -209,12 +216,12 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 Db.Transaction(() => {
 
                     // Retrive versions to delete
-                    QueryResultRows<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.IsAvailable=? AND o.Channel=? ORDER BY o.VersionDate FETCH FIRST ? ROWS ONLY", true, channel, numDelete);
+                    QueryResultRows<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE e.Edition=? AND o.Channel=? AND o.IsAvailable=? ORDER BY o.VersionDate FETCH FIRST ? ROWS ONLY", edition, channel, true, numDelete);
 
                     foreach (VersionSource versionSource in versionSources) {
 
                         // Delete Obsolete Version Builds
-                        VersionBuild.DeleteVersionBuild(versionSource.Channel, versionSource.Version);
+                        VersionBuild.DeleteVersionBuild(versionSource.Edition, versionSource.Channel, versionSource.Version);
 
                         // Delete Obsolete Version Source (including with documentation and package file)
                         string version = versionSource.Version;
@@ -223,8 +230,6 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     }
                 });
             }
-
-
 
         }
 

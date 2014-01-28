@@ -197,6 +197,9 @@ namespace Starcounter.Applications.UsageTrackerApp {
             if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionBuildChannelVersionIndex").First == null) {
                 Starcounter.Db.SQL("CREATE INDEX VersionBuildChannelVersionIndex ON VersionBuild (Channel, Version)");
             }
+            if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionBuildEditionChannelVersionIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionBuildEditionChannelVersionIndex ON VersionBuild (Edition, Channel, Version)");
+            }
 
             //if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionBuildDLIndex").First == null) {
             //    Starcounter.Db.SQL("CREATE INDEX VersionBuildDLIndex ON VersionBuild (HasBeenDownloaded)");
@@ -213,8 +216,12 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
 
             #endregion
-            
+
             #region VersionSource
+            if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionSourceEditionChannelIsAvailableIndex").First == null) {
+                Starcounter.Db.SQL("CREATE INDEX VersionSourceEditionChannelIsAvailableIndex ON VersionSource (Edition,Channel,IsAvailable)");
+            }
+
             if (Starcounter.Db.SQL("SELECT i FROM MATERIALIZED_INDEX i WHERE Name=?", "VersionSourceBuildErrorChannelIndex").First == null) {
                 Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorChannelIndex ON VersionSource (BuildError,Channel)");
             }
@@ -345,7 +352,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
         public static bool IsBlacklisted(string ipAdress) {
 
             // TODO: 
-//            if ("58.27.115.118" == ipAdress) return true;
+            //            if ("58.27.115.118" == ipAdress) return true;
             return false;
 
         }

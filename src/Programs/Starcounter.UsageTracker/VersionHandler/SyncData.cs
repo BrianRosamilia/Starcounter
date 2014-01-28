@@ -159,6 +159,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                     string versionInfo_version;
                     string versionInfo_channel;
+                    string versionInfo_edition;
                     string versionInfo_builderTool = string.Empty;
                     DateTime versionInfo_versionDate;
 
@@ -170,7 +171,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
                     using (FileStream fs = File.OpenRead(versionInfoFile)) {
                         // Read version info
-                        PackageHandler.ReadInfoVersionInfo(fs, out versionInfo_version, out versionInfo_channel, out versionInfo_versionDate);
+                        PackageHandler.ReadInfoVersionInfo(fs, out versionInfo_version, out versionInfo_channel, out versionInfo_edition, out versionInfo_versionDate);
                         if (versionInfo_versionDate == DateTime.MinValue) {
                             versionInfo_versionDate = File.GetCreationTimeUtc(versionInfoFile);
                             LogWriter.WriteLine(string.Format("WARNING: The VersionDate tag is missing from VersionInfo.xml in source folder {0}. The File date will be used instead.", versionSourceFolder));
@@ -181,7 +182,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         }
 
                         // Validate version info
-                        bool valid = versionInfo_version != string.Empty && versionInfo_channel != string.Empty && versionInfo_builderTool != string.Empty && versionInfo_versionDate != DateTime.MinValue;
+                        bool valid = versionInfo_version != string.Empty && versionInfo_channel != string.Empty && versionInfo_edition != string.Empty && versionInfo_builderTool != string.Empty && versionInfo_versionDate != DateTime.MinValue;
 
                         if (valid == false) {
                             LogWriter.WriteLine(string.Format("ERROR: Invalid VersionInfo.xml content and/or missing building tool in source {0}", versionSourceFolder));
@@ -199,6 +200,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                             versionSource.PackageFile = null;
                             versionSource.Channel = versionInfo_channel;
                             versionSource.Version = versionInfo_version;
+                            versionSource.Edition = versionInfo_edition;
                             versionSource.BuildError = false;
                             versionSource.VersionDate = versionInfo_versionDate;
                         });
@@ -219,7 +221,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             foreach (VersionBuild versionBuild in result) {
 
                 // Find Source
-                VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.Version=?", versionBuild.Channel, versionBuild.Version).First;
+                VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Edition=? AND o.Channel=? AND o.Version=?", versionBuild.Edition, versionBuild.Channel, versionBuild.Version).First;
                 if (versionSource == null) {
                     // Version source has been removed.
                     // The build will still exist if it has been downloaded.
@@ -251,48 +253,52 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             // docs = "public" "internal"
             foreach (string doc in docs) {
 
-                string[] channels = Directory.GetDirectories(doc);
-                foreach (string channelFolder in channels) {
+                string[] editions = Directory.GetDirectories(doc);
 
-                    string[] versions = Directory.GetDirectories(channelFolder);
-                    foreach (string versionFolder in versions) {
+                foreach (string editionFolder in editions) {
+                    string[] channels = Directory.GetDirectories(editionFolder);
 
-                        // Check and see if its referenced by the database.
-                        VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.DocumentationFolder=?", versionFolder).First;
-                        if (versionSource != null) {
-                            continue;
-                        }
+                    foreach (string channelFolder in channels) {
 
-                        LogWriter.WriteLine(string.Format("WARNING: Documentation folder {0} is missing in the database.", versionFolder));
+                        string[] versions = Directory.GetDirectories(channelFolder);
+                        foreach (string versionFolder in versions) {
 
-                        string channel = new DirectoryInfo(channelFolder).Name;
-                        string version = new DirectoryInfo(versionFolder).Name;
-
-                        versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.Version=?", channel, version).First;
-                        if (versionSource == null) {
-
-                            try {
-                                Directory.Delete(versionFolder, true);
-                                LogWriter.WriteLine(string.Format("NOTICE: Documentation folder {0} was deleted.", versionFolder));
+                            // Check and see if its referenced by the database.
+                            VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.DocumentationFolder=?", versionFolder).First;
+                            if (versionSource != null) {
+                                continue;
                             }
-                            catch (Exception e) {
-                                LogWriter.WriteLine(string.Format("ERROR: Failed to delete unreferenced documentation folder {0}. {1}", versionFolder, e.Message));
+
+                            LogWriter.WriteLine(string.Format("WARNING: Documentation folder {0} is missing in the database.", versionFolder));
+
+                            string edition = new DirectoryInfo(editionFolder).Name;
+                            string channel = new DirectoryInfo(channelFolder).Name;
+                            string version = new DirectoryInfo(versionFolder).Name;
+
+                            versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Edition=? AND o.Channel=? AND o.Version=?", edition, channel, version).First;
+                            if (versionSource == null) {
+
+                                try {
+                                    Directory.Delete(versionFolder, true);
+                                    LogWriter.WriteLine(string.Format("NOTICE: Documentation folder {0} was deleted.", versionFolder));
+                                }
+                                catch (Exception e) {
+                                    LogWriter.WriteLine(string.Format("ERROR: Failed to delete unreferenced documentation folder {0}. {1}", versionFolder, e.Message));
+                                }
                             }
-                        }
-                        else {
+                            else {
 
-                            Db.Transaction(() => {
-                                versionSource.DocumentationFolder = versionFolder;
-                                LogWriter.WriteLine(string.Format("NOTICE: Missing documentation folder {0} was added to database.", versionFolder));
-                            });
+                                Db.Transaction(() => {
+                                    versionSource.DocumentationFolder = versionFolder;
+                                    LogWriter.WriteLine(string.Format("NOTICE: Missing documentation folder {0} was added to database.", versionFolder));
+                                });
 
-                        }
+                            }
+                        }  // End versions loop
 
+                    } // End channels loop
 
-
-                    }
-
-                }
+                } // end editions loop
 
             }
 
@@ -311,13 +317,8 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     // Documentation already moved
                     continue;
                 }
-
                 PackageHandler.MoveDocumentation(versionSource);
-
             }
-
-
-
         }
 
 
@@ -333,85 +334,97 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 return;
             }
 
-            string[] channels = Directory.GetDirectories(settings.VersionFolder);
+            string[] editions = Directory.GetDirectories(settings.VersionFolder);
+            foreach (string edition in editions) {
 
-            foreach (string channel in channels) {
+                string[] channels = Directory.GetDirectories(edition);
 
-                string[] versions = Directory.GetDirectories(channel);
-                DirectoryInfo channelFolder = new DirectoryInfo(channel);
+                foreach (string channel in channels) {
 
-                foreach (string version in versions) {
+                    string[] versions = Directory.GetDirectories(channel);
+                    DirectoryInfo channelFolder = new DirectoryInfo(channel);
 
-                    DirectoryInfo versionFolder = new DirectoryInfo(version);
+                    foreach (string version in versions) {
 
-                    string[] builds = Directory.GetDirectories(version);
+                        DirectoryInfo versionFolder = new DirectoryInfo(version);
 
-                    foreach (string buildFolder in builds) {
+                        string[] builds = Directory.GetDirectories(version);
 
-                        bRemoveBuildFolder = false;
-                        string[] files = Directory.GetFiles(buildFolder);
-                        if (files == null || files.Length == 0) {
-                            bRemoveBuildFolder = true;
-                        }
-                        else {
-                            string file = files[0];
-                            VersionBuild versionBuild = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.File=?", file).First;
-                            if (versionBuild == null) {
+                        foreach (string buildFolder in builds) {
+
+                            bRemoveBuildFolder = false;
+                            string[] files = Directory.GetFiles(buildFolder);
+                            if (files == null || files.Length == 0) {
                                 bRemoveBuildFolder = true;
                             }
                             else {
-
-                                VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.Version=?", versionBuild.Channel, versionBuild.Version).First;
-                                if (versionSource == null) {
-                                    // No source
+                                string file = files[0];
+                                VersionBuild versionBuild = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.File=?", file).First;
+                                if (versionBuild == null) {
                                     bRemoveBuildFolder = true;
                                 }
-                                else if (versionBuild.HasBeenDownloaded == true) {
-                                    // Also remove downloaded builds to cleanup
-                                    bRemoveBuildFolder = true;
-                                }
-                            }
-                        }
+                                else {
 
-                        // Delete folder
-                        if (bRemoveBuildFolder) {
-                            try {
-                                // Cleanup
-                                if (Directory.Exists(buildFolder)) {
-                                    Directory.Delete(buildFolder, true);
-                                    LogWriter.WriteLine(string.Format("NOTICE: Build {0} was removed, File was downloaded or there was no reference to it.", buildFolder));
+                                    VersionSource versionSource = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Edition=? AND o.Channel=? AND o.Version=?", versionBuild.Edition, versionBuild.Channel, versionBuild.Version).First;
+                                    if (versionSource == null) {
+                                        // No source
+                                        bRemoveBuildFolder = true;
+                                    }
+                                    else if (versionBuild.HasBeenDownloaded == true) {
+                                        // Also remove downloaded builds to cleanup
+                                        bRemoveBuildFolder = true;
+                                    }
                                 }
                             }
-                            catch (Exception e) {
-                                LogWriter.WriteLine(string.Format("ERROR: Failed to cleanup build folder {0}. {1}.", buildFolder, e.Message));
+
+                            // Delete folder
+                            if (bRemoveBuildFolder) {
+                                try {
+                                    // Cleanup
+                                    if (Directory.Exists(buildFolder)) {
+                                        Directory.Delete(buildFolder, true);
+                                        LogWriter.WriteLine(string.Format("NOTICE: Build {0} was removed, File was downloaded or there was no reference to it.", buildFolder));
+                                    }
+                                }
+                                catch (Exception e) {
+                                    LogWriter.WriteLine(string.Format("ERROR: Failed to cleanup build folder {0}. {1}.", buildFolder, e.Message));
+                                }
                             }
-                        }
-                    }
-                }
-            }
+                        } // end builds loop
+
+                    }  // end versions loop
+
+                } // end channels loop
+
+            } // end editions loop
 
 
             // Cleanup empty folders
+            foreach (string edition in editions) {
 
-            foreach (string channel in channels) {
+                string[] channels = Directory.GetDirectories(edition);
 
-                string[] versions = Directory.GetDirectories(channel);
-                DirectoryInfo channelFolder = new DirectoryInfo(channel);
+                foreach (string channel in channels) {
 
-                foreach (string versionFolder in versions) {
+                    string[] versions = Directory.GetDirectories(channel);
+                    DirectoryInfo channelFolder = new DirectoryInfo(channel);
 
-                    try {
-                        if (Directory.Exists(versionFolder)) {
-                            if (StarcounterApplicationWebSocket.API.Versions.Utils.IsDirectoryEmpty(versionFolder)) {
-                                Directory.Delete(versionFolder);
+                    foreach (string versionFolder in versions) {
+
+                        try {
+                            if (Directory.Exists(versionFolder)) {
+                                if (StarcounterApplicationWebSocket.API.Versions.Utils.IsDirectoryEmpty(versionFolder)) {
+                                    Directory.Delete(versionFolder);
+                                }
                             }
                         }
+                        catch (Exception e) {
+                            LogWriter.WriteLine(string.Format("ERROR: Failed to cleanup empty folder {0}. {1}.", versionFolder, e.Message));
+                        }
                     }
-                    catch (Exception e) {
-                        LogWriter.WriteLine(string.Format("ERROR: Failed to cleanup empty folder {0}. {1}.", versionFolder, e.Message));
-                    }
-                }
-            }
+                } // end channels loop
+
+            } // end editions loop
 
         }
 
