@@ -3,7 +3,7 @@ using Starcounter.Internal;
 using System;
 
 namespace Starcounter.Metadata {
-    public abstract class RuntimeView : Entity {
+    public abstract class BaseTable : Entity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal class __starcounterTypeSpecification {
@@ -29,8 +29,8 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.RuntimeView", null,
-                "RuntimeView", null,
+                "Starcounter.Metadata.BaseTable", null,
+                "BaseTable", null,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, false),
@@ -45,11 +45,11 @@ namespace Starcounter.Metadata {
         }
 
         /// <inheritdoc />
-        public RuntimeView(Uninitialized u)
+        public BaseTable(Uninitialized u)
             : base(u) {
         }
 
-        //internal RuntimeView() : this(null) {
+        //internal BaseTable() : this(null) {
         //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
 
@@ -78,7 +78,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public abstract class VirtualTable : RuntimeView {
+    public abstract class VirtualTable : BaseTable {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -95,8 +95,8 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.VirtualTable", "Starcounter.Metadata.RuntimeView",
-                "VirtualTable", "RuntimeView",
+                "Starcounter.Metadata.VirtualTable", "Starcounter.Metadata.BaseTable",
+                "VirtualTable", "BaseTable",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),

@@ -64,7 +64,7 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.BaseVirtualTable.Name == "VMView");
             Trace.Assert(rv.BaseVirtualTable.BaseVirtualTable != null);
             Trace.Assert(rv.BaseVirtualTable.BaseVirtualTable.BaseVirtualTable != null);
-            Trace.Assert(rv.BaseVirtualTable.BaseVirtualTable.BaseVirtualTable.Name == "RuntimeView");
+            Trace.Assert(rv.BaseVirtualTable.BaseVirtualTable.BaseVirtualTable.Name == "BaseTable");
             Trace.Assert(rv.BaseVirtualTable.BaseVirtualTable.BaseVirtualTable.BaseVirtualTable == null);
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv")) {
@@ -86,10 +86,10 @@ namespace QueryProcessingTest {
             TableColumn c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "materializedcolumn").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "MaterializedColumn");
-            Trace.Assert(c.RuntimeView != null);
-            Trace.Assert(c.RuntimeView.Name == "TableColumn");
-            Trace.Assert(c.RuntimeView is RawView);
-            Trace.Assert((c.RuntimeView as RawView).BaseVirtualTable != null);
+            Trace.Assert(c.BaseTable != null);
+            Trace.Assert(c.BaseTable.Name == "TableColumn");
+            Trace.Assert(c.BaseTable is RawView);
+            Trace.Assert((c.BaseTable as RawView).BaseVirtualTable != null);
         }
     }
 }
