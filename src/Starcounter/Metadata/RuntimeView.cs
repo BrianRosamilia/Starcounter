@@ -30,7 +30,7 @@ namespace Starcounter.Metadata {
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 "Starcounter.Metadata.RuntimeView", null,
-                "runtime_view", null,
+                "RuntimeView", null,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, false),
@@ -96,7 +96,7 @@ namespace Starcounter.Metadata {
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 "Starcounter.Metadata.VirtualTable", "Starcounter.Metadata.RuntimeView",
-                "virtual_table", "runtime_view",
+                "VirtualTable", "RuntimeView",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -161,7 +161,7 @@ namespace Starcounter.Metadata {
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 "Starcounter.Metadata.RawView", "Starcounter.Metadata.VirtualTable",
-                "raw_view", "virtual_table",
+                "RawView", "VirtualTable",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -203,7 +203,7 @@ namespace Starcounter.Metadata {
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 "Starcounter.Metadata.VMView", "Starcounter.Metadata.VirtualTable",
-                "vm_view", "virtual_table",
+                "VMView", "VirtualTable",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -245,7 +245,7 @@ namespace Starcounter.Metadata {
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 "Starcounter.Metadata.ClrView", "Starcounter.Metadata.VMView",
-                "clr_view", "vm_view",
+                "ClrView", "VMView",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),

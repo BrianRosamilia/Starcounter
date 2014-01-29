@@ -19,7 +19,7 @@ namespace Starcounter.Metadata {
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 "Starcounter.Metadata.RuntimeMember", null,
-                "runtime_member", null,
+                "RuntimeMember", null,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
                     new ColumnDef("RuntimeView", sccoredb.STAR_TYPE_REFERENCE, true, false),
@@ -87,7 +87,7 @@ namespace Starcounter.Metadata {
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 "Starcounter.Metadata.TableColumn", "Starcounter.Metadata.RuntimeMember",
-                "table_column", "runtime_member",
+                "TableColumn", "RuntimeMember",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("RuntimeView", sccoredb.STAR_TYPE_REFERENCE, true, true),
@@ -153,7 +153,7 @@ namespace Starcounter.Metadata {
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 "Starcounter.Metadata.CodeProperty", "Starcounter.Metadata.RuntimeMember",
-                "code_property", "runtime_member",
+                "CodeProperty", "RuntimeMember",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("RuntimeView", sccoredb.STAR_TYPE_REFERENCE, true, true),
