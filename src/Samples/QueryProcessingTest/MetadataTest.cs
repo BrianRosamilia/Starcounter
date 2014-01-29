@@ -46,7 +46,7 @@ namespace QueryProcessingTest {
             Trace.Assert(m.Name == "BaseType");
             MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ?", "basevirtualtable").First;
             Trace.Assert(c != null);
-            Trace.Assert(c.Table.Name == "VirtualTable");
+            Trace.Assert(c.Table.Name == "HostMaterializedTable");
             RawView rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "BaseType").First;
             Trace.Assert(rv != null);
             Trace.Assert(rv.FullName == "BaseType.Raw.Starcounter");

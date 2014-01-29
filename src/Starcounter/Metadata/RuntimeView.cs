@@ -78,7 +78,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public abstract class VirtualTable : BaseTable {
+    public abstract class HostMaterializedTable : BaseTable {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -95,8 +95,8 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.VirtualTable", "Starcounter.Metadata.BaseTable",
-                "VirtualTable", "BaseTable",
+                "Starcounter.Metadata.HostMaterializedTable", "Starcounter.Metadata.BaseTable",
+                "HostMaterializedTable", "BaseTable",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -110,13 +110,13 @@ namespace Starcounter.Metadata {
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualTable")
+                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable")
                 });
         }
 
-        public VirtualTable(Uninitialized u) : base(u) { }
+        public HostMaterializedTable(Uninitialized u) : base(u) { }
 
-        //internal VirtualTable()
+        //internal HostMaterializedTable()
         //    : this(null) {
         //        DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
@@ -131,9 +131,9 @@ namespace Starcounter.Metadata {
             }
         }
 
-        public VirtualTable BaseVirtualTable {
+        public HostMaterializedTable BaseVirtualTable {
             get {
-                return (VirtualTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                return (HostMaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_BaseVirtualTable);
             }
             internal set {
@@ -143,7 +143,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public sealed class RawView : VirtualTable {
+    public sealed class RawView : HostMaterializedTable {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -160,8 +160,8 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.RawView", "Starcounter.Metadata.VirtualTable",
-                "RawView", "VirtualTable",
+                "Starcounter.Metadata.RawView", "Starcounter.Metadata.HostMaterializedTable",
+                "RawView", "HostMaterializedTable",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -175,7 +175,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualTable")
+                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable")
                 });
         }
 
@@ -185,7 +185,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public abstract class VMView : VirtualTable {
+    public abstract class VMView : HostMaterializedTable {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -202,8 +202,8 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.VMView", "Starcounter.Metadata.VirtualTable",
-                "VMView", "VirtualTable",
+                "Starcounter.Metadata.VMView", "Starcounter.Metadata.HostMaterializedTable",
+                "VMView", "HostMaterializedTable",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -217,7 +217,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualTable")
+                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable")
                 });
         }
 
@@ -262,7 +262,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("FullName", DbTypeCode.String),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.VirtualTable"),
+                    new PropertyDef("BaseVirtualTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
                     new PropertyDef("AssemblyName", DbTypeCode.String),
                     new PropertyDef("AppdomainName", DbTypeCode.String),
                     new PropertyDef("FullClassName", DbTypeCode.String)
