@@ -44,7 +44,7 @@ namespace QueryProcessingTest {
             Trace.Assert(m != null);
             Trace.Assert(m.BaseTable == null);
             Trace.Assert(m.Name == "base_type");
-            MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ?", "base_virtual_table").First;
+            MaterializedColumn c = Db.SQL<MaterializedColumn>("select c from materializedcolumn c where name = ?", "basevirtualtable").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Table.Name == "virtual_table");
             RawView rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "base_type").First;
@@ -83,9 +83,9 @@ namespace QueryProcessingTest {
         }
 
         public static void TestRuntimeColumnMetadata() {
-            TableColumn c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "materialized_column").First;
+            TableColumn c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "materializedcolumn").First;
             Trace.Assert(c != null);
-            Trace.Assert(c.Name == "materialized_column");
+            Trace.Assert(c.Name == "MaterializedColumn");
             Trace.Assert(c.RuntimeView != null);
             Trace.Assert(c.RuntimeView.Name == "table_column");
             Trace.Assert(c.RuntimeView is RawView);

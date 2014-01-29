@@ -9,9 +9,9 @@ namespace Starcounter.Metadata {
         internal class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_name;
-            internal static int columnHandle_full_name;
-            internal static int columnHandle_updatable;
+            internal static int columnHandle_Name;
+            internal static int columnHandle_FullName;
+            internal static int columnHandle_Updatable;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -33,9 +33,9 @@ namespace Starcounter.Metadata {
                 "runtime_view", null,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("full_name", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("updatable", sccoredb.STAR_TYPE_ULONG, false, false)
+                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, false)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
@@ -54,25 +54,25 @@ namespace Starcounter.Metadata {
         //}
 
         public string Name {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name); }
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Name); }
             internal set {
-                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name,
+                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Name,
                     value);
             }
         }
 
         public string FullName {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_full_name); }
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_FullName); }
             internal set {
-                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_full_name,
+                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_FullName,
                     value);
             }
         }
 
         public bool Updatable {
-            get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_updatable); }
+            get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Updatable); }
             internal set {
-                DbState.WriteBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_updatable,
+                DbState.WriteBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Updatable,
                     value);
             }
         }
@@ -84,11 +84,11 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_name;
-            internal static int columnHandle_full_name;
-            internal static int columnHandle_updatable;
-            internal static int columnHandle_table;
-            internal static int columnHandle_base_virtual_table;
+            internal static int columnHandle_Name;
+            internal static int columnHandle_FullName;
+            internal static int columnHandle_Updatable;
+            internal static int columnHandle_Table;
+            internal static int columnHandle_BaseVirtualTable;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -99,11 +99,11 @@ namespace Starcounter.Metadata {
                 "virtual_table", "runtime_view",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("full_name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("base_virtual_table", sccoredb.STAR_TYPE_REFERENCE, true, false)
+                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
+                    new ColumnDef("Table", sccoredb.STAR_TYPE_REFERENCE, true, false),
+                    new ColumnDef("BaseVirtualTable", sccoredb.STAR_TYPE_REFERENCE, true, false)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
@@ -124,21 +124,21 @@ namespace Starcounter.Metadata {
         public MaterializedTable Table {
             get {
                 return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, 
-                __starcounterTypeSpecification.columnHandle_table); }
+                __starcounterTypeSpecification.columnHandle_Table); }
             internal set {
                 DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_table, value);
+                    __starcounterTypeSpecification.columnHandle_Table, value);
             }
         }
 
         public VirtualTable BaseVirtualTable {
             get {
                 return (VirtualTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_base_virtual_table);
+                    __starcounterTypeSpecification.columnHandle_BaseVirtualTable);
             }
             internal set {
                 DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_base_virtual_table, value);
+                    __starcounterTypeSpecification.columnHandle_BaseVirtualTable, value);
             }
         }
     }
@@ -149,11 +149,11 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_name;
-            internal static int columnHandle_full_name;
-            internal static int columnHandle_updatable;
-            internal static int columnHandle_table;
-            internal static int columnHandle_base_virtual_table;
+            internal static int columnHandle_Name;
+            internal static int columnHandle_FullName;
+            internal static int columnHandle_Updatable;
+            internal static int columnHandle_Table;
+            internal static int columnHandle_BaseVirtualTable;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -164,11 +164,11 @@ namespace Starcounter.Metadata {
                 "raw_view", "virtual_table",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("full_name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("base_virtual_table", sccoredb.STAR_TYPE_REFERENCE, true, true)
+                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
+                    new ColumnDef("Table", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("BaseVirtualTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
@@ -191,11 +191,11 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_name;
-            internal static int columnHandle_full_name;
-            internal static int columnHandle_updatable;
-            internal static int columnHandle_table;
-            internal static int columnHandle_base_virtual_table;
+            internal static int columnHandle_Name;
+            internal static int columnHandle_FullName;
+            internal static int columnHandle_Updatable;
+            internal static int columnHandle_Table;
+            internal static int columnHandle_BaseVirtualTable;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -206,11 +206,11 @@ namespace Starcounter.Metadata {
                 "vm_view", "virtual_table",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("full_name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("base_virtual_table", sccoredb.STAR_TYPE_REFERENCE, true, true)
+                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
+                    new ColumnDef("Table", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("BaseVirtualTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
@@ -230,14 +230,14 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_name;
-            internal static int columnHandle_full_name;
-            internal static int columnHandle_updatable;
-            internal static int columnHandle_table;
-            internal static int columnHandle_base_virtual_table;
-            internal static int columnHandle_assembly_name;
-            internal static int columnHandle_appdomain_name;
-            internal static int columnHandle_full_class_name;
+            internal static int columnHandle_Name;
+            internal static int columnHandle_FullName;
+            internal static int columnHandle_Updatable;
+            internal static int columnHandle_Table;
+            internal static int columnHandle_BaseVirtualTable;
+            internal static int columnHandle_AssemblyName;
+            internal static int columnHandle_AppdomainName;
+            internal static int columnHandle_FullClassName;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -248,14 +248,14 @@ namespace Starcounter.Metadata {
                 "clr_view", "vm_view",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("full_name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("base_virtual_table", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("assembly_name", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("appdomain_name", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("full_class_name", sccoredb.STAR_TYPE_STRING, true, false)
+                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
+                    new ColumnDef("Table", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("BaseVirtualTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("AssemblyName", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("AppdomainName", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("FullClassName", sccoredb.STAR_TYPE_STRING, true, false)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
@@ -278,33 +278,33 @@ namespace Starcounter.Metadata {
         public String AssemblyName {
             get {
                 return DbState.ReadString(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_assembly_name);
+                    __starcounterTypeSpecification.columnHandle_AssemblyName);
             }
             internal set {
                 DbState.WriteString(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_assembly_name, value);
+                    __starcounterTypeSpecification.columnHandle_AssemblyName, value);
             }
         }
 
         public String AppdomainName {
             get {
                 return DbState.ReadString(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_appdomain_name);
+                    __starcounterTypeSpecification.columnHandle_AppdomainName);
             }
             internal set {
                 DbState.WriteString(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_appdomain_name, value);
+                    __starcounterTypeSpecification.columnHandle_AppdomainName, value);
             }
         }
 
         public String FullClassName {
             get {
                 return DbState.ReadString(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_full_class_name);
+                    __starcounterTypeSpecification.columnHandle_FullClassName);
             }
             internal set {
                 DbState.WriteString(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_full_class_name, value);
+                    __starcounterTypeSpecification.columnHandle_FullClassName, value);
             }
         }
     }
