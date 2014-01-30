@@ -29,7 +29,7 @@ namespace QueryProcessingTest {
 
             MappedType mapt = Db.SQL<MappedType>("select t from mappedtype t where name = ?", "Int16").First;
             Trace.Assert(mapt != null);
-            Trace.Assert(mapt.VMName == "CLR");
+            Trace.Assert(mapt is ClrPrimitiveType);
             Trace.Assert(mapt.MaterializedType.Name == "long");
             Trace.Assert(!mapt.WriteLoss);
             Trace.Assert(mapt.ReadLoss);
@@ -74,7 +74,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(v.MaterializedTable.Name == v.Name);
                 count++;
             }
-            Trace.Assert(count == 17);
+            Trace.Assert(count == 16);
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "materialized_index").First;
             Trace.Assert(rv != null);
             Trace.Assert(rv.FullName == "materialized_index.Raw.Starcounter");

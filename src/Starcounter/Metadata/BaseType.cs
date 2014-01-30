@@ -127,71 +127,13 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public abstract class RuntimeType : BaseType {
+    public abstract class MappedType : BaseType {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
-            internal static int columnHandle_VMName;
-        }
-#pragma warning disable 0628, 0169
-        #endregion
-
-        /// <summary>
-        /// Creates the database binding <see cref="TypeDef"/> representing
-        /// the type in the database and holding its table- and column defintions.
-        /// </summary>
-        /// <remarks>
-        /// Developer note: if you extend or change this class in any way, make
-        /// sure to keep the <see cref="MaterializedColumn.__starcounterTypeSpecification"/>
-        /// class in sync with what is returned by this method.
-        /// </remarks>
-        /// <returns>A <see cref="TypeDef"/> representing the current
-        /// type.</returns>
-        static internal new TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.RuntimeType", "Starcounter.Metadata.BaseType",
-                "RuntimeType", "BaseType",
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("VMName", sccoredb.STAR_TYPE_STRING, true, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("VMName", DbTypeCode.String)
-                });
-        }
-
-        /// <inheritdoc />
-        public RuntimeType(Uninitialized u)
-            : base(u) {
-        }
-
-        //internal RuntimeType()
-        //    : this(null) {
-        //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
-        //}
-
-        public string VMName {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_VMName); }
-            internal set {
-                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_VMName,
-                    value);
-            }
-        }
-    }
-
-    public sealed class MappedType : RuntimeType {
-        #region Infrastructure, reflecting what is emitted by the weaver.
-#pragma warning disable 0649, 0169
-        internal new class __starcounterTypeSpecification {
-            internal static ushort tableHandle;
-            internal static TypeBinding typeBinding;
-            internal static int columnHandle_Name;
-            internal static int columnHandle_VMName;
             internal static int columnHandle_MaterializedType;
             internal static int columnHandle_WriteLoss;
             internal static int columnHandle_ReadLoss;
@@ -212,19 +154,17 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.MappedType", "Starcounter.Metadata.RuntimeType",
-                "MappedType", "RuntimeType",
+                "Starcounter.Metadata.MappedType", "Starcounter.Metadata.BaseType",
+                "MappedType", "BaseType",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("VMName", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("MaterializedType", sccoredb.STAR_TYPE_REFERENCE, true, false),
                     new ColumnDef("WriteLoss", sccoredb.STAR_TYPE_ULONG, false, false),
                     new ColumnDef("ReadLoss", sccoredb.STAR_TYPE_ULONG, false, false)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("VMName", DbTypeCode.String),
                     new PropertyDef("MaterializedType", DbTypeCode.Object, "Starcounter.Metadata.MaterializedType"),
                     new PropertyDef("WriteLoss", DbTypeCode.Boolean),
                     new PropertyDef("ReadLoss",  DbTypeCode.Boolean)
@@ -269,15 +209,16 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public sealed class ReferenceType : RuntimeType {
+    public sealed class ClrPrimitiveType : MappedType {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
-            internal static int columnHandle_VMName;
-            internal static int columnHandle_TableRef;
+            internal static int columnHandle_MaterializedType;
+            internal static int columnHandle_WriteLoss;
+            internal static int columnHandle_ReadLoss;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -295,37 +236,31 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.ReferenceType", "Starcounter.Metadata.RuntimeType",
-                "ReferenceType", "RuntimeType",
+                "Starcounter.Metadata.ClrPrimitiveType", "Starcounter.Metadata.MappedType",
+                "ClrPrimitiveType", "MappedType",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("VMName", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("TableRef", sccoredb.STAR_TYPE_REFERENCE, true, false)
+                    new ColumnDef("MaterializedType", sccoredb.STAR_TYPE_REFERENCE, true, true),
+                    new ColumnDef("WriteLoss", sccoredb.STAR_TYPE_ULONG, false, true),
+                    new ColumnDef("ReadLoss", sccoredb.STAR_TYPE_ULONG, false, true)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("VMName", DbTypeCode.String),
-                    new PropertyDef("TableRef", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
+                    new PropertyDef("MaterializedType", DbTypeCode.Object, "Starcounter.Metadata.MaterializedType"),
+                    new PropertyDef("WriteLoss", DbTypeCode.Boolean),
+                    new PropertyDef("ReadLoss",  DbTypeCode.Boolean)
                 });
         }
 
         /// <inheritdoc />
-        public ReferenceType(Uninitialized u)
+        public ClrPrimitiveType(Uninitialized u)
             : base(u) {
         }
 
-        internal ReferenceType()
+        internal ClrPrimitiveType()
             : this(null) {
             DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
-        }
-
-        public MaterializedTable TableRef {
-            get { return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_TableRef); }
-            internal set {
-                DbState.WriteObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_TableRef,
-                    value);
-            }
         }
     }
 }
