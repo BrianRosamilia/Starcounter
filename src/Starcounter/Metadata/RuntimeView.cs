@@ -3,14 +3,15 @@ using Starcounter.Internal;
 using System;
 
 namespace Starcounter.Metadata {
-    public abstract class BaseTable : Entity {
+    public abstract class BaseTable : BaseType {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
-        internal class __starcounterTypeSpecification {
+        internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
             internal static int columnHandle_FullName;
+            internal static int columnHandle_ParentTable;
             internal static int columnHandle_Updatable;
         }
 #pragma warning disable 0628, 0169
@@ -27,19 +28,21 @@ namespace Starcounter.Metadata {
         /// </remarks>
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
-        static internal TypeDef CreateTypeDef() {
+        static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.BaseTable", null,
-                "BaseTable", null,
+                "Starcounter.Metadata.BaseTable", "Starcounter.Metadata.BaseType",
+                "BaseTable", "BaseType",
                 new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
+                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, false),
+                    new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, false),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, false)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean)
                 });
         }
@@ -53,19 +56,22 @@ namespace Starcounter.Metadata {
         //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
 
-        public string Name {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Name); }
-            internal set {
-                DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Name,
-                    value);
-            }
-        }
-
         public string FullName {
             get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_FullName); }
             internal set {
                 DbState.WriteString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_FullName,
                     value);
+            }
+        }
+
+        public HostMaterializedTable ParentTable {
+            get {
+                return (HostMaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_ParentTable);
+            }
+            internal set {
+                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_ParentTable, value);
             }
         }
 
@@ -86,9 +92,9 @@ namespace Starcounter.Metadata {
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
             internal static int columnHandle_FullName;
+            internal static int columnHandle_ParentTable;
             internal static int columnHandle_Updatable;
             internal static int columnHandle_MaterializedTable;
-            internal static int columnHandle_ParentTable;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -101,16 +107,16 @@ namespace Starcounter.Metadata {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, false)
+                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, false)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable")
+                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
                 });
         }
 
@@ -130,17 +136,6 @@ namespace Starcounter.Metadata {
                     __starcounterTypeSpecification.columnHandle_MaterializedTable, value);
             }
         }
-
-        public HostMaterializedTable ParentTable {
-            get {
-                return (HostMaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_ParentTable);
-            }
-            internal set {
-                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_ParentTable, value);
-            }
-        }
     }
 
     public sealed class RawView : HostMaterializedTable {
@@ -151,9 +146,9 @@ namespace Starcounter.Metadata {
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
             internal static int columnHandle_FullName;
+            internal static int columnHandle_ParentTable;
             internal static int columnHandle_Updatable;
             internal static int columnHandle_MaterializedTable;
-            internal static int columnHandle_ParentTable;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -166,16 +161,16 @@ namespace Starcounter.Metadata {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
+                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable")
+                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
                 });
         }
 
@@ -193,9 +188,9 @@ namespace Starcounter.Metadata {
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
             internal static int columnHandle_FullName;
+            internal static int columnHandle_ParentTable;
             internal static int columnHandle_Updatable;
             internal static int columnHandle_MaterializedTable;
-            internal static int columnHandle_ParentTable;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -208,16 +203,16 @@ namespace Starcounter.Metadata {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
+                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
                 },
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable")
+                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
                 });
         }
 
@@ -232,9 +227,9 @@ namespace Starcounter.Metadata {
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Name;
             internal static int columnHandle_FullName;
+            internal static int columnHandle_ParentTable;
             internal static int columnHandle_Updatable;
             internal static int columnHandle_MaterializedTable;
-            internal static int columnHandle_ParentTable;
             internal static int columnHandle_AssemblyName;
             internal static int columnHandle_AppdomainName;
             internal static int columnHandle_FullClassName;
@@ -250,9 +245,9 @@ namespace Starcounter.Metadata {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
                     new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
+                    new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
                     new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("ParentTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
                     new ColumnDef("AssemblyName", sccoredb.STAR_TYPE_STRING, true, false),
                     new ColumnDef("AppdomainName", sccoredb.STAR_TYPE_STRING, true, false),
                     new ColumnDef("FullClassName", sccoredb.STAR_TYPE_STRING, true, false)
@@ -260,9 +255,9 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullName", DbTypeCode.String),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
                     new PropertyDef("AssemblyName", DbTypeCode.String),
                     new PropertyDef("AppdomainName", DbTypeCode.String),
                     new PropertyDef("FullClassName", DbTypeCode.String)
