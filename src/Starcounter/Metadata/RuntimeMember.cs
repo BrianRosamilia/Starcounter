@@ -3,7 +3,7 @@ using Starcounter.Internal;
 using System;
 
 namespace Starcounter.Metadata {
-    public abstract class RuntimeMember : Entity {
+    public abstract class BaseMember : Entity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal class __starcounterTypeSpecification {
@@ -18,8 +18,8 @@ namespace Starcounter.Metadata {
     
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.RuntimeMember", null,
-                "RuntimeMember", null,
+                "Starcounter.Metadata.BaseMember", null,
+                "BaseMember", null,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
                     new ColumnDef("BaseTable", sccoredb.STAR_TYPE_REFERENCE, true, false),
@@ -33,7 +33,7 @@ namespace Starcounter.Metadata {
                 });
         }
 
-        public RuntimeMember(Uninitialized u) : base(u) { }
+        public BaseMember(Uninitialized u) : base(u) { }
 
         public BaseTable BaseTable {
             get {
@@ -69,7 +69,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public sealed class TableColumn : RuntimeMember {
+    public sealed class TableColumn : BaseMember {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -86,8 +86,8 @@ namespace Starcounter.Metadata {
 
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.TableColumn", "Starcounter.Metadata.RuntimeMember",
-                "TableColumn", "RuntimeMember",
+                "Starcounter.Metadata.TableColumn", "Starcounter.Metadata.BaseMember",
+                "TableColumn", "BaseMember",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("BaseTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
@@ -136,7 +136,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public sealed class CodeProperty : RuntimeMember {
+    public sealed class CodeProperty : BaseMember {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
@@ -152,8 +152,8 @@ namespace Starcounter.Metadata {
 
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.CodeProperty", "Starcounter.Metadata.RuntimeMember",
-                "CodeProperty", "RuntimeMember",
+                "Starcounter.Metadata.CodeProperty", "Starcounter.Metadata.BaseMember",
+                "CodeProperty", "BaseMember",
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("BaseTable", sccoredb.STAR_TYPE_REFERENCE, true, true),

@@ -148,7 +148,7 @@ namespace StarcounterInternal.Hosting
                     BaseType.CreateTypeDef(), MaterializedType.CreateTypeDef(), RuntimeType.CreateTypeDef(),
                     MappedType.CreateTypeDef(), ReferenceType.CreateTypeDef(),
                     BaseTable.CreateTypeDef(), HostMaterializedTable.CreateTypeDef(), RawView.CreateTypeDef(),
-                    VMView.CreateTypeDef(), ClrView.CreateTypeDef(), RuntimeMember.CreateTypeDef(), 
+                    VMView.CreateTypeDef(), ClrView.CreateTypeDef(), BaseMember.CreateTypeDef(), 
                     TableColumn.CreateTypeDef(), CodeProperty.CreateTypeDef()
                 },
                 null,
@@ -202,7 +202,7 @@ namespace StarcounterInternal.Hosting
             HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(ClrView.__starcounterTypeSpecification));
 
-            HostManager.InitTypeSpecification(typeof(RuntimeMember.__starcounterTypeSpecification));
+            HostManager.InitTypeSpecification(typeof(BaseMember.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(TableColumn.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(CodeProperty.__starcounterTypeSpecification));
 
