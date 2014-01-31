@@ -42,7 +42,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullName", DbTypeCode.String),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean)
                 });
         }
@@ -64,9 +64,9 @@ namespace Starcounter.Metadata {
             }
         }
 
-        public HostMaterializedTable ParentTable {
+        public BaseTable ParentTable {
             get {
-                return (HostMaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                return (BaseTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_ParentTable);
             }
             internal set {
@@ -114,7 +114,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullName", DbTypeCode.String),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
                 });
@@ -168,7 +168,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullName", DbTypeCode.String),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
                 });
@@ -210,7 +210,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullName", DbTypeCode.String),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable")
                 });
@@ -255,7 +255,7 @@ namespace Starcounter.Metadata {
                 new PropertyDef[] {
                     new PropertyDef("Name", DbTypeCode.String),
                     new PropertyDef("FullName", DbTypeCode.String),
-                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.HostMaterializedTable"),
+                    new PropertyDef("ParentTable", DbTypeCode.Object, "Starcounter.Metadata.BaseTable"),
                     new PropertyDef("Updatable", DbTypeCode.Boolean),
                     new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Metadata.MaterializedTable"),
                     new PropertyDef("AssemblyName", DbTypeCode.String),
