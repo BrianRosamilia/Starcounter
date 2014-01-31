@@ -92,6 +92,13 @@ namespace QueryProcessingTest {
             Trace.Assert(c.BaseTable.Name == "TableColumn");
             Trace.Assert(c.BaseTable is RawView);
             Trace.Assert((c.BaseTable as RawView).ParentTable != null);
+            c = Db.SQL<TableColumn>("select c from TableColumn c where name = ?", "base_table").First;
+            Trace.Assert(c != null);
+            Trace.Assert(c.Name == "base_table");
+            Trace.Assert(c.BaseTable != null);
+            Trace.Assert(c.BaseTable.Name == "materialized_table");
+            Trace.Assert(c.BaseTable is RawView);
+            Trace.Assert((c.BaseTable as RawView).ParentTable == null);
         }
     }
 }
